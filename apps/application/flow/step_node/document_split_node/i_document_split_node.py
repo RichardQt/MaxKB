@@ -35,6 +35,7 @@ class DocumentSplitNodeSerializer(serializers.Serializer):
         required=False, label=_("document name relate problem reference"), child=serializers.CharField(), default=[]
     )
     limit = serializers.IntegerField(required=False, label=_("limit"), default=4096)
+    chunk_size = serializers.IntegerField(required=False, label=_("chunk size"), default=256)
     patterns = serializers.ListField(
         required=False, label=_("patterns"), child=serializers.CharField(), default=[]
     )
@@ -53,12 +54,10 @@ class IDocumentSplitNode(INode):
         return DocumentSplitNodeSerializer
 
     def _run(self):
-        # res = self.workflow_manage.get_reference_field(self.node_params_serializer.data.get('file_list')[0],
-        #                                                self.node_params_serializer.data.get('file_list')[1:])
         return self.execute(**self.node_params_serializer.data, **self.flow_params_serializer.data)
 
     def execute(self, document_list, knowledge_id, split_strategy, paragraph_title_relate_problem_type,
                 paragraph_title_relate_problem, paragraph_title_relate_problem_reference,
                 document_name_relate_problem_type, document_name_relate_problem,
-                document_name_relate_problem_reference, limit, patterns, with_filter, **kwargs) -> NodeResult:
+                document_name_relate_problem_reference, limit, chunk_size, patterns, with_filter, **kwargs) -> NodeResult:
         pass

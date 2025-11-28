@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from application.flow.i_step_node import NodeResult
 from application.flow.step_node.document_split_node.i_document_split_node import IDocumentSplitNode
+from common.chunk import text_to_chunk
 from knowledge.serializers.document import default_split_handle, FileBufferHandle
 
 
@@ -43,7 +44,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
     def execute(self, document_list, knowledge_id, split_strategy, paragraph_title_relate_problem_type,
                 paragraph_title_relate_problem, paragraph_title_relate_problem_reference,
                 document_name_relate_problem_type, document_name_relate_problem,
-                document_name_relate_problem_reference, limit, patterns, with_filter, **kwargs) -> NodeResult:
+                document_name_relate_problem_reference, limit, chunk_size, patterns, with_filter, **kwargs) -> NodeResult:
         self.context['knowledge_id'] = knowledge_id
         file_list = self.workflow_manage.get_reference_field(document_list[0], document_list[1:])
         paragraph_list = []
@@ -62,7 +63,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
                     split_strategy, paragraph_title_relate_problem_type,
                     paragraph_title_relate_problem, paragraph_title_relate_problem_reference,
                     document_name_relate_problem_type, document_name_relate_problem,
-                    document_name_relate_problem_reference
+                    document_name_relate_problem_reference, chunk_size
                 )
 
             paragraph_list += results
@@ -79,7 +80,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
             split_strategy, paragraph_title_relate_problem_type,
             paragraph_title_relate_problem, paragraph_title_relate_problem_reference,
             document_name_relate_problem_type, document_name_relate_problem,
-            document_name_relate_problem_reference
+            document_name_relate_problem_reference, chunk_size
     ):
         """处理文档分割结果"""
         item['meta'] = {
@@ -99,6 +100,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
                 document_name_relate_problem_reference
             )
             paragraph['is_active'] = True
+            paragraph['chunks'] = text_to_chunk(paragraph['content'], chunk_size)
 
     def _generate_problem_list(
             self, paragraph, document_name, split_strategy, paragraph_title_relate_problem_type,
