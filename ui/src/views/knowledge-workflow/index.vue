@@ -169,8 +169,12 @@ const {
   params: { id, from, folderId },
 } = route as any
 const apiType = computed(() => {
-  if (route.path.includes('resource-management')) {
+  if (route.path.includes('shared')) {
+    return 'systemShare'
+  } else if (route.path.includes('resource-management')) {
     return 'systemManage'
+  } else if (route.path.includes('share/')) {
+    return 'workspaceShare'
   } else {
     return 'workspace'
   }

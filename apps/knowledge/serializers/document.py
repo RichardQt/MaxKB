@@ -555,7 +555,7 @@ class DocumentSerializers(serializers.Serializer):
             super().is_valid(raise_exception=True)
             workspace_id = self.data.get('workspace_id')
             query_set = QuerySet(Knowledge).filter(id=self.data.get('knowledge_id'))
-            if workspace_id:
+            if workspace_id and workspace_id != 'None':
                 query_set = query_set.filter(workspace_id=workspace_id)
             if not query_set.exists():
                 raise AppApiException(500, _('Knowledge id does not exist'))
