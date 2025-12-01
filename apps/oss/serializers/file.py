@@ -173,8 +173,8 @@ def get_url_content(url, application_id: str):
     if not application.file_upload_enable:
         return AppApiException(500, _('File upload is not enabled'))
     file_limit = 50 * 1024 * 1024
-    if application.file_upload_setting and application.file_upload_setting.file_limit:
-        file_limit = application.file_upload_setting.file_limit * 1024 * 1024
+    if application.file_upload_setting and application.file_upload_setting.get('fileLimit'):
+        file_limit = application.file_upload_setting.get('fileLimit') * 1024 * 1024
     parsed = validate_url(url)
 
     response = requests.get(
@@ -186,7 +186,7 @@ def get_url_content(url, application_id: str):
     if is_private_ip(final_host):
         raise ValueError("Blocked unsafe redirect to internal host")
     # 判断文件大小
-    if response.headers.get('Content-Length', 0) > file_limit:
+    if int(response.headers.get('Content-Length', 0)) > file_limit:
         return AppApiException(500, _('File size exceeds limit'))
     # 返回状态码 响应内容大小  响应的contenttype 还有字节流
     content_type = response.headers.get('Content-Type', '')
