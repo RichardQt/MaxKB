@@ -166,7 +166,10 @@ const { theme } = useStore()
 const router = useRouter()
 const route = useRoute()
 const {
-  params: { id, from, folderId },
+  params: { id, folderId },
+  /*
+  folderId 可以区分 resource-management shared还是 workspace
+  */
 } = route as any
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
@@ -373,7 +376,7 @@ const clickShowDebug = () => {
           ...workflow.get_base_node()?.properties.node_data,
           work_flow: getGraphData(),
         }
-        DebugRef.value?.open(graphData, id)
+        DebugRef.value?.open(graphData)
       } catch (e: any) {
         MsgError(e.toString())
       }
@@ -471,7 +474,7 @@ const go = () => {
 const get_resource_management_route = () => {
   return `/knowledge/${id}/${folderId}/4/document`
 
-  // return `/system/resource-management/knowledge`
+  // return `/system/resource-management/knowledge`  没有权限的时候返回resource-management的列表
 }
 
 const get_route = () => {

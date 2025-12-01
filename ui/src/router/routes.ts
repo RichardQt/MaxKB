@@ -38,7 +38,7 @@ export const routes: Array<RouteRecordRaw> = [
   },
   // 知识库工作流
   {
-    path: '/knowledge/:from/:id/:folderId/workflow',
+    path: '/knowledge/:id/:folderId/workflow',
     name: 'KnowledgeWorkflow',
     meta: { activeMenu: '/knowledge' },
     component: () => import('@/views/knowledge-workflow/index.vue'),

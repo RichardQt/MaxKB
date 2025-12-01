@@ -33,11 +33,20 @@ const ModelRouter = {
       component: () => import('@/views/document/UploadDocument.vue'),
       hidden: true,
     },
+    // 上传文档 - 飞书文档
     {
-      path: '/knowledge/import/:folderId/:type',
+      path: '/knowledge/import/lark/:knowledgeId',
       name: 'ImportLarkDocument',
       meta: { activeMenu: '/knowledge' },
       component: () => import('@/views/document/ImportLarkDocument.vue'),
+      hidden: true,
+    },
+    // 上传文档 - 工作流
+    {
+      path: '/knowledge/import/workflow/:knowledgeId',
+      name: 'ImportWorkflowDocument',
+      meta: { activeMenu: '/knowledge' },
+      component: () => import('@/views/document/ImportWorkflowDocument.vue'),
       hidden: true,
     },
   ],

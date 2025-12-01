@@ -113,7 +113,7 @@ const DocumentRouter = {
       name: 'knowledgeWorkflowSetting',
       meta: {
         title: 'views.workflow.workflow',
-        icon: 'app-workflow',
+        icon: 'app-problems',
         activeMenu: '/knowledge',
         sameRoute: 'knowledge',
         permission: [
@@ -202,9 +202,7 @@ const DocumentRouter = {
         }),
       },
       redirect: (menu: any) => {
-        const from = 'workspace'
-        console.log(`/knowledge/${from}/${menu.params.id}/${menu.params.folderId}/workflow`)
-        return `/knowledge/${from}/${menu.params.id}/${menu.params.folderId}/workflow`
+        return `/knowledge/${menu.params.id}/${menu.params.folderId}/workflow`
       },
       component: () => import('@/views/knowledge/index.vue'),
     },

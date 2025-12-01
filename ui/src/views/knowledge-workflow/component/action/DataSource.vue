@@ -9,7 +9,9 @@
     :other-params="{ current_workspace_id: workspace_id, current_knowledge_id: knowledge_id }"
   >
     <template #default>
-      <h4 class="title-decoration-1 mb-16 mt-4">{{ $t('views.tool.dataSource.selectDataSource') }}</h4>
+      <h4 class="title-decoration-1 mb-16 mt-4">
+        {{ $t('views.tool.dataSource.selectDataSource') }}
+      </h4>
       <el-form-item
         :label="$t('views.tool.dataSource.title')"
         prop="node_id"
@@ -55,6 +57,12 @@ import useStore from '@/stores'
 const { user } = useStore()
 const route = useRoute()
 
+const props = defineProps<{
+  workflow: any
+  knowledge_id: string
+  loading: boolean
+}>()
+
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
     return 'systemShare'
@@ -65,11 +73,7 @@ const apiType = computed(() => {
   }
 })
 const model_form_field = ref<Array<FormField>>([])
-const props = defineProps<{
-  workflow: any
-  knowledge_id: string
-  loading: boolean
-}>()
+
 const workspace_id = computed(() => {
   return user.getWorkspaceId()
 })
@@ -96,9 +100,6 @@ const form_data = computed({
 const source_node_list = computed(() => {
   return props.workflow?.nodes?.filter((n: any) => n.properties.kind === WorkflowKind.DataSource)
 })
-const {
-  params: { id, from },
-} = route as any
 const sourceChange = (node_id: string) => {
   base_form_data.value.node_id = node_id
   const n = source_node_list.value.find((n: any) => n.id == node_id)
@@ -109,7 +110,7 @@ const sourceChange = (node_id: string) => {
     : node_id
   loadSharedApi({ type: 'knowledge', systemType: apiType.value })
     .getKnowledgeWorkflowFormList(
-      id,
+      props.knowledge_id,
       [WorkflowType.DataSourceLocalNode, WorkflowType.DataSourceWebNode].includes(n.type)
         ? 'local'
         : 'tool',

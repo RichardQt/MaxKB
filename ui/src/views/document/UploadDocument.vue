@@ -198,39 +198,6 @@ onUnmounted(() => {
   clearStore()
 })
 </script>
-<style lang="scss" scoped>
-.upload-document {
-  &__steps {
-    min-width: 450px;
-    max-width: 800px;
-    width: 80%;
-    margin: 0 auto;
-    padding-right: 60px;
-
-    :deep(.el-step__line) {
-      left: 64% !important;
-      right: -33% !important;
-    }
-  }
-
-  &__component {
-    width: 100%;
-    margin: 0 auto;
-    overflow: hidden;
-  }
-  &__footer {
-    padding: 16px 24px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    background: #ffffff;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .upload-component {
-    width: 70%;
-    margin: 0 auto;
-    margin-bottom: 20px;
-  }
-}
+<style lang="scss">
+@use './index.scss';
 </style>

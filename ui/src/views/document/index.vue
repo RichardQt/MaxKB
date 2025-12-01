@@ -29,11 +29,20 @@
                   type="primary"
                   @click="
                     router.push({
-                      path: `/knowledge/import/${folderId}/${type}`,
+                      path: `/knowledge/import/lark/${id}`,
                       query: {
-                        id: id,
                         folder_token: knowledgeDetail?.meta.folder_token,
                       },
+                    })
+                  "
+                  >{{ $t('views.document.importDocument') }}
+                </el-button>
+                <el-button
+                  v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
+                  type="primary"
+                  @click="
+                    router.push({
+                      path: `/knowledge/import/workflow/${id}`,
                     })
                   "
                   >{{ $t('views.document.importDocument') }}
@@ -132,9 +141,7 @@
                   clearable
                 />
               </div>
-              <el-button @click="openTagDrawer" class="ml-12"
-                v-if="permissionPrecise.tag_read(id)"
-              >
+              <el-button @click="openTagDrawer" class="ml-12" v-if="permissionPrecise.tag_read(id)">
                 {{ $t('views.document.tag.label') }}
               </el-button>
             </div>
@@ -481,7 +488,8 @@
                             ></AppIcon>
                             {{ $t('views.document.generateQuestion.title') }}
                           </el-dropdown-item>
-                          <el-dropdown-item @click="openTagSettingDrawer(row)"
+                          <el-dropdown-item
+                            @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
                             <AppIcon iconName="app-tag" class="color-secondary"></AppIcon>
@@ -605,7 +613,8 @@
                             <AppIcon iconName="app-sync" class="color-secondary"></AppIcon>
                             {{ $t('views.knowledge.setting.sync') }}</el-dropdown-item
                           >
-                          <el-dropdown-item @click="openTagSettingDrawer(row)"
+                          <el-dropdown-item
+                            @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
                             <AppIcon iconName="app-tag" class="color-secondary"></AppIcon>
@@ -783,7 +792,8 @@ const MoreFilledPermission0 = (id: string) => {
     permissionPrecise.value.doc_migrate(id) ||
     (knowledgeDetail?.value.type === 1 && permissionPrecise.value.doc_sync(id)) ||
     (knowledgeDetail?.value.type === 2 && permissionPrecise.value.doc_sync(id)) ||
-    permissionPrecise.value.doc_delete(id) || permissionPrecise.value.doc_tag(id)
+    permissionPrecise.value.doc_delete(id) ||
+    permissionPrecise.value.doc_tag(id)
   )
 }
 

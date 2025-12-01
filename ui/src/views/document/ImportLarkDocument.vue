@@ -1,13 +1,13 @@
 <template>
-  <div class="create-knowledge p-12-24">
+  <div class="upload-document p-12-24">
     <div class="flex align-center mb-16">
       <back-button to="-1" style="margin-left: -4px"></back-button>
       <h3 style="display: inline-block">{{ $t('views.document.importDocument') }}</h3>
     </div>
     <el-card style="--el-card-padding: 0">
-      <div class="create-knowledge__main flex" v-loading="loading">
-        <div class="create-knowledge__component main-calc-height">
-          <div class="upload-document p-24" style="min-width: 850px">
+      <div class="upload-document__main flex" v-loading="loading">
+        <div class="upload-document__component main-calc-height">
+          <div class="upload-component p-24" style="min-width: 850px">
             <h4 class="title-decoration-1 mb-8">
               {{ $t('views.document.feishu.selectDocument') }}
             </h4>
@@ -127,8 +127,8 @@
         </div>
       </div>
     </el-card>
-    <div class="create-knowledge__footer text-right border-t">
-      <el-button @click="router.go(-1)">{{ $t('common.cancel') }}</el-button>
+    <div class="upload-document__footer text-right border-t">
+      <el-button @click="back">{{ $t('common.cancel') }}</el-button>
 
       <el-button @click="submit" type="primary" :disabled="disabled">
         {{ $t('views.document.buttons.import') }}
@@ -147,7 +147,8 @@ import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 const router = useRouter()
 const route = useRoute()
 const {
-  query: { id, folder_token }, // id为knowledgeID，有id的是上传文档 folder_token为飞书文件夹token
+  params: { knowledgeId },
+  query: { folder_token }, // id为knowledgeID，有id的是上传文档 folder_token为飞书文件夹token
 } = route
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
@@ -158,7 +159,6 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
-const knowledgeId = id as string
 const folderToken = folder_token as string
 
 const loading = ref(false)
@@ -250,7 +250,7 @@ function submit() {
     .then(() => {
       MsgSuccess(t('views.document.tip.importMessage'))
       disabled.value = false
-      router.go(-1)
+      back()
     })
     .catch((err: any) => {
       console.error('Failed to load tree nodes:', err)
@@ -265,37 +265,6 @@ function back() {
   router.go(-1)
 }
 </script>
-<style lang="scss" scoped>
-.create-knowledge {
-  &__component {
-    width: 100%;
-    margin: 0 auto;
-    overflow: hidden;
-  }
-
-  &__footer {
-    padding: 16px 24px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    background: #ffffff;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .upload-document {
-    width: 70%;
-    margin: 0 auto;
-    margin-bottom: 20px;
-  }
-}
-
-.xlsx-icon {
-  svg {
-    width: 24px;
-    height: 24px;
-    stroke: #000000 !important;
-    fill: #ffffff !important;
-  }
-}
+<style lang="scss">
+@use './index.scss';
 </style>

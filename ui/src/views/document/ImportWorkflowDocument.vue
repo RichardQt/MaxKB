@@ -1,26 +1,29 @@
 <template>
-  <el-drawer
-    v-model="drawerVisible"
-    :title="$t('common.debug')"
-    size="800px"
-    direction="rtl"
-    destroy-on-close
-    :before-close="close"
-  >
-    <div style="height: calc(100% - 57px)" v-loading="loading">
-      <keep-alive>
-        <component
-          ref="ActionRef"
-          :is="ak[active]"
-          v-model:loading="loading"
-          :workflow="_workflow"
-          :knowledge_id="id"
-          :id="action_id"
-        ></component>
-      </keep-alive>
+  <div class="upload-document p-12-24">
+    <div class="flex align-center mb-16">
+      <back-button to="-1" style="margin-left: -4px"></back-button>
+      <h3 style="display: inline-block">{{ $t('views.document.importDocument') }}</h3>
     </div>
-    <template #footer>
-      <el-button :loading="loading" @click="close">{{ $t('common.cancel') }}</el-button>
+    <el-card style="--el-card-padding: 0">
+      <div class="upload-document__main flex" v-loading="loading">
+        <div class="upload-document__component main-calc-height">
+          <div class="upload-component p-24" style="min-width: 850px">
+            <keep-alive>
+              <component
+                ref="ActionRef"
+                :is="ak[active]"
+                v-model:loading="loading"
+                :workflow="_workflow"
+                :knowledge_id="knowledgeId"
+                :id="action_id"
+              ></component>
+            </keep-alive>
+          </div>
+        </div>
+      </div>
+    </el-card>
+    <div class="upload-document__footer text-right border-t">
+      <el-button :disabled="loading" @click="router.go(-1)">{{ $t('common.cancel') }}</el-button>
       <el-button
         v-if="base_form_list.length > 0 && active == 'knowledge_base'"
         :loading="loading"
@@ -30,7 +33,7 @@
       >
       <el-button
         v-if="base_form_list.length > 0 && active == 'data_source'"
-        :loading="loading"
+        :disabled="loading"
         @click="next"
       >
         {{ $t('views.document.buttons.next') }}
@@ -39,37 +42,30 @@
         v-if="base_form_list.length > 0 ? active == 'knowledge_base' : true"
         @click="upload"
         type="primary"
-        :loading="loading"
+        :disabled="loading"
       >
         {{ $t('views.document.buttons.import') }}
       </el-button>
-    </template>
-  </el-drawer>
+    </div>
+  </div>
 </template>
 <script setup lang="ts">
-import { computed, ref, provide, type Ref } from 'vue'
+import { computed, ref, provide, type Ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import DataSource from '@/views/knowledge-workflow/component/action/DataSource.vue'
 import Result from '@/views/knowledge-workflow/component/action/Result.vue'
 import applicationApi from '@/api/application/application'
 import KnowledgeBase from '@/views/knowledge-workflow/component/action/KnowledgeBase.vue'
-import { WorkflowType } from '@/enums/application'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
-import { useRoute } from 'vue-router'
+import { WorkflowType } from '@/enums/application'
 provide('upload', (file: any, loading?: Ref<boolean>) => {
-  return applicationApi.postUploadFile(file, id, 'KNOWLEDGE', loading)
+  return applicationApi.postUploadFile(file, knowledgeId as string, 'KNOWLEDGE', loading)
 })
+const router = useRouter()
 const route = useRoute()
 const {
-  params: { id },
-  /*
-  id 为 knowledge_id
-  */
-} = route as any
-const ak = {
-  data_source: DataSource,
-  knowledge_base: KnowledgeBase,
-  result: Result,
-}
+  params: { knowledgeId },
+} = route
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
     return 'systemShare'
@@ -79,22 +75,19 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
-const loading = ref<boolean>(false)
-const action_id = ref<string>()
+
+const ak = {
+  data_source: DataSource,
+  knowledge_base: KnowledgeBase,
+  result: Result,
+}
+
+const loading = ref(false)
 const ActionRef = ref()
+const action_id = ref<string>()
 const form_data = ref<any>({})
 const active = ref<'data_source' | 'knowledge_base' | 'result'>('data_source')
-const drawerVisible = ref<boolean>(false)
 const _workflow = ref<any>(null)
-const close = () => {
-  drawerVisible.value = false
-  _workflow.value = null
-  active.value = 'data_source'
-}
-const open = (workflow: any) => {
-  drawerVisible.value = true
-  _workflow.value = workflow
-}
 
 const base_form_list = computed(() => {
   const kBase = _workflow.value?.nodes?.find((n: any) => n.type === WorkflowType.KnowledgeBase)
@@ -118,13 +111,24 @@ const upload = () => {
   ActionRef.value.validate().then(() => {
     form_data.value[active.value] = ActionRef.value.get_data()
     loadSharedApi({ type: 'knowledge', systemType: apiType.value })
-      .workflowAction(id, form_data.value, loading)
+      .workflowUpload(knowledgeId, form_data.value, loading)
       .then((ok: any) => {
-        action_id.value = ok.data.id
-        active.value = 'result'
+        router.go(-1)
       })
   })
 }
-defineExpose({ close, open })
+function getDetail() {
+  loadSharedApi({ type: 'knowledge', systemType: apiType.value })
+    .getKnowledgeDetail(knowledgeId, loading)
+    .then((res: any) => {
+      _workflow.value = res.data.work_flow
+    })
+}
+
+onMounted(() => {
+  getDetail()
+})
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss">
+@use './index.scss';
+</style>
