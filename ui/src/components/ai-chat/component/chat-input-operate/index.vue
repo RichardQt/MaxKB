@@ -1120,7 +1120,7 @@ const mime_types = {
   "mid": "audio/midi",
   "midi": "audio/midi",
   "kar": "audio/midi",
-  "mp3": "audio/mp3",
+  "mp3": "audio/mpeg",
   "ogg": "audio/ogg",
   "m4a": "audio/x-m4a",
   "ra": "audio/x-realaudio",
@@ -1240,7 +1240,7 @@ async function saveUrl() {
     try {
       const appId = props.appId || props.applicationDetails?.id;
       const res = await imageApi.getFile(appId, {url});
-      if (!res.data) {
+      if (res.data['status_code'] !== 200) {
         MsgWarning(url + ' ' + t('chat.uploadFile.invalidUrl'));
         return;
       }
