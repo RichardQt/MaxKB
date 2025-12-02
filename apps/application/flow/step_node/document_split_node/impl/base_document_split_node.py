@@ -44,11 +44,23 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
     def execute(self, document_list, knowledge_id, split_strategy, paragraph_title_relate_problem_type,
                 paragraph_title_relate_problem, paragraph_title_relate_problem_reference,
                 document_name_relate_problem_type, document_name_relate_problem,
-                document_name_relate_problem_reference, limit, chunk_size, patterns, with_filter, **kwargs) -> NodeResult:
+                document_name_relate_problem_reference, limit, limit_type, limit_reference, chunk_size, chunk_size_type,
+                chunk_size_reference, patterns, patterns_type, patterns_reference, with_filter, with_filter_type,
+                with_filter_reference, **kwargs) -> NodeResult:
         self.context['knowledge_id'] = knowledge_id
-        file_list = self.workflow_manage.get_reference_field(document_list[0], document_list[1:])
-        paragraph_list = []
+        file_list = self.get_reference_content(document_list)
 
+        # 处理引用类型的参数
+        if patterns_type == 'referencing':
+            patterns = self.get_reference_content(patterns_reference)
+        if limit_type == 'referencing':
+            limit = self.get_reference_content(limit_reference)
+        if chunk_size_type == 'referencing':
+            chunk_size = self.get_reference_content(chunk_size_reference)
+        if with_filter_type == 'referencing':
+            with_filter = self.get_reference_content(with_filter_reference)
+
+        paragraph_list = []
         for doc in file_list:
             get_buffer = FileBufferHandle().get_buffer
 
