@@ -38,6 +38,7 @@ class KnowledgeWriteParamSerializer(serializers.Serializer):
                                  source=_('document name'))
     meta = serializers.DictField(required=False)
     paragraphs = ParagraphInstanceSerializer(required=False, many=True, allow_null=True)
+    source_file_id = serializers.UUIDField(required=False, allow_null=True)
 
 
 def convert_uuid_to_str(obj):

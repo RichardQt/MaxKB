@@ -101,6 +101,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
             'source_url': file_name,
         }
         item['name'] = file_name
+        item['source_file_id'] = source_file_id
         item['paragraphs'] = item.pop('content', [])
 
         for paragraph in item['paragraphs']:
