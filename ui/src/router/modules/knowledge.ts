@@ -35,7 +35,7 @@ const ModelRouter = {
     },
     // 上传文档 - 飞书文档
     {
-      path: '/knowledge/import/lark/:knowledgeId',
+      path: '/knowledge/import/lark/:folderId',
       name: 'ImportLarkDocument',
       meta: { activeMenu: '/knowledge' },
       component: () => import('@/views/document/ImportLarkDocument.vue'),
@@ -43,7 +43,7 @@ const ModelRouter = {
     },
     // 上传文档 - 工作流
     {
-      path: '/knowledge/import/workflow/:knowledgeId',
+      path: '/knowledge/import/workflow/:folderId',
       name: 'ImportWorkflowDocument',
       meta: { activeMenu: '/knowledge' },
       component: () => import('@/views/document/ImportWorkflowDocument.vue'),

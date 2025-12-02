@@ -71,8 +71,12 @@ const documentsType = computed(() => knowledge.documentsType)
 const router = useRouter()
 const route = useRoute()
 const {
-  params: { folderId, type }, // type为知识库类型的类型
-  query: { id }, // id为knowledgeID，有id的是上传文档
+  params: { folderId, type },
+  query: { id },
+  /*
+  id为knowledgeID，有id的是上传文档; type为知识库类型的类型
+  folderId 可以区分 resource-management shared还是 workspace
+  */
 } = route
 
 const apiType = computed(() => {

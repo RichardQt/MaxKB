@@ -29,8 +29,9 @@
                   type="primary"
                   @click="
                     router.push({
-                      path: `/knowledge/import/lark/${id}`,
+                      path: `/knowledge/import/lark/${folderId}`,
                       query: {
+                        id: id,
                         folder_token: knowledgeDetail?.meta.folder_token,
                       },
                     })
@@ -42,7 +43,10 @@
                   type="primary"
                   @click="
                     router.push({
-                      path: `/knowledge/import/workflow/${id}`,
+                      path: `/knowledge/import/workflow/${folderId}`,
+                      query: {
+                        id: id,
+                      },
                     })
                   "
                   >{{ $t('views.document.importDocument') }}

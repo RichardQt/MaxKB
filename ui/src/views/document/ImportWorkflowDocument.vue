@@ -59,12 +59,17 @@ import KnowledgeBase from '@/views/knowledge-workflow/component/action/Knowledge
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
 import { WorkflowType } from '@/enums/application'
 provide('upload', (file: any, loading?: Ref<boolean>) => {
-  return applicationApi.postUploadFile(file, knowledgeId as string, 'KNOWLEDGE', loading)
+  return applicationApi.postUploadFile(file, id as string, 'KNOWLEDGE', loading)
 })
 const router = useRouter()
 const route = useRoute()
 const {
-  params: { knowledgeId },
+  params: { folderId },
+  query: { id },
+  /*
+  id为knowledgeID
+  folderId 可以区分 resource-management shared还是 workspace
+  */
 } = route
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
@@ -111,7 +116,7 @@ const upload = () => {
   ActionRef.value.validate().then(() => {
     form_data.value[active.value] = ActionRef.value.get_data()
     loadSharedApi({ type: 'knowledge', systemType: apiType.value })
-      .workflowUpload(knowledgeId, form_data.value, loading)
+      .workflowUpload(id, form_data.value, loading)
       .then((ok: any) => {
         router.go(-1)
       })
@@ -119,7 +124,7 @@ const upload = () => {
 }
 function getDetail() {
   loadSharedApi({ type: 'knowledge', systemType: apiType.value })
-    .getKnowledgeDetail(knowledgeId, loading)
+    .getKnowledgeDetail(id, loading)
     .then((res: any) => {
       _workflow.value = res.data.work_flow
     })

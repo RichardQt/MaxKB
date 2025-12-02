@@ -147,8 +147,8 @@ import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 const router = useRouter()
 const route = useRoute()
 const {
-  params: { knowledgeId },
-  query: { folder_token }, // id为knowledgeID，有id的是上传文档 folder_token为飞书文件夹token
+  params: { folderId },
+  query: { id, folder_token }, // id为knowledgeID，有id的是上传文档 folder_token为飞书文件夹token
 } = route
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
@@ -159,7 +159,6 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
-const folderToken = folder_token as string
 
 const loading = ref(false)
 const disabled = ref(false)
@@ -193,9 +192,9 @@ const props = {
 }
 
 const loadNode = (node: Node, resolve: (nodeData: Tree[]) => void) => {
-  const token = node.level === 0 ? folderToken : node.data.token // 根节点使用 folder_token，其他节点使用 node.data.token
+  const token = node.level === 0 ? folder_token : node.data.token // 根节点使用 folder_token，其他节点使用 node.data.token
   loadSharedApi({ type: 'document', systemType: apiType.value })
-    .getLarkDocumentList(knowledgeId, token, {}, loading)
+    .getLarkDocumentList(id, token, {}, loading)
     .then((res: any) => {
       const nodes = res.data.files as Tree[]
       resolve(nodes)
@@ -246,7 +245,7 @@ function submit() {
     return
   }
   loadSharedApi({ type: 'document', systemType: apiType.value })
-    .importLarkDocument(knowledgeId, newList, loading)
+    .importLarkDocument(id, newList, loading)
     .then(() => {
       MsgSuccess(t('views.document.tip.importMessage'))
       disabled.value = false
