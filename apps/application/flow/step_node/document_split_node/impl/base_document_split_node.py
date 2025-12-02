@@ -85,6 +85,7 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
             paragraph_list += results
 
         self.context['paragraph_list'] = paragraph_list
+        self.context['document_list'] = file_list
         self.context['limit'] = limit
         self.context['chunk_size'] = chunk_size
         self.context['with_filter'] = with_filter
@@ -170,4 +171,5 @@ class BaseDocumentSplitNode(IDocumentSplitNode):
             'with_filter': self.context.get('with_filter'),
             'patterns': self.context.get('patterns'),
             'split_strategy': self.context.get('split_strategy'),
+            'document_list': self.context.get('document_list', []),
         }
