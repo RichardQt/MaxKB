@@ -82,7 +82,7 @@ class ToolExecutor:
         err = '{"code":500,"msg":str(e),"data":None}'
         action_function = f'({function_name !a}, locals_v.get({function_name !a}))' if function_name else 'locals_v.popitem()'
         python_paths = CONFIG.get_sandbox_python_package_paths().split(',')
-        target_user = f'os.setgid({pwd.getpwnam(self.user).pw_gid});os.setuid({pwd.getpwnam(self.user).pw_uid});' if self.sandbox else ''
+        set_run_user = f'os.setgid({pwd.getpwnam(self.user).pw_gid});os.setuid({pwd.getpwnam(self.user).pw_uid});' if self.sandbox else ''
         _exec_code = f"""
 try:
     import os, sys, json, base64, builtins
@@ -92,8 +92,8 @@ try:
     locals_v={'{}'}
     keywords={keywords}
     globals_v={'{}'}
+    {set_run_user}
     os.environ.clear()
-    {target_user}
     exec({dedent(code_str)!a}, globals_v, locals_v)
     f_name, f = {action_function}
     for local in locals_v:
@@ -103,8 +103,8 @@ try:
 except Exception as e:
     builtins.print("\\n{_id}:"+base64.b64encode(json.dumps({err}, default=str).encode()).decode(), flush=True)
 """
+        maxkb_logger.debug(f"Sandbox execute code: {_exec_code}")
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=True) as f:
-            maxkb_logger.debug(f"Sandbox execute code: {_exec_code}")
             f.write(_exec_code)
             f.flush()
             subprocess_result = self._exec(f.name)
