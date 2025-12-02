@@ -418,7 +418,7 @@
                   />
                 </span>
                 <el-divider direction="vertical" />
-                <template v-if="knowledgeDetail?.type === 0">
+                <template v-if="knowledgeDetail?.type === 0 || knowledgeDetail?.type === 4">
                   <el-tooltip
                     effect="dark"
                     :content="$t('views.document.setting.cancelVectorization')"
