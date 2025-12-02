@@ -75,6 +75,7 @@ const option_list = computed(() => {
 </script>
 <style lang="scss" scoped>
 .radio_content {
+  height: 32px;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -94,7 +95,6 @@ const option_list = computed(() => {
     color: var(--el-color-primary);
   }
   .item {
-    line-height: 22px;
     cursor: pointer;
     display: flex;
     justify-content: center;

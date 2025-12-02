@@ -7,18 +7,20 @@
     <el-card style="--el-card-padding: 0">
       <div class="upload-document__main flex" v-loading="loading">
         <div class="upload-document__component main-calc-height">
-          <div class="upload-component p-24" style="min-width: 850px">
-            <keep-alive>
-              <component
-                ref="ActionRef"
-                :is="ak[active]"
-                v-model:loading="loading"
-                :workflow="_workflow"
-                :knowledge_id="id"
-                :id="action_id"
-              ></component>
-            </keep-alive>
-          </div>
+          <el-scrollbar>
+            <div class="upload-component p-24" style="min-width: 850px">
+              <keep-alive>
+                <component
+                  ref="ActionRef"
+                  :is="ak[active]"
+                  v-model:loading="loading"
+                  :workflow="_workflow"
+                  :knowledge_id="id"
+                  :id="action_id"
+                ></component>
+              </keep-alive>
+            </div>
+          </el-scrollbar>
         </div>
       </div>
     </el-card>
@@ -118,7 +120,8 @@ const upload = () => {
     loadSharedApi({ type: 'knowledge', systemType: apiType.value })
       .workflowUpload(id, form_data.value, loading)
       .then((ok: any) => {
-        router.go(-1)
+        action_id.value = ok.data.id
+        active.value = 'result'
       })
   })
 }
