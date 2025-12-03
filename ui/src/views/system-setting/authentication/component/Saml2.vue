@@ -37,6 +37,7 @@
             <el-input
                 v-model="form.config.privateKey"
                 type="password"
+                show-password
                 :placeholder="$t('views.system.authentication.saml2.privateKeyPlaceholder')"
             />
           </el-form-item>
@@ -47,6 +48,7 @@
             <el-input
                 v-model="form.config.certificate"
                 type="password"
+                show-password
                 :placeholder="$t('views.system.authentication.saml2.certificatePlaceholder')"
             />
           </el-form-item>
