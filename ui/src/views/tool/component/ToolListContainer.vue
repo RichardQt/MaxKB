@@ -272,8 +272,7 @@
                           <el-dropdown-item
                             v-if="
                               !item.template_id &&
-                              permissionPrecise.copy(item.id) &&
-                              item.tool_type !== 'MCP'
+                              permissionPrecise.copy(item.id)
                             "
                             @click.stop="copyTool(item)"
                           >
@@ -316,8 +315,7 @@
                           <el-dropdown-item
                             v-if="
                               !item.template_id &&
-                              permissionPrecise.export(item.id) &&
-                              item.tool_type !== 'MCP'
+                              permissionPrecise.export(item.id)
                             "
                             @click.stop="exportTool(item)"
                           >
