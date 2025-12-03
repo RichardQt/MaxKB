@@ -1,10 +1,12 @@
 <template>
   <NodeContainer :nodeModel="nodeModel">
+    <h5 class="title-decoration-1 mb-8">{{ $t('views.workflow.nodeSetting') }}</h5>
     <UserInputFieldTable ref="UserInputFieldTableFef" :node-model="nodeModel" />
+
+    <h5 class="title-decoration-1 mb-8 mt-8">
+      {{ $t('common.param.outputParam') }}
+    </h5>
     <template v-if="nodeFields.length > 0">
-      <h5 class="title-decoration-1 mb-8 mt-8">
-        {{ $t('common.param.outputParam') }}
-      </h5>
       <template v-for="(item, index) in nodeFields" :key="index">
         <div
           class="flex-between border-r-6 p-8-12 mb-8 layout-bg lighter"
@@ -25,6 +27,9 @@
         </div>
       </template>
     </template>
+    <div v-else class="border-r-6 p-8-12 mb-8 layout-bg lighter">
+      {{ $t('common.noData') }}
+    </div>
   </NodeContainer>
 </template>
 <script setup lang="ts">

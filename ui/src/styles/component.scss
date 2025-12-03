@@ -180,7 +180,6 @@
   }
 }
 
-
 .import-button {
   .el-upload {
     display: block !important;
@@ -327,5 +326,33 @@
 
   &.active {
     border-color: var(--el-color-primary);
+  }
+}
+
+// 分段预览的tab样式
+.paragraph-tabs {
+  .el-tabs__item {
+    background: var(--app-text-color-light-1);
+    margin: 4px;
+    border-radius: 4px;
+    padding: 5px 10px 5px 8px !important;
+    height: auto;
+    &:nth-child(2) {
+      margin-left: 0;
+    }
+    &:last-child {
+      margin-right: 0;
+    }
+    &.is-active {
+      border: 1px solid var(--el-color-primary);
+      background: var(--el-color-primary-light-9);
+      color: var(--el-text-color-primary);
+    }
+  }
+  .el-tabs__nav-wrap::after {
+    display: none;
+  }
+  .el-tabs__active-bar {
+    display: none;
   }
 }

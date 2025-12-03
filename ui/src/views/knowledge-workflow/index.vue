@@ -324,7 +324,7 @@ const publish = () => {
           )
         })
         .then((ok: any) => {
-          MsgSuccess(t('views.knowledge.tip.publishSuccess'))
+          MsgSuccess(t('views.application.tip.publishSuccess'))
         })
         .catch((res: any) => {
           const node = res.node

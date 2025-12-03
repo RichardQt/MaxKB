@@ -16,7 +16,6 @@
     </div>
   </div>
   <el-table
-    v-if="props.nodeModel.properties.user_input_field_list?.length > 0"
     :data="props.nodeModel.properties.user_input_field_list"
     class="mb-16"
     ref="tableRef"

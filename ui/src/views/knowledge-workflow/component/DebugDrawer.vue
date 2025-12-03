@@ -6,6 +6,8 @@
     direction="rtl"
     destroy-on-close
     :before-close="close"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
   >
     <div style="height: calc(100% - 57px)" v-loading="loading">
       <keep-alive :key="key" :include="['data_source', 'knowledge_base']">

@@ -76,7 +76,7 @@ const submitHandle = async () => {
       .then((res: any) => {
         MsgSuccess(t('common.createSuccess'))
         router.push({
-          path: `/knowledge/${res.data.id}/${currentFolder.value.id || 'shared'}/4/document`,
+          path: `/knowledge/${res.data.id}/${currentFolder.value.id || 'shared'}/workflow`,
         })
         emit('refresh')
       })

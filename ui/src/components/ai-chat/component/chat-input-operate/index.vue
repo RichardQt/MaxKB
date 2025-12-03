@@ -568,7 +568,7 @@ const uploadFile = async (file: any, fileList: any) => {
   }
   filePromisionDict.value[file.uid] = false
   const inner = reactive(file)
-  fileAllList.value.push(inner)
+  // fileAllList.value.push(inner)
   if (!chatId_context.value) {
     chatId_context.value = await props.openChatId()
   }
@@ -1313,9 +1313,9 @@ async function saveUrl() {
   // 并行处理所有 URL
   await Promise.all(validUrls.map(url => processUrl(url)));
 
-  if (validFiles.length > 0) {
-    fileAllList.value.push(...validFiles);
-  }
+  // if (validFiles.length > 0) {
+  //   fileAllList.value.push(...validFiles);
+  // }
 
   showURLSetting.value = false;
   urlForm.source_url = '';

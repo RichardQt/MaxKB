@@ -563,7 +563,10 @@ function toChat(row: any) {
     aips = aips ? aips : []
     const apiParams = mapToUrlParams(aips) ? '?' + mapToUrlParams(aips) : ''
     ApplicationApi.getAccessToken(row.id, loading).then((res: any) => {
-      window.open(application.location + res?.data?.access_token + apiParams)
+      const newUrl = router.resolve({
+        path: application.location + res?.data?.access_token + apiParams,
+      }).href
+      window.open(newUrl)
     })
   })
 }

@@ -31,7 +31,7 @@
               </el-icon>
             </el-button>
             <el-dropdown
-              v-if="showOperate(nodeModel.type)"
+              v-if="showConditionOperate(nodeModel.type)"
               :teleported="false"
               trigger="click"
               placement="bottom-start"
@@ -174,7 +174,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 import { set } from 'lodash'
 import { iconComponent } from '../icons/utils'
 import { copyClick } from '@/utils/clipboard'
-import { WorkflowType } from '@/enums/application'
+import { WorkflowType, WorkflowKind } from '@/enums/application'
 import { MsgError, MsgConfirm } from '@/utils/message'
 import type { FormInstance } from 'element-plus'
 import { t } from '@/locales'
@@ -349,6 +349,20 @@ function showOperate(type: string) {
     WorkflowType.KnowledgeBase,
     WorkflowType.LoopStartNode.toString(),
   ].includes(type)
+}
+
+function showConditionOperate(type: string) {
+  console.log(props.nodeModel)
+  return (
+    ![
+      WorkflowType.Start,
+      WorkflowType.Base,
+      WorkflowType.KnowledgeBase,
+      WorkflowType.LoopStartNode.toString(),
+      WorkflowType.DataSourceLocalNode,
+      WorkflowType.DataSourceWebNode,
+    ].includes(type) && props.nodeModel.properties.kind != WorkflowKind.DataSource
+  )
 }
 const openNodeMenu = (anchorValue: any) => {
   showAnchor.value = true
