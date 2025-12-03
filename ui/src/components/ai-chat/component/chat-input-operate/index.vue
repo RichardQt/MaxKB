@@ -583,6 +583,7 @@ const uploadFile = async (file: any, fileList: any) => {
     inner.file_id = split_path[split_path.length - 1]
     delete filePromisionDict.value[file.uid]
   })
+  showURLSetting.value = false
 }
 // 粘贴处理
 const handlePaste = (event: ClipboardEvent) => {
