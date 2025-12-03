@@ -10,6 +10,7 @@ import sys
 import tempfile
 import pwd
 import resource
+import getpass
 import uuid_utils.compat as uuid
 from common.utils.logger import maxkb_logger
 from django.utils.translation import gettext_lazy as _
@@ -17,33 +18,24 @@ from maxkb.const import BASE_DIR, CONFIG
 from maxkb.const import PROJECT_DIR
 from textwrap import dedent
 
-python_directory = sys.executable
-
-
 class ToolExecutor:
+
+    enable_sandbox = bool(CONFIG.get('SANDBOX', 0))
+    sandbox_path = CONFIG.get("SANDBOX_HOME", '/opt/maxkb-app/sandbox') if enable_sandbox else os.path.join(PROJECT_DIR, 'data', 'sandbox')
+    process_timeout_seconds = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_TIMEOUT_SECONDS", '3600'))
+    process_limit_mem_mb = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_LIMIT_MEM_MB", '256'))
 
     def __init__(self, sandbox=False):
         self.sandbox = sandbox
         if sandbox:
-            self.sandbox_path = CONFIG.get("SANDBOX_HOME", '/opt/maxkb-app/sandbox')
             self.user = 'sandbox'
         else:
-            self.sandbox_path = os.path.join(PROJECT_DIR, 'data', 'sandbox')
-            self.user = None
-        self.sandbox_so_path = f'{self.sandbox_path}/lib/sandbox.so'
-        self.process_timeout_seconds = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_TIMEOUT_SECONDS", '3600'))
-        self.process_limit_mem_mb = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_LIMIT_MEM_MB", '256'))
-        try:
-            self._init_sandbox_dir()
-        except Exception as e:
-            # 本机忽略异常，容器内不忽略
-            maxkb_logger.error(f'Exception: {e}', exc_info=True)
-            if self.sandbox:
-                raise e
+            self.user = getpass.getuser()
 
-    def _init_sandbox_dir(self):
-        if not self.sandbox:
-            # 不是sandbox就不初始化目录
+    @staticmethod
+    def init_sandbox_dir():
+        if not ToolExecutor.enable_sandbox:
+            # 不启用sandbox就不初始化目录
             return
         try:
             # 只初始化一次
@@ -63,7 +55,7 @@ class ToolExecutor:
         if CONFIG.get("SANDBOX_TMP_DIR_ENABLED", '0') == "1":
             os.system("chmod g+rwx /tmp")
         # 初始化sandbox配置文件
-        sandbox_lib_path = os.path.dirname(self.sandbox_so_path)
+        sandbox_lib_path = os.path.dirname(f'{ToolExecutor.sandbox_path}/lib/sandbox.so')
         sandbox_conf_file_path = f'{sandbox_lib_path}/.sandbox.conf'
         if os.path.exists(sandbox_conf_file_path):
             os.remove(sandbox_conf_file_path)
@@ -76,7 +68,8 @@ class ToolExecutor:
         with open(sandbox_conf_file_path, "w") as f:
             f.write(f"SANDBOX_PYTHON_BANNED_HOSTS={banned_hosts}\n")
             f.write(f"SANDBOX_PYTHON_ALLOW_SUBPROCESS={allow_subprocess}\n")
-        os.system(f"chmod -R 550 {self.sandbox_path}")
+        os.system(f"chmod -R 550 {ToolExecutor.sandbox_path}")
+
 
     def exec_code(self, code_str, keywords, function_name=None):
         _id = str(uuid.uuid7())
@@ -103,7 +96,7 @@ try:
     exec_result=f(**keywords)
     builtins.print("\\n{_id}:"+base64.b64encode(json.dumps({success}, default=str).encode()).decode(), flush=True)
 except Exception as e:
-    if isinstance(e, MemoryError): e = Exception("Cannot allocate more memory: exceeded the limit of {self.process_limit_mem_mb} MB.")
+    if isinstance(e, MemoryError): e = Exception("Cannot allocate more memory: exceeded the limit of {ToolExecutor.process_limit_mem_mb} MB.")
     builtins.print("\\n{_id}:"+base64.b64encode(json.dumps({err}, default=str).encode()).decode(), flush=True)
 """
         maxkb_logger.debug(f"Sandbox execute code: {_exec_code}")
@@ -213,9 +206,9 @@ exec({dedent(code)!a})
                 '-c',
                 f'import base64,gzip; exec(gzip.decompress(base64.b64decode(\'{compressed_and_base64_encoded_code_str}\')).decode())',
             ],
-            'cwd': self.sandbox_path,
+            'cwd': ToolExecutor.sandbox_path,
             'env': {
-               'LD_PRELOAD': self.sandbox_so_path,
+               'LD_PRELOAD': f'{ToolExecutor.sandbox_path}/lib/sandbox.so',
             },
             'transport': 'stdio',
         }
@@ -223,23 +216,20 @@ exec({dedent(code)!a})
 
     def _exec(self, execute_file):
         kwargs = {'cwd': BASE_DIR, 'env': {
-            'LD_PRELOAD': self.sandbox_so_path,
+            'LD_PRELOAD': f'{ToolExecutor.sandbox_path}/lib/sandbox.so',
         }}
         try:
-            def set_resource_limit():
-                if not self.sandbox:
-                    return
-                mem_limit = self.process_limit_mem_mb * 1024 * 1024
-                resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
             subprocess_result = subprocess.run(
-                [python_directory, execute_file],
-                preexec_fn=set_resource_limit,
-                timeout=self.process_timeout_seconds,
+                [sys.executable, execute_file],
+                timeout=ToolExecutor.process_timeout_seconds,
                 text=True,
-                capture_output=True, **kwargs)
+                capture_output=True,
+                **kwargs,
+                preexec_fn=lambda: (None if not self.sandbox else resource.setrlimit(resource.RLIMIT_AS, (ToolExecutor.process_limit_mem_mb * 1024 * 1024,) * 2))
+            )
             return subprocess_result
         except subprocess.TimeoutExpired:
-            raise Exception(_(f"Process execution timed out after {self.process_timeout_seconds} seconds."))
+            raise Exception(_(f"Process execution timed out after {ToolExecutor.process_timeout_seconds} seconds."))
 
     def validate_mcp_transport(self, code_str):
         servers = json.loads(code_str)
@@ -247,3 +237,7 @@ exec({dedent(code)!a})
             if config.get('transport') not in ['sse', 'streamable_http']:
                 raise Exception(_('Only support transport=sse or transport=streamable_http'))
 
+try:
+    ToolExecutor.init_sandbox_dir()
+except Exception as e:
+    maxkb_logger.error(f'Exception: {e}', exc_info=True)
