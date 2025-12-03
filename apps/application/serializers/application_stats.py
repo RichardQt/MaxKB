@@ -21,6 +21,7 @@ from common.db.search import native_search, get_dynamics_model
 from common.exception.app_exception import AppApiException
 from common.utils.common import get_file_content
 from maxkb.conf import PROJECT_DIR
+from maxkb.settings import edition
 
 
 class ApplicationStatsSerializer(serializers.Serializer):
@@ -133,7 +134,9 @@ class ApplicationStatisticsSerializer(serializers.Serializer):
                    'application_chat_record.create_time__lte': end_time}
             )},
             select_string=get_file_content(
-                os.path.join(PROJECT_DIR, "apps", "application", 'sql', 'get_token_usage.sql')))
+                os.path.join(PROJECT_DIR, "apps", "application", 'sql',
+                             ('get_token_usage_ee.sql' if ['PE', 'EE'].__contains__(
+                                 edition) else 'get_token_usage.sql'))))
         return get_token_usage
 
     def get_top_questions_statistics(self, with_valid=True):
@@ -150,5 +153,6 @@ class ApplicationStatisticsSerializer(serializers.Serializer):
                    'application_chat_record.create_time__lte': end_time}
             )},
             select_string=get_file_content(
-                os.path.join(PROJECT_DIR, "apps", "application", 'sql', 'top_questions.sql')))
+                os.path.join(PROJECT_DIR, "apps", "application", 'sql', (
+                    'top_questions_ee.sql' if ['PE', 'EE'].__contains__(edition) else 'top_questions.sql'))))
         return get_top_questions
