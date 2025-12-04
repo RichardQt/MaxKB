@@ -278,7 +278,6 @@
                               :show-file-list="false"
                               :accept="getAcceptList()"
                               :on-change="(file: any, fileList: any) => uploadFile(file, fileList)"
-                              v-model:file-list="fileAllList"
                               ref="upload"
                             >
                               <el-tooltip
@@ -393,7 +392,6 @@
             :show-file-list="false"
             :accept="getAcceptList()"
             :on-change="(file: any, fileList: any) => uploadFile(file, fileList)"
-            v-model:file-list="fileAllList"
             ref="upload"
             class="import-button"
           >
@@ -568,7 +566,7 @@ const uploadFile = async (file: any, fileList: any) => {
   }
   filePromisionDict.value[file.uid] = false
   const inner = reactive(file)
-  // fileAllList.value.push(inner)
+  fileAllList.value.push(inner)
   if (!chatId_context.value) {
     chatId_context.value = await props.openChatId()
   }
