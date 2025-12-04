@@ -192,7 +192,7 @@
             <div class="flex">
               <img :src="getImgUrl(item && item?.name)" alt="" width="40" />
               <div class="ml-8">
-                <p>{{ item && item?.name }}</p>
+                <p class="ellipsis-1" :title="item && item?.name">{{ item && item?.name }}</p>
                 <el-text type="info" size="small">{{
                   filesize(item && item?.size) || '0K'
                 }}</el-text>
