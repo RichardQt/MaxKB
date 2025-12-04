@@ -808,7 +808,7 @@ class ToolSerializer(serializers.Serializer):
                 input_field_list=tool_data.get('input_field_list', []),
                 init_field_list=tool_data.get('init_field_list', []),
                 scope=ToolScope.WORKSPACE,
-                tool_type=ToolType.CUSTOM,
+                tool_type=instance.get('tool_type', ToolType.CUSTOM),
                 folder_id=instance.get('folder_id', self.data.get('workspace_id')),
                 template_id=self.data.get('tool_id'),
                 label=instance.get('label'),
