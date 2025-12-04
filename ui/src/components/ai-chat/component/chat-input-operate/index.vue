@@ -543,7 +543,7 @@ const uploadFile = async (file: any, fileList: any) => {
     uploadAudioList.value.length +
     uploadVideoList.value.length +
     uploadOtherList.value.length
-  if (file_limit_once >= maxFiles) {
+  if (file_limit_once > maxFiles) {
     MsgWarning(t('chat.uploadFile.limitMessage1') + maxFiles + t('chat.uploadFile.limitMessage2'))
     fileList.splice(0, fileList.length, ...fileList.slice(0, maxFiles))
     return
