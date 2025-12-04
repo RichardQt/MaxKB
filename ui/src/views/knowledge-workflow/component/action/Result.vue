@@ -7,14 +7,14 @@
       <!-- 执行结果 -->
       <el-alert
         v-if="state == 'SUCCESS'"
-        :title="$t('common.success')"
+        :title="$t('common.status.success')"
         type="success"
         show-icon
         :closable="false"
       />
       <el-alert
         v-if="state == 'FAILURE'"
-        :title="$t('common.fail')"
+        :title="$t('common.status.fail')"
         type="error"
         show-icon
         :closable="false"

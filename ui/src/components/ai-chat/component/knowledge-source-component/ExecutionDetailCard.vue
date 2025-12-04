@@ -1196,10 +1196,10 @@
               </h5>
               <div class="p-8-12 border-t-dashed lighter">
                 <p class="mb-8 color-secondary">
-                  {{ $t('views.document.form.selector.label') }}:{{ data.input_params.selector }}
+                  {{ $t('views.document.form.selector.label') }}: {{ data.input_params.selector }}
                 </p>
                 <p class="mb-8 color-secondary">
-                  {{ $t('views.document.form.source_url.label') }}:{{
+                  {{ $t('views.document.form.source_url.label') }}: {{
                     data.input_params.source_url
                   }}
                 </p>
@@ -1218,11 +1218,12 @@
                     :key="index"
                     class="mb-8"
                   >
+                    <h4>{{file_content.name}}</h4>
                     <MdPreview
                       v-if="file_content"
                       ref="editorRef"
                       editorId="preview-only"
-                      :modelValue="file_content"
+                      :modelValue="file_content.content"
                       style="background: none"
                       noImgZoomIn
                     />

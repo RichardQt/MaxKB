@@ -28,6 +28,7 @@ import { useRouter, useRoute } from 'vue-router'
 import BaseForm from '@/views/knowledge/component/BaseForm.vue'
 import { MsgSuccess, MsgAlert } from '@/utils/message'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import { knowledgeTemplate } from '@/workflow/common/template'
 import { t } from '@/locales'
 import useStore from '@/stores'
 const emit = defineEmits(['refresh'])
@@ -50,6 +51,8 @@ const loading = ref(false)
 const dialogVisible = ref<boolean>(false)
 const currentFolder = ref<any>(null)
 
+const workflowDefault = ref(knowledgeTemplate.default)
+
 watch(dialogVisible, (bool) => {
   if (!bool) {
     currentFolder.value = null
@@ -65,6 +68,7 @@ const submitHandle = async () => {
   if (await BaseFormRef.value?.validate()) {
     const obj = {
       folder_id: currentFolder.value?.id,
+      work_flow: workflowDefault.value,
       ...BaseFormRef.value.form,
     }
     loadSharedApi({ type: 'knowledge', systemType: apiType.value })

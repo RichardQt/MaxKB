@@ -97,7 +97,7 @@ import applicationApi from '@/api/application/application'
 import { MsgSuccess, MsgAlert } from '@/utils/message'
 import { isWorkFlow } from '@/utils/application'
 import { baseNodes } from '@/workflow/common/data'
-import { applicationTemplate } from '@/views/application/template'
+import { applicationTemplate } from '@/workflow/common/template'
 import { t } from '@/locales'
 import useStore from '@/stores'
 const { user } = useStore()

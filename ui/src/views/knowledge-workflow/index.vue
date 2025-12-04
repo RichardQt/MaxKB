@@ -554,12 +554,14 @@ const get_route = () => {
 }
 
 const toImportDoc = () => {
-  router.push({
+  const newUrl = router.resolve({
     path: `/knowledge/import/workflow/${folderId}`,
     query: {
       id: id,
     },
-  })
+  }).href
+
+  window.open(newUrl)
 }
 
 /**
