@@ -11,6 +11,7 @@ import tempfile
 import pwd
 import resource
 import getpass
+import random
 import uuid_utils.compat as uuid
 from common.utils.logger import maxkb_logger
 from django.utils.translation import gettext_lazy as _
@@ -24,6 +25,7 @@ class ToolExecutor:
     sandbox_path = CONFIG.get("SANDBOX_HOME", '/opt/maxkb-app/sandbox') if enable_sandbox else os.path.join(PROJECT_DIR, 'data', 'sandbox')
     process_timeout_seconds = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_TIMEOUT_SECONDS", '3600'))
     process_limit_mem_mb = int(CONFIG.get("SANDBOX_PYTHON_PROCESS_LIMIT_MEM_MB", '256'))
+    process_limit_cpu_cores = min(max(int(CONFIG.get("SANDBOX_PYTHON_PROCESS_LIMIT_CPU_CORES", '1')), 1), len(os.sched_getaffinity(0))) if sys.platform.startswith("linux") else os.cpu_count() # 只支持linux，window和mac不支持
 
     def __init__(self, sandbox=False):
         self.sandbox = sandbox
@@ -45,7 +47,7 @@ class ToolExecutor:
         except FileExistsError:
             # 文件已存在 → 已初始化过
             return
-        maxkb_logger.debug("init dir")
+        maxkb_logger.info("Init sandbox dir.")
         try:
             os.system("chmod -R g-rwx /dev/shm /dev/mqueue")
             os.system("chmod o-rwx /run/postgresql")
@@ -225,7 +227,10 @@ exec({dedent(code)!a})
                 text=True,
                 capture_output=True,
                 **kwargs,
-                preexec_fn=lambda: (None if not self.sandbox else resource.setrlimit(resource.RLIMIT_AS, (ToolExecutor.process_limit_mem_mb * 1024 * 1024,) * 2))
+                preexec_fn=(lambda: None if (not self.sandbox or not sys.platform.startswith("linux")) else (
+                    resource.setrlimit(resource.RLIMIT_AS, (ToolExecutor.process_limit_mem_mb * 1024 * 1024,) * 2),
+                    os.sched_setaffinity(0, set(random.sample(list(os.sched_getaffinity(0)), ToolExecutor.process_limit_cpu_cores)))
+                ))
             )
             return subprocess_result
         except subprocess.TimeoutExpired:
