@@ -90,7 +90,7 @@ class BaseDocumentExtractNode(IDocumentExtractNode):
                     buffer.seek(0)
                     file_content = split_handle.get_content(buffer, save_image)
                     content.append('### ' + doc['name'] + '\n' + file_content)
-                    document_list.append({'id': file.id, 'name': doc['name'], 'content': file_content})
+                    document_list.append({'id': str(file.id), 'name': doc['name'], 'content': file_content})
                     break
 
         return NodeResult({'content': splitter.join(content), 'document_list': document_list}, {})
