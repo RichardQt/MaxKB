@@ -13,7 +13,7 @@
   </el-avatar>
   <el-avatar
     v-else-if="type == 4"
-    class="avatar-purple"
+    class="avatar-orange"
     shape="square"
     :size="size"
   >

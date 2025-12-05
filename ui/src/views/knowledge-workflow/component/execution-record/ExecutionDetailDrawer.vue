@@ -28,16 +28,22 @@
           <el-row :gutter="16" class="lighter">
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('workflow.initiator') }}</p>
-              <p>{{ detail?.meta.user_name || '-' }}</p>
+              <p>{{ props.currentContent?.meta.user_name || '-' }}</p>
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('common.status.label') }}</p>
               <p>
-                <el-text class="color-text-primary" v-if="detail?.state === 'SUCCESS'">
+                <el-text
+                  class="color-text-primary"
+                  v-if="props.currentContent?.state === 'SUCCESS'"
+                >
                   <el-icon class="color-success"><SuccessFilled /></el-icon>
                   {{ $t('common.status.success') }}
                 </el-text>
-                <el-text class="color-text-primary" v-else-if="detail?.state === 'FAILURE'">
+                <el-text
+                  class="color-text-primary"
+                  v-else-if="props.currentContent?.state === 'FAILURE'"
+                >
                   <el-icon class="color-danger"><CircleCloseFilled /></el-icon>
                   {{ $t('common.status.fail') }}
                 </el-text>
@@ -49,15 +55,26 @@
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('chat.KnowledgeSource.consumeTime') }}</p>
-              <p>{{ detail?.run_time != undefined ? detail?.run_time + 's' : '-' }}</p>
+              <p>
+                {{
+                  props.currentContent?.run_time != undefined
+                    ? props.currentContent?.run_time + 's'
+                    : '-'
+                }}
+              </p>
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('chat.executionDetails.createTime') }}</p>
-              <p>{{ datetimeFormat(detail?.create_time) }}</p>
+              <p>{{ datetimeFormat(props.currentContent?.create_time) }}</p>
             </el-col>
           </el-row>
         </el-card>
-        <Result :knowledge_id="knowledge_id" :id="action_id" is-record />
+        <Result
+          :knowledge_id="props.currentContent.knowledge_id"
+          :id="currentId"
+          is-record
+          v-if="props.currentContent"
+        />
       </el-scrollbar>
     </div>
     <template #footer>
@@ -82,10 +99,10 @@ import { t } from '@/locales'
 const props = withDefaults(
   defineProps<{
     /**
-     * 当前的id
+     * 当前的action_id
      */
     currentId: string
-    currentContent: string
+    currentContent: any
     /**
      * 下一条
      */
@@ -102,7 +119,7 @@ const props = withDefaults(
   {},
 )
 
-const emit = defineEmits(['update:currentId', 'update:currentContent', 'refresh'])
+const emit = defineEmits(['update:currentId', 'update:currentContent'])
 
 const route = useRoute()
 
@@ -118,42 +135,22 @@ const apiType = computed(() => {
 
 const loading = ref(false)
 const visible = ref(false)
-const action_id = ref<string>('')
-const knowledge_id = ref<string>('')
-const detail = ref<any>(null)
 
-function closeHandle() {
-  action_id.value = ''
-  knowledge_id.value = ''
-  detail.value = null
-}
-
-function getRecord() {
-  if (props.currentId && visible.value) {
-  }
-}
+function closeHandle() {}
 
 watch(
   () => props.currentId,
-  () => {
-    action_id.value = ''
-    knowledge_id.value = ''
-    detail.value = null
-  },
+  () => {},
 )
 
 watch(visible, (bool) => {
   if (!bool) {
     emit('update:currentId', '')
-    emit('update:currentContent', '')
-    emit('refresh')
+    emit('update:currentContent', null)
   }
 })
 
-const open = (row: any) => {
-  action_id.value = row.id
-  knowledge_id.value = row.knowledge_id
-  detail.value = row
+const open = () => {
   visible.value = true
 }
 

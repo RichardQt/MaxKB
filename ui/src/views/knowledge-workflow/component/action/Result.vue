@@ -24,7 +24,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onUnmounted, ref, computed } from 'vue'
+import { onUnmounted, ref, computed, watch } from 'vue'
 
 import ExecutionDetailContent from '@/components/ai-chat/component/knowledge-source-component/ExecutionDetailContent.vue'
 import { useRoute } from 'vue-router'
@@ -83,6 +83,15 @@ const stopPolling = () => {
 
 // 启动轮询
 pollingTimer = setTimeout(getKnowledgeWorkflowAction, 0)
+
+watch(
+  () => props.id,
+  () => {
+    stopPolling()
+    pollingTimer = setTimeout(getKnowledgeWorkflowAction, 0)
+  },
+)
+
 onUnmounted(() => {
   stopPolling()
 })
