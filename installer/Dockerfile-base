@@ -23,12 +23,11 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "deb http://deb.debian.org/debian testing main" >> /etc/apt/sources.list && \
     printf "Package: redis-server\nPin: release a=testing\nPin-Priority: 501\n" > /etc/apt/preferences.d/redis && \
     apt-get update && apt-get install -y --no-install-recommends $DEPENDENCIES && \
-    chmod 755 /usr/bin/start-*.sh && \
     find /etc/ -type f ! -path '/etc/resolv.conf' ! -path '/etc/hosts' | xargs chmod g-rx && \
     curl -L --connect-timeout 120 -m 1800 https://resource.fit2cloud.com/maxkb/ffmpeg/get-ffmpeg-linux | sh && \
     mkdir -p /opt/maxkb-app/sandbox/lib && chmod -R 550 /opt/maxkb-app/sandbox && \
     useradd --no-create-home --home /opt/maxkb-app/sandbox sandbox -g root && \
-    chmod g-xr /usr/local/bin/* /usr/bin/* /bin/* /usr/sbin/* /sbin/* /usr/lib/postgresql/17/bin/* && \
+    chmod g-rwx /usr/local/bin/* /usr/bin/* /bin/* /usr/sbin/* /sbin/* /usr/lib/postgresql/17/bin/* && \
     chmod -R g-rwx /tmp /var/tmp /var/lock && \
     apt-get clean all && \
     rm -rf /var/lib/postgresql /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /usr/share/info/* /usr/share/locale/* /usr/share/lintian/* /usr/share/linda/* /var/cache/* /var/log/* /var/tmp/* /tmp/*
