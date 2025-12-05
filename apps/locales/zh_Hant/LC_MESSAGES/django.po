@@ -8922,4 +8922,13 @@ msgid "The default is body, you can enter .classname/#idname/tagname"
 msgstr "默認為 body，可輸入 .classname/#idname/tagname"
 
 msgid "Please enter the Web root address"
-msgstr "請輸入Web根地址"
+msgstr "請輸入 Web 根地址"
+
+msgid "File size exceeds limit"
+msgstr "文件大小超出限制"
+
+msgid "File upload is not enabled"
+msgstr "文件上傳未啟用"
+
+msgid "Blocked unsafe redirect to internal host"
+msgstr "阻止不安全的重定向到內部主機"

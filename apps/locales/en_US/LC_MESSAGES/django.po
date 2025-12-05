@@ -8797,3 +8797,12 @@ msgstr ""
 
 msgid "Please enter the Web root address"
 msgstr ""
+
+msgid "File size exceeds limit"
+msgstr ""
+
+msgid "File upload is not enabled"
+msgstr ""
+
+msgid "Blocked unsafe redirect to internal host"
+msgstr ""
