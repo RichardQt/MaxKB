@@ -10,7 +10,7 @@
       :auto-upload="false"
       :show-file-list="false"
       :accept="accept"
-      :limit="attrs.limit"
+      :limit="file_count_limit"
       :on-exceed="onExceed"
       :on-change="fileHandleChange"
       @click.prevent="handlePreview(false)"
@@ -75,7 +75,7 @@ const props = withDefaults(defineProps<{ modelValue?: any; formField: FormField 
 const onExceed = () => {
   MsgError(
     t('views.document.tip.fileLimitCountTip1') +
-      attrs.limit +
+      file_count_limit.value +
       t('views.document.tip.fileLimitCountTip2'),
   )
 }
