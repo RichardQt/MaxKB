@@ -219,7 +219,9 @@ class BaseToolLibNodeNode(IToolLibNode):
                 **all_params, **self.workflow_params.get('data_source'),
                 'download_file_list': download_file_list
             }
-        result = function_executor.exec_code(tool_lib.code, all_params)
+            result = download_file_list
+        else:
+            result = function_executor.exec_code(tool_lib.code, all_params)
         return NodeResult({'result': result},
                           (self.workflow_manage.params.get('knowledge_base') or {}) if self.node.properties.get(
                               'kind') == 'data-source' else {}, _write_context=write_context)
