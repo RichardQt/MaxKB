@@ -1195,6 +1195,17 @@ async function saveUrl() {
     MsgWarning(t('chat.uploadFile.invalidUrl'))
     return
   }
+  const {maxFiles, fileLimit} = props.applicationDetails.file_upload_setting
+  const file_limit_once =
+    uploadImageList.value.length +
+    uploadDocumentList.value.length +
+    uploadAudioList.value.length +
+    uploadVideoList.value.length +
+    uploadOtherList.value.length
+  if (file_limit_once >= maxFiles) {
+    MsgWarning(t('chat.uploadFile.limitMessage1') + maxFiles + t('chat.uploadFile.limitMessage2'))
+    return
+  }
   // 允许的 MIME 类型
   const allowedTypes: Record<string, string[]> = {
     image: imageExtensions
@@ -1257,8 +1268,6 @@ async function saveUrl() {
         return;
       }
 
-      // 大小校验
-      const {fileLimit} = props.applicationDetails.file_upload_setting;
       if (fileSize > fileLimit * 1024 * 1024) {
         MsgWarning(url + ' ' + t('chat.uploadFile.sizeLimit') + fileLimit + 'MB')
         return;
