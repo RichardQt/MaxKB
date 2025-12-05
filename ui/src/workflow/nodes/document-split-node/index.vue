@@ -185,7 +185,7 @@
                   <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
                 </el-tooltip>
               </div>
-              <el-select v-model="form_data.limit_type" size="small" style="width: 85px">
+              <el-select v-model="form_data.with_filter_type" size="small" style="width: 85px">
                 <el-option :label="$t('workflow.variable.Referencing')" value="referencing" />
                 <el-option :label="$t('common.custom')" value="custom" />
               </el-select>
@@ -338,6 +338,7 @@ const nodeCascaderRef3 = ref()
 const nodeCascaderRef4 = ref()
 const nodeCascaderRef5 = ref()
 const nodeCascaderRef6 = ref()
+const nodeCascaderRef7 = ref()
 
 const validate = () => {
   return Promise.all([
@@ -347,6 +348,7 @@ const validate = () => {
     nodeCascaderRef4.value ? nodeCascaderRef4.value.validate() : Promise.resolve(''),
     nodeCascaderRef5.value ? nodeCascaderRef5.value.validate() : Promise.resolve(''),
     nodeCascaderRef6.value ? nodeCascaderRef6.value.validate() : Promise.resolve(''),
+    nodeCascaderRef7.value ? nodeCascaderRef7.value.validate() : Promise.resolve(''),
     aiChatNodeFormRef.value?.validate(),
   ]).catch((err: any) => {
     return Promise.reject({ node: props.nodeModel, errMessage: err })
