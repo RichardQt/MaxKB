@@ -204,12 +204,12 @@ static int allow_create_subprocess() {
 }
 static int deny() {
     fprintf(stderr, "Permission denied to create subprocess.\n");
-    _exit(1);
+    _exit(126);
     return -1;
 }
 static int not_supported(const char *function_name) {
     fprintf(stderr, "Not supported function: %s\n", function_name);
-    _exit(1);
+    _exit(126);
     return -1;
 }
 #define RESOLVE_REAL(func)                      \
