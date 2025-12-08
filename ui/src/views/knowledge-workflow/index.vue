@@ -162,11 +162,9 @@ import {t} from '@/locales'
 import {ComplexPermission, Permission} from '@/utils/permission/type'
 import {EditionConst, PermissionConst, RoleConst} from '@/utils/permission/data'
 import permissionMap from '@/permission'
-import {WorkflowMode} from '@/enums/application'
-import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
-import {knowledgeBaseNode} from '@/workflow/common/data'
-import {de} from 'element-plus/es/locale'
-
+import { WorkflowMode } from '@/enums/application'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import { knowledgeBaseNode } from '@/workflow/common/data'
 provide('getResourceDetail', () => detail)
 provide('workflowMode', WorkflowMode.Knowledge)
 provide('loopWorkflowMode', WorkflowMode.KnowledgeLoop)
