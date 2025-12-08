@@ -295,6 +295,18 @@ const workflowAction: (
 ) => Promise<Result<any>> = (knowledge_id: string, instance, loading) => {
   return post(`${prefix}/${knowledge_id}/action`, instance, {}, loading)
 }
+const getWorkflowActionPage: (
+  knowledge_id: string,
+  page: pageRequest,
+  query: any,
+  loading?: Ref<boolean>,
+) => Promise<Result<any>> = (knowledge_id: string, page, query, loading) => {
+  return get(
+    `${prefix}/${knowledge_id}/action/${page.current_page}/${page.page_size}`,
+    query,
+    loading,
+  )
+}
 const getWorkflowAction: (
   knowledge_id: string,
   knowledge_action_id: string,
@@ -369,6 +381,7 @@ export default {
   putKnowledgeWorkflow,
   listKnowledgeVersion,
   workflowUpload,
+  getWorkflowActionPage,
 } as {
   [key: string]: any
 }
