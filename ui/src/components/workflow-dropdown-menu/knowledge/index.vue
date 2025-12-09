@@ -154,7 +154,9 @@ const props = defineProps({
 const emit = defineEmits(['clickNodes', 'onmousedown'])
 
 const apiType = computed(() => {
-  if (route.path.includes('resource-management')) {
+  if (route.path.includes('shared')) {
+    return 'systemShare'
+  } else if (route.path.includes('resource-management')) {
     return 'systemManage'
   } else {
     return 'workspace'
@@ -237,7 +239,7 @@ async function getToolList() {
   const res = await loadSharedApi({
     type: 'tool',
     isShared: folder.currentFolder?.id === 'share',
-    systemType: 'workspace',
+    systemType: apiType.value,
   }).getToolList({
     folder_id: folder.currentFolder?.id || user.getWorkspaceId(),
     tool_type: activeName.value == 'DATA_SOURCE_TOOL' ? 'DATA_SOURCE' : 'CUSTOM',
