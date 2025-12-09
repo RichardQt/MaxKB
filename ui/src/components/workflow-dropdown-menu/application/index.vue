@@ -153,7 +153,9 @@ const props = defineProps({
 const emit = defineEmits(['clickNodes', 'onmousedown'])
 
 const apiType = computed(() => {
-  if (route.path.includes('resource-management')) {
+  if (route.path.includes('shared')) {
+    return 'systemShare'
+  } else if (route.path.includes('resource-management')) {
     return 'systemManage'
   } else {
     return 'workspace'
@@ -247,7 +249,7 @@ const toolTreeData = ref<any[]>([])
 const toolList = ref<any[]>([])
 
 async function getToolFolder() {
-  const res: any = await folder.asyncGetFolder(SourceTypeEnum.TOOL, {}, apiType.value, loading)
+  const res: any = await folder.asyncGetFolder(SourceTypeEnum.TOOL, {id: props.id}, apiType.value, loading)
   toolTreeData.value = res.data
   folder.setCurrentFolder(res.data?.[0] || {})
 }
@@ -256,7 +258,7 @@ async function getToolList() {
   const res = await loadSharedApi({
     type: 'tool',
     isShared: folder.currentFolder?.id === 'share',
-    systemType: 'workspace',
+    systemType: apiType.value,
   }).getToolList({
     folder_id: folder.currentFolder?.id || user.getWorkspaceId(),
     tool_type: 'CUSTOM',
@@ -269,7 +271,7 @@ const applicationTreeData = ref<any[]>([])
 const applicationList = ref<any[]>([])
 
 function getApplicationFolder() {
-  folder.asyncGetFolder(SourceTypeEnum.APPLICATION, {}, apiType.value, loading).then((res: any) => {
+  folder.asyncGetFolder(SourceTypeEnum.APPLICATION, {id: props.id}, apiType.value, loading).then((res: any) => {
     applicationTreeData.value = res.data
     folder.setCurrentFolder(res.data?.[0] || {})
   })
@@ -278,7 +280,7 @@ function getApplicationFolder() {
 async function getApplicationList() {
   const res = await loadSharedApi({
     type: 'application',
-    systemType: 'workspace',
+    systemType: apiType.value,
   }).getAllApplication({
     folder_id: folder.currentFolder?.id || user.getWorkspaceId(),
   })

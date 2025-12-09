@@ -6,7 +6,17 @@ import { type Ref } from 'vue'
 
 const prefix = '/system/resource/application'
 
-
+/**
+ * 获取全部应用
+ * @param param
+ * @param loading
+ */
+const getAllApplication: (param?: any, loading?: Ref<boolean>) => Promise<Result<any[]>> = (
+  param,
+  loading,
+) => {
+  return get(`${prefix}`, param, loading)
+}
 /**
  * 获取分页应用
  * param {
@@ -314,6 +324,7 @@ const getMcpTools: (application_id: string, loading?: Ref<boolean>) => Promise<R
 }
 
 export default {
+  getAllApplication,
   getApplication,
   putApplication,
   delApplication,
