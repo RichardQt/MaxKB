@@ -183,7 +183,7 @@
                 </template>
                 <template #title>
                   <div class="flex align-center">
-                    <span class="ellipsis-1 mb-4" :title="item.name">
+                    <span class="ellipsis-1" :title="item.name">
                       {{ item.name }}
                     </span>
                     <el-tag v-if="item.version" class="ml-4" type="info" effect="plain">
@@ -378,8 +378,8 @@ import McpToolFormDrawer from '@/views/tool/McpToolFormDrawer.vue'
 import DataSourceToolFormDrawer from '@/views/tool/DataSourceToolFormDrawer.vue'
 import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
 import AuthorizedWorkspace from '@/views/system-shared/AuthorizedWorkspaceDialog.vue'
-import ToolStoreDialog from '@/views/tool/toolStore/ToolStoreDialog.vue'
-import AddInternalToolDialog from '@/views/tool/toolStore/AddInternalToolDialog.vue'
+import ToolStoreDialog from '@/views/tool/tool-store/ToolStoreDialog.vue'
+import AddInternalToolDialog from '@/views/tool/tool-store/AddInternalToolDialog.vue'
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import McpToolConfigDialog from '@/views/tool/component/McpToolConfigDialog.vue'
