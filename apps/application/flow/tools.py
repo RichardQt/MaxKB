@@ -313,8 +313,9 @@ async def _yield_mcp_response(chat_model, message_list, mcp_servers, mcp_output_
     try:
         client = MultiServerMCPClient(json.loads(mcp_servers))
         tools = await client.get_tools()
-        agent = create_react_agent(chat_model, tools).configure(recursion_limit=(int(CONFIG.get("LANGCHAIN_GRAPH_RECURSION_LIMIT", '25'))))
-        response = agent.astream({"messages": message_list}, stream_mode='messages')
+        agent = create_react_agent(chat_model, tools)
+        recursion_limit = int(CONFIG.get("LANGCHAIN_GRAPH_RECURSION_LIMIT", '25'))
+        response = agent.astream({"messages": message_list}, config={"recursion_limit": recursion_limit}, stream_mode='messages')
 
         # 用于存储工具调用信息（按 tool_id）以及按 index 聚合分片
         tool_calls_info = {}
