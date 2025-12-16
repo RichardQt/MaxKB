@@ -3,31 +3,31 @@
 </template>
 
 <script lang="ts" setup>
-import {useRoute, useRouter} from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import * as ww from '@wecom/jssdk'
 import {
   WWLoginLangType,
   WWLoginPanelSizeType,
   WWLoginRedirectType,
-  WWLoginType
+  WWLoginType,
 } from '@wecom/jssdk'
-import {ref, nextTick, defineProps} from 'vue'
-import {MsgError} from '@/utils/message'
+import { ref, nextTick } from 'vue'
+import { MsgError } from '@/utils/message'
 import useStore from '@/stores'
-import {getBrowserLang} from '@/locales'
+import { getBrowserLang } from '@/locales'
 
 const router = useRouter()
 const route = useRoute()
 const {
-  params: {accessToken},
+  params: { accessToken },
 } = route as any
 const wwLogin = ref({})
-const obj = ref<any>({isWeComLogin: false})
-const {chatUser} = useStore()
+const obj = ref<any>({ isWeComLogin: false })
+const { chatUser } = useStore()
 
 const props = defineProps<{
   config: {
-    callback_url: string;
+    callback_url: string
     app_secret: string
     app_key: string
     corp_id?: string
@@ -39,7 +39,7 @@ const init = async () => {
   await nextTick() // 确保DOM已更新
   const data = {
     corpId: props.config.corp_id,
-    agentId: props.config.agent_id
+    agentId: props.config.agent_id,
   }
   const lang = localStorage.getItem('MaxKB-locale') || getBrowserLang() || 'en-US'
   const redirectUri = props.config.callback_url
@@ -54,15 +54,15 @@ const init = async () => {
         state: 'fit2cloud-wecom-qr',
         lang: lang === 'zh-CN' || lang === 'zh-Hant' ? WWLoginLangType.zh : WWLoginLangType.en,
         redirect_type: WWLoginRedirectType.callback,
-        panel_size: WWLoginPanelSizeType.small
+        panel_size: WWLoginPanelSizeType.small,
       },
       onCheckWeComLogin: obj.value,
-      async onLoginSuccess({code}: any) {
+      async onLoginSuccess({ code }: any) {
         chatUser.wecomCallback(code, accessToken).then(() => {
           setTimeout(() => {
             router.push({
               name: 'chat',
-              params: {accessToken: accessToken},
+              params: { accessToken: accessToken },
               query: route.query,
             })
           })
@@ -70,10 +70,9 @@ const init = async () => {
       },
       onLoginFail(err) {
         MsgError(`${err.errMsg}`)
-      }
+      },
     })
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 init()
@@ -84,6 +83,5 @@ init()
   margin-top: -20px;
   height: 331px;
   justify-content: center;
-
 }
 </style>
