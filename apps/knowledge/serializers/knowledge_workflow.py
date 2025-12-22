@@ -6,6 +6,7 @@ from functools import reduce
 from typing import Dict, List
 
 import uuid_utils.compat as uuid
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import QuerySet
 from django.http import HttpResponse
@@ -17,6 +18,7 @@ from application.flow.common import Workflow, WorkflowMode
 from application.flow.i_step_node import KnowledgeWorkflowPostHandler
 from application.flow.knowledge_workflow_manage import KnowledgeWorkflowManage
 from application.flow.step_node import get_node
+from application.flow.tools import save_workflow_mapping
 from application.serializers.application import get_mcp_tools
 from common.constants.cache_version import Cache_Version
 from common.db.search import page_search
@@ -28,9 +30,10 @@ from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models import KnowledgeScope, Knowledge, KnowledgeType, KnowledgeWorkflow, KnowledgeWorkflowVersion
 from knowledge.models.knowledge_action import KnowledgeAction, State
+from knowledge.serializers.common import update_resource_mapping_by_knowledge
 from knowledge.serializers.knowledge import KnowledgeModelSerializer
-from django.core.cache import cache
 from system_manage.models import AuthTargetType
+from system_manage.models.resource_mapping import ResourceType
 from system_manage.serializers.user_resource_permission import UserResourcePermissionSerializer
 from tools.models import Tool, ToolScope
 from tools.serializers.tool import ToolExportModelSerializer
@@ -244,7 +247,7 @@ class KnowledgeWorkflowSerializer(serializers.Serializer):
             )
 
             knowledge_workflow.save()
-
+            save_workflow_mapping(instance.get('work_flow', {}), ResourceType.KNOWLEDGE, str(knowledge_id))
             return {**KnowledgeModelSerializer(knowledge).data, 'document_list': []}
 
     class Import(serializers.Serializer):
@@ -395,6 +398,7 @@ class KnowledgeWorkflowSerializer(serializers.Serializer):
             QuerySet(KnowledgeWorkflow).filter(
                 knowledge_id=self.data.get("knowledge_id")
             ).update(is_publish=True, publish_time=timezone.now())
+            update_resource_mapping_by_knowledge(self.data.get("knowledge_id"))
             return True
 
         def edit(self, instance: Dict):
