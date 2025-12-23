@@ -2,12 +2,15 @@ import io
 import json
 import os
 import re
+import tempfile
 import traceback
+import zipfile
 from collections import defaultdict
 from functools import reduce
 from tempfile import TemporaryDirectory
 from typing import Dict, List
 
+import requests
 import uuid_utils.compat as uuid
 from celery_once import AlreadyQueued
 from django.core import validators
@@ -19,7 +22,6 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from application.flow.tools import get_workflow_resource, get_node_handle_callback, save_workflow_mapping
 from application.models import ApplicationKnowledgeMapping
 from common.config.embedding_config import VectorStore
 from common.database_model_manage.database_model_manage import DatabaseModelManage
@@ -32,7 +34,7 @@ from common.utils.fork import Fork, ChildLink
 from common.utils.logger import maxkb_logger
 from common.utils.split_model import get_split_model
 from knowledge.models import Knowledge, KnowledgeScope, KnowledgeType, Document, Paragraph, Problem, \
-    ProblemParagraphMapping, TaskType, State, SearchMode, KnowledgeFolder, File, Tag, KnowledgeWorkflow
+    ProblemParagraphMapping, TaskType, State, SearchMode, KnowledgeFolder, File, Tag
 from knowledge.serializers.common import ProblemParagraphManage, drop_knowledge_index, \
     get_embedding_model_id_by_knowledge_id, MetaSerializer, \
     GenerateRelatedSerializer, get_embedding_model_by_knowledge_id, list_paragraph, write_image, zip_dir, \
@@ -44,7 +46,6 @@ from knowledge.task.sync import sync_web_knowledge, sync_replace_web_knowledge
 from maxkb.conf import PROJECT_DIR
 from models_provider.models import Model
 from system_manage.models import WorkspaceUserResourcePermission, AuthTargetType
-from system_manage.models.resource_mapping import ResourceType, ResourceMapping
 from system_manage.serializers.user_resource_permission import UserResourcePermissionSerializer
 from users.serializers.user import is_workspace_manage
 
@@ -767,6 +768,55 @@ class KnowledgeSerializer(serializers.Serializer):
                     'comprehensive_score': hit_dict.get(p.get('id')).get('comprehensive_score')
                 } for p in p_list
             ]
+
+    class StoreKnowledge(serializers.Serializer):
+        user_id = serializers.UUIDField(required=True, label=_("User ID"))
+        name = serializers.CharField(required=False, label=_("tool name"), allow_null=True, allow_blank=True)
+
+        def get_appstore_templates(self):
+            self.is_valid(raise_exception=True)
+            # 下载zip文件
+            try:
+                res = requests.get('https://apps-assets.fit2cloud.com/stable/maxkb.json.zip', timeout=5)
+                res.raise_for_status()
+                # 创建临时文件保存zip
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_zip:
+                    temp_zip.write(res.content)
+                    temp_zip_path = temp_zip.name
+
+                try:
+                    # 解压zip文件
+                    with zipfile.ZipFile(temp_zip_path, 'r') as zip_ref:
+                        # 获取zip中的第一个文件（假设只有一个json文件）
+                        json_filename = zip_ref.namelist()[0]
+                        json_content = zip_ref.read(json_filename)
+
+                    # 将json转换为字典
+                    tool_store = json.loads(json_content.decode('utf-8'))
+                    tag_dict = {tag['name']: tag['key'] for tag in tool_store['additionalProperties']['tags']}
+                    filter_apps = []
+                    for tool in tool_store['apps']:
+                        if self.data.get('name', '') != '':
+                            if self.data.get('name').lower() not in tool.get('name', '').lower():
+                                continue
+                        if not tool['downloadUrl'].endswith('.kbwf'):
+                            continue
+                        versions = tool.get('versions', [])
+                        tool['label'] = tag_dict[tool.get('tags')[0]] if tool.get('tags') else ''
+                        tool['version'] = next(
+                            (version.get('name') for version in versions if
+                             version.get('downloadUrl') == tool['downloadUrl']),
+                        )
+                        filter_apps.append(tool)
+
+                    tool_store['apps'] = filter_apps
+                    return tool_store
+                finally:
+                    # 清理临时文件
+                    os.unlink(temp_zip_path)
+            except Exception as e:
+                maxkb_logger.error(f"fetch appstore tools error: {e}")
+                return {'apps': [], 'additionalProperties': {'tags': []}}
 
     class Tags(serializers.Serializer):
         workspace_id = serializers.CharField(required=True, label=_('workspace id'))

@@ -7,6 +7,7 @@ app_name = "knowledge"
 urlpatterns = [
     path('workspace/knowledge/document/template/export', views.Template.as_view()),
     path('workspace/knowledge/document/table_template/export', views.TableTemplate.as_view()),
+    path('workspace/store/knowledge_template', views.KnowledgeView.StoreKnowledge.as_view()),
     path('workspace/<str:workspace_id>/knowledge', views.KnowledgeView.as_view()),
     path('workspace/<str:workspace_id>/knowledge/base', views.KnowledgeBaseView.as_view()),
     path('workspace/<str:workspace_id>/knowledge/workflow', views.KnowledgeWorkflowView.as_view()),

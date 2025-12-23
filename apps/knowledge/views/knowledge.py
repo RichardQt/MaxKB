@@ -15,6 +15,7 @@ from knowledge.models import KnowledgeScope
 from knowledge.serializers.common import get_knowledge_operation_object
 from knowledge.serializers.knowledge import KnowledgeSerializer
 from models_provider.serializers.model_serializer import ModelSerializer
+from tools.api.tool import GetInternalToolAPI
 
 
 class KnowledgeView(APIView):
@@ -219,6 +220,23 @@ class KnowledgeView(APIView):
                     'search_mode': request.data.get('search_mode')
                 }
             ).hit_test())
+
+    class StoreKnowledge(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_("Get Appstore tools"),
+            summary=_("Get Appstore tools"),
+            operation_id=_("Get Appstore tools"),  # type: ignore
+            responses=GetInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        def get(self, request: Request):
+            return result.success(KnowledgeSerializer.StoreKnowledge(data={
+                'user_id': request.user.id,
+                'name': request.query_params.get('name', ''),
+            }).get_appstore_templates())
 
     class Embedding(APIView):
         authentication_classes = [TokenAuth]

@@ -761,6 +761,8 @@ class ToolSerializer(serializers.Serializer):
                         if self.data.get('name', '') != '':
                             if self.data.get('name').lower() not in tool.get('name', '').lower():
                                 continue
+                        if not tool['downloadUrl'].endswith('.tool'):
+                            continue
                         versions = tool.get('versions', [])
                         tool['label'] = tag_dict[tool.get('tags')[0]] if tool.get('tags') else ''
                         tool['version'] = next(
