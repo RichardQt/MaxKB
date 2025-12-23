@@ -174,7 +174,7 @@
                     style="height: 120px"
                     @submitDialog="submitNoReferencesPromptDialog"
                     :placeholder="
-                      $t('views.application.form.roleSettings.placeholder', {
+                      $t('views.application.form.prompt.placeholder', {
                         data: '{data}',
                         question: '{question}',
                       })
@@ -288,7 +288,7 @@
                     style="height: 150px"
                     @submitDialog="submitPromptDialog"
                     :placeholder="
-                      $t('views.application.form.roleSettings.placeholder', {
+                      $t('views.application.form.prompt.placeholder', {
                         data: '{data}',
                         question: '{question}',
                       })

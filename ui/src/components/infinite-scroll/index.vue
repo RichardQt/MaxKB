@@ -61,9 +61,6 @@ const noMore = computed(
     props.size > 0 && props.size === props.total && props.total > props.page_size && !props.loading,
 )
 const disabledScroll = computed(() => props.size > 0 && (props.loading || noMore.value))
-console.log(props.size)
-console.log(props.total)
-console.log(props.page_size)
 function loadData() {
   if (props.total > props.page_size) {
     current.value += 1

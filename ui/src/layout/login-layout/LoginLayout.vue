@@ -8,7 +8,7 @@
         <el-col :xs="24" :sm="24" :md="14" :lg="14" :xl="14" class="right-container flex-center">
           <el-dropdown trigger="click" type="primary" class="lang" v-if="lang">
             <template #dropdown>
-              <el-dropdown-menu style="width: 180px">
+              <el-dropdown-menu class="w-180">
                 <el-dropdown-item
                   v-for="(lang, index) in langList"
                   :key="index"

@@ -109,7 +109,7 @@
             </div>
 
             <template #dropdown>
-              <el-dropdown-menu style="width: 180px">
+              <el-dropdown-menu class="w-180">
                 <el-dropdown-item
                   v-for="(lang, index) in langList"
                   :key="index"

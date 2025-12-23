@@ -1,27 +1,29 @@
 <template>
   <div class="folder-tree">
-    <div class="flex ml-4 p-8 pb-0 items-start">
+    <div class="flex ml-4 p-8 pb-0">
       <el-input
         v-model="filterText"
         :placeholder="$t('common.search')"
         prefix-icon="Search"
         clearable
-        class="flex-[5]"
       />
       <el-dropdown trigger="click" :teleported="false" @command="switchSortMethod">
-        <el-button class="flex-1 ml-4">
+        <el-button class="ml-4">
           <el-icon><Operation /></el-icon>
         </el-button>
         <template #dropdown>
-          <el-dropdown-menu>
+          <el-dropdown-menu class="w-180">
             <template v-for="(group, index) in SORT_MENU_CONFIG" :key="index">
               <el-dropdown-item
                 v-for="obj in group.items"
                 :key="obj.value"
                 :command="obj.value"
-                class="mr-2"
+                :class="`${currentSort === obj.value ? 'active' : ''} flex-between`"
               >
-                {{ obj.label }}
+                <span>
+                  {{ obj.label }}
+                </span>
+
                 <el-icon v-if="currentSort === obj.value" class="ml-4">
                   <Check />
                 </el-icon>
@@ -272,7 +274,7 @@ function addOrderToTree(nodes: any, parentId: string): Node[] {
     return nodes
   }
 
-  let positions = getPositions(parentId)
+  const positions = getPositions(parentId)
   let needSave = false
 
   nodes.forEach((node: any) => {
