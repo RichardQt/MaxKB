@@ -233,18 +233,59 @@ exec({dedent(code)!a})
         }
         return tool_config
 
-    def get_app_mcp_config(self, application_id, name, description):
-        cwd = os.path.dirname(os.path.abspath(__file__))
+    def get_app_mcp_config(self, api_key, name, description):
+        chat_path = CONFIG.get_chat_path()
+        _code = f'''
+import requests
+from typing import Optional
+
+def _get_chat_id() -> Optional[str]:
+    url = f"http://127.0.0.1:8080{chat_path}/api/open"
+    headers = {{
+        'accept': '*/*',
+        'Authorization': f'Bearer {api_key}'
+    }}
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        return resp.json().get("data")
+    except Exception as e:
+        raise e
+
+
+def _chat_with_ai(chat_id: str, message: str) -> Optional[str]:
+    url = f"http://127.0.0.1:8080{chat_path}/api/chat_message/{{chat_id}}"
+    headers = {{"Content-Type": "application/json", "Authorization": f'Bearer {api_key}'}}
+    payload = {{
+        "message": message,
+        "re_chat": False,
+        "stream": False
+    }}
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=600)
+        resp.raise_for_status()
+        data = resp.json()
+        return str(data.get("data", {{}}).get("content") or data.get("response"))
+    except Exception as e:
+        raise e
+
+def ai_chat(message: str) -> str:
+    chat_id = _get_chat_id()
+    reply = _chat_with_ai(chat_id, message)
+    return reply or "AI 未能生成回复"
+
+        '''
+        _code = self.generate_mcp_server_code(_code, {}, name, description)
+        # print(_code)
+        maxkb_logger.debug(f"Python code of mcp app: {_code}")
+        compressed_and_base64_encoded_code_str = base64.b64encode(gzip.compress(_code.encode())).decode()
         app_config = {
             'command': sys.executable,
             'args': [
-                f'{cwd}/app_mcp.py',
-                BASE_DIR,
-                str(application_id),
-                name,
-                description,
+                '-c',
+                f'import base64,gzip; exec(gzip.decompress(base64.b64decode(\'{compressed_and_base64_encoded_code_str}\')).decode())',
             ],
-            'cwd': BASE_DIR,
+            'cwd': _sandbox_path,
             'env': {
                 'LD_PRELOAD': f'{_sandbox_path}/lib/sandbox.so',
             },

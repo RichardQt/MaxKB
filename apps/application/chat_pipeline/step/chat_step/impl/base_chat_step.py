@@ -269,8 +269,14 @@ class BaseChatStep(IChatStep):
                 self.context['application_ids'] = application_ids
                 for application_id in application_ids:
                     app = QuerySet(Application).filter(id=application_id).first()
+                    app_key = QuerySet(ApplicationApiKey).filter(application_id=application_id, is_active=True).first()
+                    # TODO 处理api
+                    if app_key is not None:
+                        api_key = app_key.secret_key
+                    else:
+                        continue
                     executor = ToolExecutor()
-                    app_config = executor.get_app_mcp_config(app.id, app.name, app.desc)
+                    app_config = executor.get_app_mcp_config(api_key, app.name, app.desc)
                     mcp_servers_config[str(app.id)] = app_config
 
         if len(mcp_servers_config) > 0:
