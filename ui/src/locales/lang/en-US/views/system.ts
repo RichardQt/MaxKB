@@ -144,6 +144,8 @@ export default {
       currentOnly: 'Current resource only',
       includeAll: 'Include all sub-resources',
       effectiveResource: 'Effective Resource',
+      defaultPermission: 'Default Permission',
+      defaultPermissionTip: 'Default permissions for all resources under the selected workspace',
     },
   },
   resource_management: {

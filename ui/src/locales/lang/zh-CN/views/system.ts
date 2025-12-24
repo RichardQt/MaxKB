@@ -145,6 +145,8 @@ export default {
       currentOnly: '仅当前资源',
       includeAll: '包含所有子资源',
       effectiveResource: '生效资源',
+      defaultPermission: '默认权限',
+      defaultPermissionTip: '所选工作空间下所有资源的默认权限',
     },
   },
   resource_management: {

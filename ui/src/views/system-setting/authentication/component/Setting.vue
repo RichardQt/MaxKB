@@ -172,13 +172,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { ComplexPermission } from '@/utils/permission/type'
-import { PermissionConst, RoleConst } from '@/utils/permission/data'
-import type { FormInstance } from 'element-plus'
-import { t } from '@/locales'
+import {ref, onMounted, computed} from 'vue'
+import {ComplexPermission} from '@/utils/permission/type'
+import {PermissionConst, RoleConst} from '@/utils/permission/data'
+import type {FormInstance} from 'element-plus'
+import {t} from '@/locales'
 import authApi from '@/api/system-settings/auth-setting.ts'
-import { MsgSuccess } from '@/utils/message.ts'
+import {MsgSuccess} from '@/utils/message.ts'
 import WorkspaceApi from '@/api/workspace/workspace.ts'
 import useStore from '@/stores'
 
@@ -247,7 +247,7 @@ const submit = async () => {
 
 const roleOptions = ref<Array<{ id: string; name: string; type?: string }>>([])
 const workspaceOptions = ref<Array<{ id: string; name: string }>>([])
-const { user } = useStore()
+const {user} = useStore()
 const selectedRoleType = ref<string>('') // 存储选中角色类型，用于控制 workspace 显示
 const showWorkspaceSelector = computed(() => selectedRoleType.value !== 'ADMIN')
 
@@ -255,6 +255,9 @@ const showWorkspaceSelector = computed(() => selectedRoleType.value !== 'ADMIN')
 const handleRoleChange = (roleId: string) => {
   const selectedRole = roleOptions.value.find((role) => role.id === roleId)
   selectedRoleType.value = selectedRole?.type || ''
+  if (form.value.workspace_id === 'None' && showWorkspaceSelector) {
+    form.value.workspace_id = 'default'
+  }
 }
 
 onMounted(async () => {
@@ -265,24 +268,24 @@ onMounted(async () => {
     // 并行请求：角色列表 + 登录设置；若为 EE 同时请求 workspace 列表
     const roleP = WorkspaceApi.getWorkspaceRoleList()
       .then((r) => r)
-      .catch(() => ({ data: [] }))
+      .catch(() => ({data: []}))
     const settingP = authApi
       .getLoginSetting()
       .then((r) => r)
-      .catch(() => ({ data: {} }))
+      .catch(() => ({data: {}}))
     const tasks: Promise<any>[] = [roleP, settingP]
     if (isEE) {
       tasks.push(
         WorkspaceApi.getWorkspaceList()
           .then((r) => r)
-          .catch(() => ({ data: [] })),
+          .catch(() => ({data: []})),
       )
     }
 
     const results = await Promise.all(tasks)
-    const roleRes = results[0] ?? { data: [] }
-    const settingRes = results[1] ?? { data: {} }
-    const workspaceRes = isEE ? (results[2] ?? { data: [] }) : null
+    const roleRes = results[0] ?? {data: []}
+    const settingRes = results[1] ?? {data: {}}
+    const workspaceRes = isEE ? (results[2] ?? {data: []}) : null
 
     // 处理角色列表（尽早回显）
     const rolesData = Array.isArray(roleRes?.data) ? roleRes.data : []
@@ -307,7 +310,7 @@ onMounted(async () => {
     // 处理 workspace 列表（如果需要）
     if (isEE && workspaceRes) {
       const wks = Array.isArray(workspaceRes.data) ? workspaceRes.data : []
-      workspaceOptions.value = wks.map((item: any) => ({ id: item.id, name: item.name }))
+      workspaceOptions.value = wks.map((item: any) => ({id: item.id, name: item.name}))
     }
 
     // 初始化 selectedRoleType（基于当前回显的 role_id 与已加载的 roleOptions）
