@@ -270,7 +270,6 @@ class BaseChatStep(IChatStep):
                 for application_id in application_ids:
                     app = QuerySet(Application).filter(id=application_id).first()
                     app_key = QuerySet(ApplicationApiKey).filter(application_id=application_id, is_active=True).first()
-                    # TODO 处理api
                     if app_key is not None:
                         api_key = app_key.secret_key
                     else:
