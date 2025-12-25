@@ -141,4 +141,5 @@ export default {
     prev: '上一步',
     next: '下一步',
   },
+  use: '使用',
 }

@@ -524,9 +524,7 @@
                             @click.stop="downloadDocument(row)"
                             v-if="permissionPrecise.doc_download(id)"
                           >
-                            <el-icon class="color-secondary">
-                              <Download />
-                            </el-icon>
+                            <AppIcon iconName="app-download" class="color-secondary" />
                             {{ $t('views.document.setting.download') }}
                           </el-dropdown-item>
                           <el-upload
@@ -539,9 +537,7 @@
                             :on-change="(file: any, fileList: any) => replaceDocument(file, row)"
                           >
                             <el-dropdown-item>
-                              <el-icon class="color-secondary">
-                                <Upload />
-                              </el-icon>
+                              <AppIcon iconName="app-upload" class="color-secondary" />
                               {{ $t('views.document.setting.replace') }}
                             </el-dropdown-item>
                           </el-upload>

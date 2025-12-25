@@ -25,6 +25,7 @@ export default {
     debug: 'Run',
     exit: 'Exit',
     exitSave: 'Save & Exit',
+    templateCenter: 'Template Center',
   },
   tip: {
     noData: 'No related results found',

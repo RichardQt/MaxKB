@@ -7,41 +7,34 @@
             <Back />
           </el-icon>
         </el-button>
-        <h4>详情</h4>
+        <h4>{{ $t('common.detail') }}</h4>
       </div>
     </template>
 
     <div>
-      <div class="card-header">
-        <div class="flex-between">
+      <div class="border-b">
+        <div class="flex-between mb-24">
           <div class="title flex align-center">
-            <el-avatar
-              v-if="isAppIcon(toolDetail?.icon)"
-              shape="square"
-              :size="64"
-              style="background: none"
-              class="mr-8"
-            >
-              <img :src="toolDetail?.icon" alt="" />
+            <el-avatar shape="square" :size="64" style="background: none">
+              <img src="@/assets/knowledge/icon_basic_template.svg" alt="" />
             </el-avatar>
-            <el-avatar
-              v-else-if="toolDetail?.name"
-              :name="toolDetail?.name"
-              pinyinColor
-              shape="square"
-              :size="64"
-              class="mr-8"
-            />
             <div class="ml-16">
               <h3 class="mb-8">{{ toolDetail.name }}</h3>
               <el-text type="info" v-if="toolDetail?.desc">
                 {{ toolDetail.desc }}
               </el-text>
+              <span
+                class="color-secondary flex align-center mt-8"
+                v-if="toolDetail?.downloads != undefined"
+              >
+                <AppIcon iconName="app-download" class="mr-4" />
+                <span> {{ numberFormat(toolDetail.downloads || 0) }} </span>
+              </span>
             </div>
           </div>
           <div @click.stop>
             <el-button type="primary" @click="addInternalTool(toolDetail)">
-              {{ $t('common.add') }}
+              {{ $t('common.use') }}
             </el-button>
           </div>
         </div>

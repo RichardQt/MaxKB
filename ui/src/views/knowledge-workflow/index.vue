@@ -31,7 +31,8 @@
           v-if="permissionPrecise.create()"
           @click="openTemplateStoreDialog()"
         >
-          {{ $t('模版中心') }}
+          <AppIcon iconName="app-template-center" class="mr-4" />
+          {{ $t('workflow.setting.templateCenter') }}
         </el-button>
         <el-button @click="showPopover = !showPopover">
           <AppIcon iconName="app-add-outlined" class="mr-4" />
@@ -169,7 +170,12 @@
       v-click-outside="clickoutsideHistory"
       @refreshVersion="refreshVersion"
     />
-  <TemplateStoreDialog ref="templateStoreDialogRef" :api-type="apiType" source="work_flow" @refresh="getDetail"/>
+    <TemplateStoreDialog
+      ref="templateStoreDialogRef"
+      :api-type="apiType"
+      source="work_flow"
+      @refresh="getDetail"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -183,7 +189,6 @@ import PublishHistory from '@/views/knowledge-workflow/component/PublishHistory.
 import { isAppIcon, resetUrl } from '@/utils/common'
 import { MsgSuccess, MsgError, MsgConfirm } from '@/utils/message'
 import { datetimeFormat } from '@/utils/time'
-import { mapToUrlParams } from '@/utils/application'
 import useStore from '@/stores'
 import { KnowledgeWorkFlowInstance } from '@/workflow/common/validate'
 import { hasPermission } from '@/utils/permission'
@@ -195,7 +200,7 @@ import permissionMap from '@/permission'
 import { WorkflowMode } from '@/enums/application'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import { knowledgeBaseNode } from '@/workflow/common/data'
-import TemplateStoreDialog from "@/views/knowledge/template-store/TemplateStoreDialog.vue";
+import TemplateStoreDialog from '@/views/knowledge/template-store/TemplateStoreDialog.vue'
 provide('getResourceDetail', () => detail)
 provide('workflowMode', WorkflowMode.Knowledge)
 provide('loopWorkflowMode', WorkflowMode.KnowledgeLoop)
@@ -663,7 +668,6 @@ const templateStoreDialogRef = ref()
 function openTemplateStoreDialog() {
   templateStoreDialogRef.value?.open(folderId)
 }
-
 
 /**
  * 定时保存

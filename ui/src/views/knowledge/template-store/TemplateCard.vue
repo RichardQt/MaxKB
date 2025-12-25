@@ -1,53 +1,38 @@
 <template>
   <CardBox :title="props.tool.name" :description="props.tool.desc" class="cursor tool-card">
     <template #icon>
-      <el-avatar
-        v-if="isAppIcon(props.tool?.icon)"
-        shape="square"
-        :size="32"
-        style="background: none"
-      >
-        <img :src="resetUrl(props.tool?.icon)" alt=""/>
+      <el-avatar shape="square" :size="32" style="background: none">
+        <img src="@/assets/knowledge/icon_basic_template.svg" alt="" />
       </el-avatar>
-      <el-avatar
-        v-else-if="props.tool?.name"
-        :name="props.tool?.name"
-        pinyinColor
-        shape="square"
-        :size="32"
-      />
     </template>
     <template #title>
-      <div class="flex align-center">
-        <span :title="props.tool?.name" class="ellipsis"> {{ props.tool?.name }}</span>
-        <el-tag v-if="props.tool?.version" class="ml-4" type="info" effect="plain">
-          {{ props.tool?.version }}
-        </el-tag>
-      </div>
+      <span :title="props.tool?.name" class="ellipsis"> {{ props.tool?.name }}</span>
     </template>
-    <template #tag>
+    <!-- <template #tag>
       <el-tag type="info" v-if="props.tool?.label === 'knowledge_template'" class="info-tag">
         {{ $t('知识库') }}
       </el-tag>
       <el-tag type="info" class="info-tag" v-else>
         {{ $t('views.tool.title') }}
       </el-tag>
-    </template>
-    <template #subTitle>
+    </template> -->
+    <!-- <template #subTitle>
       <el-text class="color-secondary lighter" size="small">
         {{ getSubTitle(props.tool) }}
       </el-text>
-    </template>
+    </template> -->
     <template #footer>
-      <span class="card-footer-left color-secondary" v-if="props.tool?.downloads != undefined">
-        {{ `${$t('views.document.upload.download')}: ${numberFormat(props.tool.downloads || 0)} ` }}
+      <span class="card-footer-left color-secondary flex align-center" v-if="props.tool?.downloads != undefined">
+        <AppIcon iconName="app-download" class="mr-4" />
+        <span> {{ numberFormat(props.tool.downloads || 0) }} </span>
       </span>
+
       <div class="card-footer-operation mb-8" @click.stop>
         <el-button @click="emit('handleDetail')">
           {{ $t('common.detail') }}
         </el-button>
         <el-button type="primary" :loading="props.addLoading" @click="emit('handleAdd')">
-          {{ $t('common.add') }}
+          {{ $t('common.use') }}
         </el-button>
       </div>
     </template>

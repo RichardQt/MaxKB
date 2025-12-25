@@ -40,7 +40,8 @@
           v-if="!isShared && permissionPrecise.create()"
           @click="openTemplateStoreDialog()"
         >
-          {{ $t('模版中心') }}
+          <AppIcon iconName="app-template-center" class="mr-4" />
+          {{ $t('workflow.setting.templateCenter') }}
         </el-button>
         <el-dropdown trigger="click" v-if="!isShared && permissionPrecise.create()">
           <el-button type="primary" class="ml-8">
@@ -337,7 +338,7 @@ import { i18n_name } from '@/utils/common'
 import { SourceTypeEnum } from '@/enums/common'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import permissionMap from '@/permission'
-import TemplateStoreDialog from "@/views/knowledge/template-store/TemplateStoreDialog.vue";
+import TemplateStoreDialog from '@/views/knowledge/template-store/TemplateStoreDialog.vue'
 const router = useRouter()
 const route = useRoute()
 const { folder, user, knowledge } = useStore()

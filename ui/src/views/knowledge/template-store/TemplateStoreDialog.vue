@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    width="1200"
+    width="1000"
     append-to-body
     class="tool-store-dialog"
     align-center
@@ -11,7 +11,7 @@
     <template #header="{ titleId }">
       <div class="dialog-header flex-between mb-8">
         <h4 :id="titleId" class="medium w-240 mr-8">
-          {{ $t('模版中心') }}
+          {{ $t('workflow.setting.templateCenter') }}
         </h4>
 
         <div class="flex align-center" style="margin-right: 28px">
@@ -23,12 +23,12 @@
             clearable
             @change="getList"
           />
-          <el-divider direction="vertical"/>
+          <el-divider direction="vertical" />
         </div>
       </div>
     </template>
 
-    <LayoutContainer v-loading="loading" :minLeftWidth="204">
+    <!-- <LayoutContainer v-loading="loading" :minLeftWidth="204">
       <template #left>
         <el-anchor
           direction="vertical"
@@ -44,54 +44,54 @@
             :title="category.title"
           />
         </el-anchor>
-      </template>
+      </template> -->
 
-      <el-scrollbar class="layout-bg" wrap-class="p-16-24 category-scrollbar">
-        <template v-if="filterList === null">
-          <div v-for="category in categories" :key="category.id">
-            <h4
+    <el-scrollbar class="layout-bg" wrap-class="p-16-24 category-scrollbar">
+      <template v-if="filterList === null">
+        <div v-for="category in categories" :key="category.id">
+          <!-- <h4
               class="title-decoration-1 mb-16 mt-8 color-text-primary"
               :id="`category-${category.id}`"
             >
               {{ category.title }}
-            </h4>
-            <el-row :gutter="16">
-              <el-col v-for="tool in category.tools" :key="tool.id" :span="8" class="mb-16">
-                <TemplateCard
-                  :tool="tool"
-                  :addLoading="addLoading"
-                  :get-sub-title="getSubTitle"
-                  @handleAdd="handleOpenAdd(tool)"
-                  @handleDetail="handleDetail(tool)"
-                >
-                </TemplateCard>
-              </el-col>
-            </el-row>
-          </div>
-        </template>
-        <div v-else>
-          <h4 class="color-text-primary medium mb-16">
-            <span class="color-primary">{{ searchValue }}</span>
-            {{ t('views.tool.toolStore.searchResult', {count: filterList.length}) }}
-          </h4>
-          <el-row :gutter="16" v-if="filterList.length">
-            <el-col v-for="tool in filterList" :key="tool.id" :span="12" class="mb-16">
+            </h4> -->
+          <el-row :gutter="16">
+            <el-col v-for="tool in category.tools" :key="tool.id" :span="8" class="mb-16">
               <TemplateCard
                 :tool="tool"
                 :addLoading="addLoading"
                 :get-sub-title="getSubTitle"
                 @handleAdd="handleOpenAdd(tool)"
                 @handleDetail="handleDetail(tool)"
-              />
+              >
+              </TemplateCard>
             </el-col>
           </el-row>
-          <el-empty v-else :description="$t('common.noData')"/>
         </div>
-      </el-scrollbar>
-    </LayoutContainer>
+      </template>
+      <div v-else>
+        <!-- <h4 class="color-text-primary medium mb-16">
+            <span class="color-primary">{{ searchValue }}</span>
+            {{ t('views.tool.toolStore.searchResult', { count: filterList.length }) }}
+          </h4> -->
+        <el-row :gutter="16" v-if="filterList.length">
+          <el-col v-for="tool in filterList" :key="tool.id" :span="12" class="mb-16">
+            <TemplateCard
+              :tool="tool"
+              :addLoading="addLoading"
+              :get-sub-title="getSubTitle"
+              @handleAdd="handleOpenAdd(tool)"
+              @handleDetail="handleDetail(tool)"
+            />
+          </el-col>
+        </el-row>
+        <el-empty v-else :description="$t('common.noData')" />
+      </div>
+    </el-scrollbar>
+    <!-- </LayoutContainer> -->
   </el-dialog>
-  <InternalDescDrawer ref="internalDescDrawerRef" @addTool="handleOpenAdd"/>
-  <CreateWorkflowKnowledgeDialog ref="CreateKnowledgeDialogRef"/>
+  <InternalDescDrawer ref="internalDescDrawerRef" @addTool="handleOpenAdd" />
+  <CreateWorkflowKnowledgeDialog ref="CreateKnowledgeDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -99,18 +99,17 @@ import { ref } from 'vue'
 import ToolStoreApi from '@/api/tool/store'
 import { t } from '@/locales'
 import TemplateCard from './TemplateCard.vue'
-import { MsgSuccess } from '@/utils/message'
+import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import InternalDescDrawer from './InternalDescDrawer.vue'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
 import useStore from '@/stores'
-import CreateWorkflowKnowledgeDialog
-  from "@/views/knowledge/create-component/CreateWorkflowKnowledgeDialog.vue";
-import { useRoute } from "vue-router";
+import CreateWorkflowKnowledgeDialog from '@/views/knowledge/create-component/CreateWorkflowKnowledgeDialog.vue'
+import { useRoute } from 'vue-router'
 
-const {user} = useStore()
+const { user } = useStore()
 const route = useRoute()
 const {
-  params: {id},
+  params: { id },
   /*
   folderId 可以区分 resource-management shared还是 workspace
   */
@@ -163,7 +162,7 @@ async function getList() {
     if (existing) {
       existing.tools = [...existing.tools, ...category.tools]
     } else {
-      acc.push({...category})
+      acc.push({ ...category })
     }
     return acc
   }, [] as ToolCategory[])
@@ -171,10 +170,9 @@ async function getList() {
   categories.value = merged.filter((item: any) => item.tools.length > 0)
 }
 
-
 async function getStoreToolList() {
   try {
-    const res = await ToolStoreApi.getStoreKBList({name: searchValue.value}, loading)
+    const res = await ToolStoreApi.getStoreKBList({ name: searchValue.value }, loading)
     const tags = res.data.additionalProperties.tags
     const storeTools = res.data.apps
     let categories = []
@@ -213,9 +211,20 @@ const CreateKnowledgeDialogRef = ref()
 
 function handleOpenAdd(data?: any, isEdit?: boolean) {
   if (props.source === 'work_flow') {
-    handleStoreAdd(data)
+    MsgConfirm(
+      t('common.tip'),
+      `${t('views.application.tip.confirmUse')} ${data.name} ${t('views.application.tip.overwrite')}?`,
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+      },
+    )
+      .then(() => {
+        handleStoreAdd(data)
+      })
+      .catch(() => {})
   } else {
-    CreateKnowledgeDialogRef.value.open({id: folderId.value}, data)
+    CreateKnowledgeDialogRef.value.open({ id: folderId.value }, data)
   }
 }
 
@@ -223,8 +232,8 @@ const addLoading = ref(false)
 
 function handleStoreAdd(tool: any) {
   try {
-    loadSharedApi({type: 'knowledge', systemType: props.apiType})
-      .putKnowledgeWorkflow(id, {work_flow_template: tool})
+    loadSharedApi({ type: 'knowledge', systemType: props.apiType })
+      .putKnowledgeWorkflow(id, { work_flow_template: tool })
       .then(() => {
         emit('refresh')
         MsgSuccess(t('common.addSuccess'))
@@ -235,8 +244,7 @@ function handleStoreAdd(tool: any) {
   }
 }
 
-
-defineExpose({open})
+defineExpose({ open })
 </script>
 <style lang="scss">
 .tool-store-dialog {

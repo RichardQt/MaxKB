@@ -141,4 +141,5 @@ export default {
     prev: 'Previous',
     next: 'Next',
   },
+   use: 'Use',
 }

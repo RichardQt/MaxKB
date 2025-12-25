@@ -24,6 +24,7 @@ export default {
     copyParam: '复制参数',
     exit: '直接退出',
     exitSave: '保存并退出',
+    templateCenter: '模板中心',
   },
   tip: {
     noData: '没有找到相关结果',
