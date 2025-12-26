@@ -1,26 +1,25 @@
 <template>
-  <div class="p-4">
-    <h3>{{ title }}</h3>
-  </div>
-  <div class="p-4 mt-16">
-    <el-button
-      v-for="reason in reasons"
-      :key="reason.value"
-      :type="selectedReason === reason.value ? 'primary' : 'info'"
-      @click="selectReason(reason.value)"
-      :disabled="readonly"
-      plain
-      bg
-    >
-      {{ reason.label }}
-    </el-button>
+  <h4>{{ title }}</h4>
+  <div class="mt-16">
+    <el-space wrap :size="12">
+      <template v-for="reason in reasons" :key="reason.value">
+        <el-check-tag
+          type="primary"
+          :checked="selectedReason === reason.value"
+          @change="selectReason(reason.value)"
+
+        >
+          {{ reason.label }}</el-check-tag
+        >
+      </template>
+    </el-space>
   </div>
   <div v-if="selectedReason === 'other'" class="mt-16">
     <el-input
       v-model="feedBack"
       type="textarea"
       :autosize="{ minRows: 4, maxRows: 20 }"
-      :placeholder="$t('chat.operation.vote.placeholder')"
+      :placeholder="$t('chat.vote.placeholder')"
       :readonly="readonly"
     >
     </el-input>
@@ -28,7 +27,7 @@
   <div v-if="!readonly" class="dialog-footer mt-24 text-right">
     <el-button @click="emit('close')"> {{ $t('common.cancel') }}</el-button>
     <el-button :disabled="isSubmitDisabled" type="primary" @click="voteHandle()">
-      {{ $t('common.confirm') }}</el-button
+      {{ $t('common.submit') }}</el-button
     >
   </div>
 </template>
@@ -69,19 +68,19 @@ const isSubmitDisabled = computed(() => {
 })
 
 const LIKE_REASONS = [
-  { label: t('chat.operation.vote.accurate'), value: 'accurate' },
-  { label: t('chat.operation.vote.complete'), value: 'complete' },
-  { label: t('chat.operation.vote.other'), value: 'other' },
+  { label: t('chat.vote.accurate'), value: 'accurate' },
+  { label: t('chat.vote.complete'), value: 'complete' },
+  { label: t('chat.vote.other'), value: 'other' },
 ]
 
 const OPPOSE_REASONS = [
-  { label: t('chat.operation.vote.inaccurate'), value: 'inaccurate' },
-  { label: t('chat.operation.vote.irrelevantAnswer'), value: 'incomplete' },
-  { label: t('chat.operation.vote.other'), value: 'other' },
+  { label: t('chat.vote.inaccurate'), value: 'inaccurate' },
+  { label: t('chat.vote.irrelevantAnswer'), value: 'incomplete' },
+  { label: t('chat.vote.other'), value: 'other' },
 ]
 
 const title = computed(() => {
-  return props.voteType === '0' ? t('chat.operation.likeTitle') : t('chat.operation.opposeTitle')
+  return props.voteType === '0' ? t('chat.vote.likeTitle') : t('chat.vote.opposeTitle')
 })
 
 const reasons = computed(() => {

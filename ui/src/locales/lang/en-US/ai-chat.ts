@@ -39,14 +39,13 @@ export default {
     likeTitle: 'What do you think makes you satisfied?',
     opposeTitle: 'Please tell us the reason for your dissatisfaction.',
     vote: {
-    accurate: 'Content is accurate',
-    inaccurate: 'Answer is inaccurate',
-    complete: 'Content is complete',
-    irrelevantAnswer: 'Answer is irrelevant',
-    other: 'Other',
-    placeholder: 'Tell us more about your relevant experiences',
-},
-
+      accurate: 'Content is accurate',
+      inaccurate: 'Answer is inaccurate',
+      complete: 'Content is complete',
+      irrelevantAnswer: 'Answer is irrelevant',
+      other: 'Other',
+      placeholder: 'Tell us more about your relevant experiences',
+    },
   },
   tip: {
     error500Message: 'Sorry, the service is currently under maintenance. Please try again later!',
@@ -73,6 +72,10 @@ export default {
     speaking: 'Speaking',
     recorderLoading: 'Transcribing',
     default: 'Type your question',
+    holdToTalk: 'Hold to Talk',
+    chatting: 'Chatting',
+    touchChatMessage: 'Release to send, swipe up to cancel',
+    cancelTouchChat: 'Release to cancel sending',
   },
   uploadFile: {
     label: 'Upload File',

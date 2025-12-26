@@ -71,24 +71,23 @@
         ></audio>
       </div>
     </div>
-    <div>
-      <el-card
-        class="mt-16"
-        shadow="always"
-        v-if="buttonData?.vote_status !== '-1' && data.vote_reason"
+
+    <el-card
+      class="mt-16 layout-bg"
+      shadow="always"
+      v-if="buttonData?.vote_status !== '-1' && data.vote_reason"
+    >
+      <VoteReasonContent
+        v-if="buttonData?.id"
+        :vote-type="buttonData?.vote_status"
+        :chat-id="buttonData?.chat_id"
+        :record-id="buttonData?.id"
+        readonly
+        :default-reason="data.vote_reason"
+        :default-other-content="data.vote_other_content"
       >
-        <VoteReasonContent
-          v-if="buttonData?.id"
-          :vote-type="buttonData?.vote_status"
-          :chat-id="buttonData?.chat_id"
-          :record-id="buttonData?.id"
-          readonly
-          :default-reason="data.vote_reason"
-          :default-other-content="data.vote_other_content"
-        >
-        </VoteReasonContent>
-      </el-card>
-    </div>
+      </VoteReasonContent>
+    </el-card>
   </div>
 </template>
 <script setup lang="ts">
