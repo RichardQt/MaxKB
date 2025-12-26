@@ -8,6 +8,7 @@
 #include <regex.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/mman.h>
 #include <sys/un.h>
 #include <errno.h>
 #include <limits.h>
@@ -532,14 +533,17 @@ long syscall(long number, ...) {
  */
 static int dl_path_allowed(const char *filename) {
     if (!filename || !*filename) return 1;
+    ensure_config_loaded();
     if (!dl_path_containment || !*dl_path_containment) return 0;
     char *rules = strdup(dl_path_containment);
     if (!rules) return 0;
+    char real_full_path_of_filename[PATH_MAX];
+    if (realpath(filename, real_full_path_of_filename) == NULL) return 0;
     char *saveptr = NULL;
     char *token = strtok_r(rules, ",", &saveptr);
     while (token) {
         while (*token == ' ' || *token == '\t') token++;
-        if (*token && strstr(filename, token)) {
+        if (*token && strstr(real_full_path_of_filename, token)) {
             free(rules);
             return 1;
         }
@@ -550,7 +554,6 @@ static int dl_path_allowed(const char *filename) {
 }
 void *dlopen(const char *filename, int flag) {
     RESOLVE_REAL(dlopen);
-    ensure_config_loaded();
     if (is_sandbox_user() && !dl_path_allowed(filename)) {
         fprintf(stderr, "Permission denied to access file %s.\n", filename);
         errno = EACCES;
@@ -560,4 +563,42 @@ void *dlopen(const char *filename, int flag) {
 }
 void *__dlopen(const char *filename, int flag) {
     return dlopen(filename, flag);
+}
+void* mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
+    RESOLVE_REAL(mmap);
+    if (is_sandbox_user() && (prot & PROT_EXEC)) {
+        if ((flags & MAP_ANONYMOUS) || fd < 0) { //匿名映射：直接拒绝
+            fprintf(stderr, "Permission denied to mmap(anonymous).\n");
+            errno = EACCES;
+            _exit(126);
+        }
+        char link[64];
+        snprintf(link, sizeof(link), "/proc/self/fd/%d", fd);
+        char real_path[PATH_MAX];
+        ssize_t n = readlink(link, real_path, sizeof(real_path) - 1);
+        if (n < 0) {
+            fprintf(stderr, "Permission denied to mmap(readlink failed).\n");
+            errno = EACCES;
+            _exit(126);
+        }
+        real_path[n] = '\0';
+        if (!dl_path_allowed(real_path)) {
+            fprintf(stderr,"Permission denied to mmap %s.\n", real_path);
+            errno = EACCES;
+            _exit(126);
+        }
+    }
+    return real_mmap(addr, len, prot, flags, fd, off);
+}
+void* mmap64(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
+    return mmap(addr, len, prot, flags, fd, off);
+}
+int mprotect(void *addr, size_t len, int prot) {
+    RESOLVE_REAL(mprotect);
+    if (is_sandbox_user() && (prot & PROT_EXEC)) {
+        fprintf(stderr, "Permission denied to mprotect.\n");
+        errno = EACCES;
+        _exit(126);
+    }
+    return real_mprotect(addr, len, prot);
 }
