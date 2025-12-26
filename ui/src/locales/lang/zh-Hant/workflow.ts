@@ -298,7 +298,7 @@ export default {
         label: '视觉模型',
         requiredMessage: '请选择视觉模型',
       },
-      image: {
+      video: {
         label: '选择视频',
         requiredMessage: '请选择视频',
       },
