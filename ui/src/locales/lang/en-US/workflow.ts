@@ -312,7 +312,7 @@ You are a master of problem optimization, adept at accurately inferring user int
         label: 'Vision Model',
         requiredMessage: 'Please select a vision model',
       },
-      image: {
+      video: {
         label: 'Select Video',
         requiredMessage: 'Please select a video',
       },
