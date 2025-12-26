@@ -3,8 +3,6 @@ import ast
 import base64
 import getpass
 import gzip
-import hashlib
-import hmac
 import json
 import os
 import pwd
@@ -71,12 +69,14 @@ class ToolExecutor:
             os.remove(sandbox_conf_file_path)
         allow_subprocess = CONFIG.get("SANDBOX_PYTHON_ALLOW_SUBPROCESS", '0')
         banned_hosts = CONFIG.get("SANDBOX_PYTHON_BANNED_HOSTS", '').strip()
+        allow_dl_path_containment = CONFIG.get("SANDBOX_PYTHON_ALLOW_DL_PATH_CONTAINMENT", '/python').strip()
         if banned_hosts:
             hostname = socket.gethostname()
             local_ip = socket.gethostbyname(hostname)
             banned_hosts = f"{banned_hosts},{hostname},{local_ip}"
         with open(sandbox_conf_file_path, "w") as f:
             f.write(f"SANDBOX_PYTHON_BANNED_HOSTS={banned_hosts}\n")
+            f.write(f"SANDBOX_PYTHON_ALLOW_DL_PATH_CONTAINMENT={allow_dl_path_containment}\n")
             f.write(f"SANDBOX_PYTHON_ALLOW_SUBPROCESS={allow_subprocess}\n")
         os.system(f"chmod -R 550 {_sandbox_path}")
 
@@ -113,6 +113,7 @@ except Exception as e:
     if isinstance(e, MemoryError): e = Exception("Cannot allocate more memory: exceeded the limit of {_process_limit_mem_mb} MB.")
     sys.stdout.write("\\n{_id}:")
     json.dump({{'code':500,'msg':str(e),'data':None}}, sys.stdout, default=str)
+sys.stdout.write("\\n")
 sys.stdout.flush()
 """
         maxkb_logger.debug(f"Sandbox execute code: {_exec_code}")
@@ -139,11 +140,9 @@ sys.stdout.flush()
             tree = ast.parse(_code)
         except SyntaxError:
             return _code
-
         imports = []
         functions = []
         other_code = []
-
         for node in tree.body:
             if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
                 imports.append(ast.unparse(node))
@@ -153,17 +152,14 @@ sys.stdout.flush()
                     continue
                 # 修改函数参数以包含 params 中的默认值
                 arg_names = [arg.arg for arg in node.args.args]
-
                 # 为参数添加默认值，确保参数顺序正确
                 defaults = []
                 num_defaults = 0
-
                 # 从后往前检查哪些参数有默认值
                 for i, arg_name in enumerate(arg_names):
                     if arg_name in params:
                         num_defaults = len(arg_names) - i
                         break
-
                 # 为有默认值的参数创建默认值列表
                 if num_defaults > 0:
                     for i in range(len(arg_names) - num_defaults, len(arg_names)):
@@ -181,15 +177,12 @@ sys.stdout.flush()
                         else:
                             # 如果某个参数没有默认值，需要添加 None 占位
                             defaults.append(ast.Constant(value=None))
-
                     node.args.defaults = defaults
-
                 func_code = ast.unparse(node)
                 # 有些模型不支持name是中文，例如: deepseek, 其他模型未知
                 functions.append(f"@mcp.tool(description='{name} {description}')\n{func_code}\n")
             else:
                 other_code.append(ast.unparse(node))
-
         # 构建完整的 MCP 服务器代码
         code_parts = ["from mcp.server.fastmcp import FastMCP"]
         code_parts.extend(imports)
@@ -197,7 +190,6 @@ sys.stdout.flush()
         code_parts.extend(other_code)
         code_parts.extend(functions)
         code_parts.append("\nmcp.run(transport=\"stdio\")\n")
-
         return "\n".join(code_parts)
 
     def generate_mcp_server_code(self, code_str, params, name, description):
