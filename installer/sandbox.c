@@ -23,21 +23,22 @@
 #include <linux/sched.h>
 #include <pty.h>
 #include <stdint.h>
+#include <strings.h>
 
 #define CONFIG_FILE ".sandbox.conf"
 #define KEY_BANNED_HOSTS "SANDBOX_PYTHON_BANNED_HOSTS"
 #define KEY_ALLOW_SUBPROCESS "SANDBOX_PYTHON_ALLOW_SUBPROCESS"
-#define KEY_ALLOW_DL_PATH_CONTAINMENT "SANDBOX_PYTHON_ALLOW_DL_PATH_CONTAINMENT"
+#define KEY_ALLOW_DL_PATHS "SANDBOX_PYTHON_ALLOW_DL_PATHS"
 
 static char *banned_hosts = NULL;
 static int allow_subprocess = 0; // 默认禁止
-static char *dl_path_containment = NULL;
+static char *allow_dl_paths = NULL;
 
 static void load_sandbox_config() {
     Dl_info info;
     if (dladdr((void *)load_sandbox_config, &info) == 0 || !info.dli_fname) {
         banned_hosts = strdup("");
-        dl_path_containment = strdup("");
+        allow_dl_paths = strdup("");
         allow_subprocess = 0;
         return;
     }
@@ -50,15 +51,15 @@ static void load_sandbox_config() {
     FILE *fp = fopen(config_path, "r");
     if (!fp) {
         banned_hosts = strdup("");
-        dl_path_containment = strdup("");
+        allow_dl_paths = strdup("");
         allow_subprocess = 0;
         return;
     }
     char line[512];
     if (banned_hosts) { free(banned_hosts); banned_hosts = NULL; }
-    if (dl_path_containment) { free(dl_path_containment); dl_path_containment = NULL; }
+    if (allow_dl_paths) { free(allow_dl_paths); allow_dl_paths = NULL; }
     banned_hosts = strdup("");
-    dl_path_containment = strdup("");
+    allow_dl_paths = strdup("");
     allow_subprocess = 0;
     while (fgets(line, sizeof(line), fp)) {
         char *key = strtok(line, "=");
@@ -73,9 +74,9 @@ static void load_sandbox_config() {
         if (strcmp(key, KEY_BANNED_HOSTS) == 0) {
             free(banned_hosts);
             banned_hosts = strdup(value);
-        } else if (strcmp(key, KEY_ALLOW_DL_PATH_CONTAINMENT) == 0) {
-            free(dl_path_containment);
-            dl_path_containment = strdup(value);  // 逗号分隔字符串
+        } else if (strcmp(key, KEY_ALLOW_DL_PATHS) == 0) {
+            free(allow_dl_paths);
+            allow_dl_paths = strdup(value);  // 逗号分隔字符串
         } else if (strcmp(key, KEY_ALLOW_SUBPROCESS) == 0) {
             allow_subprocess = atoi(value);
         }
@@ -507,30 +508,34 @@ long syscall(long number, ...) {
 /**
  * 限制加载动态链接库
  */
-static int dl_path_allowed(const char *filename) {
+static int is_in_allow_dl_paths(const char *filename) {
     if (!filename || !*filename) return 1;
     ensure_config_loaded();
-    if (!dl_path_containment || !*dl_path_containment) return 0;
-    char *rules = strdup(dl_path_containment);
+    if (!allow_dl_paths || !*allow_dl_paths) return 0;
+    char real_file[PATH_MAX];
+    if (!realpath(filename, real_file)) return 0;
+    char *rules = strdup(allow_dl_paths);
     if (!rules) return 0;
-    char real_full_path_of_filename[PATH_MAX];
-    if (realpath(filename, real_full_path_of_filename) == NULL) return 0;
+    int allowed = 0;
     char *saveptr = NULL;
-    char *token = strtok_r(rules, ",", &saveptr);
-    while (token) {
+    for (char *token = strtok_r(rules, ",", &saveptr); token; token = strtok_r(NULL, ",", &saveptr)) {
         while (*token == ' ' || *token == '\t') token++;
-        if (*token && strstr(real_full_path_of_filename, token)) {
-            free(rules);
-            return 1;
+        if (!*token) continue;
+        char real_rule[PATH_MAX];
+        if (!realpath(token, real_rule)) continue;
+        size_t len = strlen(real_rule);
+        if (strncmp(real_file, real_rule, len) == 0 &&
+            (real_file[len] == '\0' || real_file[len] == '/')) {
+            allowed = 1;
+            break;
         }
-        token = strtok_r(NULL, ",", &saveptr);
     }
     free(rules);
-    return 0;
+    return allowed;
 }
 void *dlopen(const char *filename, int flag) {
     RESOLVE_REAL(dlopen);
-    if (is_sandbox_user() && !dl_path_allowed(filename)) {
+    if (is_sandbox_user() && !is_in_allow_dl_paths(filename)) {
         fprintf(stderr, "Permission denied to access file %s.\n", filename);
         errno = EACCES;
         _exit(126);
@@ -542,7 +547,7 @@ void *__dlopen(const char *filename, int flag) {
 }
 void *dlmopen(Lmid_t lmid, const char *filename, int flags) {
     RESOLVE_REAL(dlmopen);
-    if (is_sandbox_user() && !dl_path_allowed(filename)) {
+    if (is_sandbox_user() && !is_in_allow_dl_paths(filename)) {
         fprintf(stderr, "Permission denied to access file %s.\n", filename);
         errno = EACCES;
         _exit(126);
@@ -570,7 +575,7 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
             _exit(126);
         }
         real_path[n] = '\0';
-        if (!dl_path_allowed(real_path)) {
+        if (!is_in_allow_dl_paths(real_path)) {
             fprintf(stderr,"Permission denied to mmap %s.\n", real_path);
             errno = EACCES;
             _exit(126);

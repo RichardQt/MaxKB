@@ -69,14 +69,15 @@ class ToolExecutor:
             os.remove(sandbox_conf_file_path)
         allow_subprocess = CONFIG.get("SANDBOX_PYTHON_ALLOW_SUBPROCESS", '0')
         banned_hosts = CONFIG.get("SANDBOX_PYTHON_BANNED_HOSTS", '').strip()
-        allow_dl_path_containment = CONFIG.get("SANDBOX_PYTHON_ALLOW_DL_PATH_CONTAINMENT", '/python').strip()
+        allow_dl_paths = CONFIG.get("SANDBOX_PYTHON_ALLOW_DL_PATHS",
+                                               '/usr/local/lib/python3.11,/opt/py3/lib/python3.11,/opt/maxkb-app/sandbox/python-packages,/opt/maxkb/python-packages').strip()
         if banned_hosts:
             hostname = socket.gethostname()
             local_ip = socket.gethostbyname(hostname)
             banned_hosts = f"{banned_hosts},{hostname},{local_ip}"
         with open(sandbox_conf_file_path, "w") as f:
             f.write(f"SANDBOX_PYTHON_BANNED_HOSTS={banned_hosts}\n")
-            f.write(f"SANDBOX_PYTHON_ALLOW_DL_PATH_CONTAINMENT={allow_dl_path_containment}\n")
+            f.write(f"SANDBOX_PYTHON_ALLOW_DL_PATHS={allow_dl_paths}\n")
             f.write(f"SANDBOX_PYTHON_ALLOW_SUBPROCESS={allow_subprocess}\n")
         os.system(f"chmod -R 550 {_sandbox_path}")
 
