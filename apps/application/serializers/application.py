@@ -1017,6 +1017,8 @@ class ApplicationOperateSerializer(serializers.Serializer):
                 for n in node.get('properties', {}).get('node_data', {}).get('loop_body', {}).get('nodes', []):
                     hand_node(n, update_tool_map)
         app.work_flow = work_flow
+        app.name = instance.get('name')
+        app.desc = instance.get('desc')
         app.save()
 
         if len(tool_model_list) > 0:
