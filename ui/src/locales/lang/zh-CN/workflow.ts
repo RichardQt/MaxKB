@@ -32,7 +32,7 @@ export default {
     onlyRight: '只允许从右边的锚点连出',
     notRecyclable: '不可循环连线',
     onlyLeft: '只允许连接左边的锚点',
-    applicationNodeError: '该应用不可用',
+    applicationNodeError: '该智能体不可用',
     toolNodeError: '该工具不可用',
     repeatedNodeError: '节点名称已存在！',
     cannotCopy: '不能被复制',
@@ -120,13 +120,6 @@ export default {
       currentTime: '当前时间',
     },
     baseNode: {
-      label: '基本信息',
-      appName: {
-        label: '应用名称',
-      },
-      appDescription: {
-        label: '应用描述',
-      },
       fileUpload: {
         label: '文件上传',
         tooltip: '开启后，问答页面会显示上传文件的按钮。',
@@ -452,7 +445,7 @@ export default {
       },
     },
     applicationNode: {
-      label: '应用节点',
+      label: '智能体节点',
     },
     loopNode: {
       label: '循环节点',

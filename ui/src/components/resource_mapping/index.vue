@@ -49,8 +49,8 @@
           collapse-tags-tooltip
           style="width: 220px"
         >
-          <el-option label="应用" value="APPLICATION" />
-          <el-option label="知识库" value="KNOWLEDGE" />
+          <el-option :label="$t('views.application.title')" value="APPLICATION" />
+          <el-option :label="$t('views.knowledge.title')" value="KNOWLEDGE" />
         </el-select>
       </div>
     </div>

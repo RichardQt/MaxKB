@@ -32,7 +32,7 @@ export default {
     onlyRight: '只允許從右邊的錨點連出',
     notRecyclable: '不可循環連線',
     onlyLeft: '只允許連接左邊的錨點',
-    applicationNodeError: '該應用不可用',
+    applicationNodeError: '該智能體不可用',
     toolNodeError: '該函數不可用',
     repeatedNodeError: '節點名稱已存在！',
     cannotCopy: '不能被複製',
@@ -119,13 +119,6 @@ export default {
       currentTime: '當前時間',
     },
     baseNode: {
-      label: '基本信息',
-      appName: {
-        label: '應用名稱',
-      },
-      appDescription: {
-        label: '應用描述',
-      },
       fileUpload: {
         label: '文件上傳',
         tooltip: '開啟後，問答頁面會顯示上傳文件的按鈕。',
@@ -446,7 +439,7 @@ export default {
       },
     },
     applicationNode: {
-      label: '應用節點',
+      label: '智能體節點',
     },
     loopNode: {
       label: '循環節點',

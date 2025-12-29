@@ -42,7 +42,7 @@ export const baseNode = {
   text: '',
   properties: {
     height: 728.375,
-    stepName: t('workflow.nodes.baseNode.label'),
+    stepName: t('common.info'),
     input_field_list: [],
     node_data: {
       name: '',
@@ -64,7 +64,7 @@ export const knowledgeBaseNode = {
   text: '',
   properties: {
     height: 728.375,
-    stepName: t('workflow.nodes.baseNode.label'),
+    stepName: t('common.info'),
     input_field_list: [],
     node_data: {
       name: '',

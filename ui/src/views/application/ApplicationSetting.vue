@@ -29,7 +29,7 @@
         <el-col :span="10">
           <div class="p-24 mb-16" style="padding-bottom: 0">
             <h4 class="title-decoration-1">
-              {{ $t('views.applicationOverview.appInfo.header') }}
+              {{ $t('common.info') }}
             </h4>
           </div>
           <div class="scrollbar-height-left">

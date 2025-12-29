@@ -12,7 +12,7 @@
       <div class="flex-between mb-8">
         <div class="flex">
           <h4 :id="titleId" :class="titleClass" class="mr-8">
-            {{ $t('设置应用') }}
+            {{ $t('views.application.title') }}
           </h4>
         </div>
 

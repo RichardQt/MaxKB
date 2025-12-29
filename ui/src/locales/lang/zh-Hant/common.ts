@@ -97,7 +97,6 @@ export default {
   rename: '重命名',
   renameSuccess: '重命名成功',
   EditAvatarDialog: {
-    title: '應用頭像',
     customizeUpload: '自訂上傳',
     upload: '上傳',
     default: '預設 logo',

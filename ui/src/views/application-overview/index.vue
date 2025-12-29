@@ -5,7 +5,7 @@
       <div class="main-calc-height">
         <el-card style="--el-card-padding: 24px">
           <h4 class="title-decoration-1 mb-16">
-            {{ $t('views.applicationOverview.appInfo.header') }}
+            {{ $t('common.info') }}
           </h4>
           <el-card shadow="never" class="overview-card" v-loading="loading">
             <div class="title flex align-center">

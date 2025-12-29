@@ -1,29 +1,38 @@
 <template>
-  <el-dialog width="600" :title="$t('views.userManage.settingRole')" v-model="dialogVisible"
-             :close-on-click-modal="false" :close-on-press-escape="false" :destroy-on-close="true">
-    <el-form label-position="top" ref="formRef" :rules="rules" :model="form"
-             require-asterisk-position="right">
+  <el-dialog
+    width="600"
+    :title="$t('views.userManage.settingRole')"
+    v-model="dialogVisible"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :destroy-on-close="true"
+  >
+    <el-form
+      label-position="top"
+      ref="formRef"
+      :rules="rules"
+      :model="form"
+      require-asterisk-position="right"
+    >
       <el-form-item :label="$t('views.chatUser.settingMethod')">
         <el-radio-group v-model="form.is_append">
           <el-radio :value="true">{{ $t('views.chatUser.append') }}</el-radio>
-          <el-radio :value="false">{{
-              $t('views.applicationOverview.SettingDisplayDialog.replace')
-            }}
+          <el-radio :value="false"
+            >{{ $t('views.applicationOverview.SettingDisplayDialog.replace') }}
           </el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item>
-        <MemberFormContent
-          ref="memberFormContentRef"
-          :models="formItemModel"
-          v-model:form="list"
-          v-loading="memberFormContentLoading"
-          keepOneLine
-          :need-add-button="!user.isPE()"
-          :addText="$t('views.userManage.addRole')"
-          v-if="user.isEE() || user.isPE()"
-        />
-      </el-form-item>
+
+      <MemberFormContent
+        ref="memberFormContentRef"
+        :models="formItemModel"
+        v-model:form="list"
+        v-loading="memberFormContentLoading"
+        keepOneLine
+        :need-add-button="!user.isPE()"
+        :addText="$t('views.userManage.addRole')"
+        v-if="user.isEE() || user.isPE()"
+      />
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -37,52 +46,54 @@
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, onBeforeMount} from 'vue'
-import type {FormInstance} from 'element-plus'
-import {t} from '@/locales'
+import { ref, reactive, onBeforeMount } from 'vue'
+import type { FormInstance } from 'element-plus'
+import { t } from '@/locales'
 
 const memberFormContentLoading = ref(false)
 import userManageApi from '@/api/system/user-manage'
-import MemberFormContent from "@/views/system/role/component/MemberFormContent.vue";
-import type {FormItemModel} from "@/api/type/role.ts";
-import WorkspaceApi from "@/api/workspace/workspace.ts";
-import useStore from "@/stores";
-import {RoleTypeEnum} from "@/enums/system.ts";
-import {loadPermissionApi} from "@/utils/dynamics-api/permission-api.ts";
-import {MsgSuccess} from "@/utils/message.ts";
+import MemberFormContent from '@/views/system/role/component/MemberFormContent.vue'
+import type { FormItemModel } from '@/api/type/role.ts'
+import WorkspaceApi from '@/api/workspace/workspace.ts'
+import useStore from '@/stores'
+import { RoleTypeEnum } from '@/enums/system.ts'
+import { loadPermissionApi } from '@/utils/dynamics-api/permission-api.ts'
+import { MsgSuccess } from '@/utils/message.ts'
 
 const list = ref<any[]>([])
 const formItemModel = ref<FormItemModel[]>([])
-const {user, common} = useStore()
+const { user, common } = useStore()
 const workspaceFormItem = ref<FormItemModel[]>([])
 const roleFormItem = ref<FormItemModel[]>([])
 
 const emit = defineEmits<{
-  (e: 'refresh'): void;
-}>();
+  (e: 'refresh'): void
+}>()
 
 const dialogVisible = ref<boolean>(false)
 const defaultForm = {
   role_ids: [],
   is_append: true,
-  ids: []
+  ids: [],
 }
 const form = ref<{
-  ids: string[], role_ids: string[], is_append: boolean
+  ids: string[]
+  role_ids: string[]
+  is_append: boolean
 }>({
   ...defaultForm,
 })
 
 function open(ids: string[]) {
-  form.value = {...defaultForm, ids}
-  list.value = [{role_id: '', workspace_ids: []}]
+  form.value = { ...defaultForm, ids }
+  list.value = [{ role_id: '', workspace_ids: [] }]
   dialogVisible.value = true
 }
 
-const formRef = ref<FormInstance>();
+const formRef = ref<FormInstance>()
 const adminRoleList = ref<any[]>([])
 const rules = reactive({
-  is_append: [{required: true, message: t('common.selectPlaceholder'), trigger: 'blur'}],
+  is_append: [{ required: true, message: t('common.selectPlaceholder'), trigger: 'blur' }],
 })
 
 const loading = ref<boolean>(false)
@@ -108,7 +119,7 @@ const submit = async (formEl: FormInstance | undefined) => {
 
           // 如果是管理员角色，则设置为 ['None']
           if (isAdminRole) {
-            return {...item, workspace_ids: ['None']}
+            return { ...item, workspace_ids: ['None'] }
           }
           return item
         })
@@ -123,7 +134,6 @@ const submit = async (formEl: FormInstance | undefined) => {
           dialogVisible.value = false
         })
       }
-
     }
   })
 }
@@ -153,7 +163,6 @@ async function getRoleFormItem() {
       },
     ]
     adminRoleList.value = res.data.filter((item) => item.type === RoleTypeEnum.ADMIN)
-
   } catch (e) {
     console.error(e)
   }
@@ -208,8 +217,8 @@ onBeforeMount(async () => {
     }
     formItemModel.value = [...roleFormItem.value, ...workspaceFormItem.value]
   }
-  list.value = [{role_id: '', workspace_ids: []}]
+  list.value = [{ role_id: '', workspace_ids: [] }]
 })
 
-defineExpose({open})
+defineExpose({ open })
 </script>

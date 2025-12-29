@@ -20,7 +20,7 @@ const applicationRouter = {
     {
       path: '/application',
       name: 'application-index',
-      meta: { title: '应用主页', activeMenu: '/application', sameRoute: 'application' },
+      meta: { title: '智能体主页', activeMenu: '/application', sameRoute: 'application' },
       component: () => import('@/views/application/index.vue'),
       hidden: true,
     },

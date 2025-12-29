@@ -97,7 +97,6 @@ export default {
   rename: 'Rename',
   renameSuccess: 'Successful',
   EditAvatarDialog: {
-    title: 'App Logo',
     customizeUpload: 'Custom Upload',
     upload: 'Upload',
     default: 'Default Logo',

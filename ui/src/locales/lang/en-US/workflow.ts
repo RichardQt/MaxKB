@@ -33,7 +33,7 @@ export default {
     onlyRight: 'Connections can only be made from the right anchor',
     notRecyclable: 'Loop connections are not allowed',
     onlyLeft: 'Connections can only be made to the left anchor',
-    applicationNodeError: 'This application is unavailable',
+    applicationNodeError: 'This agent is unavailable',
     toolNodeError: 'This tool node is unavailable',
     repeatedNodeError: 'A node with this name already exists',
     cannotCopy: 'Cannot be copied',
@@ -119,13 +119,6 @@ export default {
       currentTime: 'Current Time',
     },
     baseNode: {
-      label: 'Base Information',
-      appName: {
-        label: 'App Name',
-      },
-      appDescription: {
-        label: 'App Description',
-      },
       fileUpload: {
         label: 'File Upload',
         tooltip: 'When enabled, the Q&A page will display a file upload button.',
@@ -454,7 +447,7 @@ You are a master of problem optimization, adept at accurately inferring user int
       },
     },
     applicationNode: {
-      label: 'APP Node',
+      label: 'Agent Node',
     },
     loopNode: {
       label: 'Loop Node',
