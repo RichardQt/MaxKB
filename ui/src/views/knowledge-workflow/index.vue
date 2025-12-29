@@ -63,6 +63,7 @@
               <el-upload
                 class="import-button"
                 ref="elUploadRef"
+                accept=".kbwf"
                 :file-list="[]"
                 action="#"
                 multiple
