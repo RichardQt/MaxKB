@@ -817,13 +817,17 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
     创建资源权限实例列表
     """
     instances = []
+    if permission == ResourcePermission.MANAGE:
+        permission = [ResourcePermission.VIEW, ResourcePermission.MANAGE]
+    else:
+        permission = [permission]
 
     # 应用权限
     for rid in resource_maps['apps'].get(workspace_id, []):
         instances.append(WorkspaceUserResourcePermission(
             target=rid,
             auth_target_type=AuthTargetType.APPLICATION.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -834,7 +838,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=fid,
             auth_target_type=AuthTargetType.APPLICATION.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -845,7 +849,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=kid,
             auth_target_type=AuthTargetType.KNOWLEDGE.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -856,7 +860,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=kf,
             auth_target_type=AuthTargetType.KNOWLEDGE.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -867,7 +871,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=tid,
             auth_target_type=AuthTargetType.TOOL.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -878,7 +882,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=tf,
             auth_target_type=AuthTargetType.TOOL.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
@@ -889,7 +893,7 @@ def _create_resource_permission_instances(workspace_id, resource_maps, user_id, 
         instances.append(WorkspaceUserResourcePermission(
             target=mid,
             auth_target_type=AuthTargetType.MODEL.value,
-            permission_list=[permission],
+            permission_list=permission,
             workspace_id=workspace_id,
             user_id=user_id,
             auth_type=auth_type
