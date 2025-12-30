@@ -87,6 +87,9 @@ const form = ref<{
 function open(ids: string[]) {
   form.value = { ...defaultForm, ids }
   list.value = [{ role_id: '', workspace_ids: [] }]
+   if (memberFormContentRef.value) {
+    memberFormContentRef.value.resetValidation()
+  }
   dialogVisible.value = true
 }
 
@@ -96,11 +99,15 @@ const rules = reactive({
   is_append: [{ required: true, message: t('common.selectPlaceholder'), trigger: 'blur' }],
 })
 
+const memberFormContentRef = ref<InstanceType<typeof MemberFormContent>>()
 const loading = ref<boolean>(false)
 const submit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
-  await formEl.validate((valid) => {
+  await formEl.validate(async (valid) => {
     if (valid) {
+      if (memberFormContentRef.value) {
+        await memberFormContentRef.value?.validate()
+      }
       if (user.isPE()) {
         const data = {
           is_append: form.value.is_append,
@@ -119,7 +126,7 @@ const submit = async (formEl: FormInstance | undefined) => {
 
           // 如果是管理员角色，则设置为 ['None']
           if (isAdminRole) {
-            return { ...item, workspace_ids: ['None'] }
+            return {...item, workspace_ids: ['None']}
           }
           return item
         })
