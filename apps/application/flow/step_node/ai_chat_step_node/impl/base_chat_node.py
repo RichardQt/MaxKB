@@ -256,7 +256,9 @@ class BaseChatNode(IChatNode):
             if application_ids and len(application_ids) > 0:
                 self.context['application_ids'] = application_ids
                 for application_id in application_ids:
-                    app = QuerySet(Application).filter(id=application_id).first()
+                    app = QuerySet(Application).filter(id=application_id, is_publish=True).first()
+                    if app is None:
+                        continue
                     app_key = QuerySet(ApplicationApiKey).filter(application_id=application_id, is_active=True).first()
                     if app_key is not None:
                         api_key = app_key.secret_key
