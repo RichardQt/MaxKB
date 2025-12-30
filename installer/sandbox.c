@@ -18,12 +18,9 @@
 #include <spawn.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
-#include <time.h>
-#include <execinfo.h>
 #include <linux/sched.h>
 #include <pty.h>
 #include <stdint.h>
-#include <strings.h>
 #include <stdbool.h>
 
 #define CONFIG_FILE ".sandbox.conf"
