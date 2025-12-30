@@ -24,6 +24,7 @@
 #include <pty.h>
 #include <stdint.h>
 #include <strings.h>
+#include <stdbool.h>
 
 #define CONFIG_FILE ".sandbox.conf"
 #define KEY_BANNED_HOSTS "SANDBOX_PYTHON_BANNED_HOSTS"
@@ -103,6 +104,17 @@ static int is_sandbox_user() {
         return 1;
     }
     return 0;
+}
+static int throw_permission_denied_err(bool whether_to_exit,const char *fmt, ...) {
+    va_list ap;
+    fputs("Permission denied to ", stderr);
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fputs(".\n", stderr);
+    errno = EACCES;
+    if (whether_to_exit) _exit(126);
+    return -1;
 }
 #define RESOLVE_REAL(func)                      \
     static typeof(func) *real_##func = NULL;    \
@@ -217,10 +229,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     ensure_config_loaded();
     if (is_sandbox_user() && addr->sa_family == AF_UNIX) {
         struct sockaddr_un *un = (struct sockaddr_un *)addr;
-        fprintf(stderr,
-            "Permission denied to access unix socket: %s\n",
-            un->sun_path[0] ? un->sun_path : "(abstract)");
-        errno = EACCES;
+        throw_permission_denied_err(false, "access unix socket: %s", un->sun_path[0] ? un->sun_path : "(abstract)");
         return -1;
     }
     char ip[INET6_ADDRSTRLEN] = {0};
@@ -239,8 +248,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
         }
     }
     if (is_sandbox_user() && match_banned_ip(ip, banned_hosts)) {
-        fprintf(stderr, "Permission denied to access %s.\n", ip);
-        errno = EACCES;
+        throw_permission_denied_err(false, "access %s", ip);
         return -1;
     }
     return real_connect(sockfd, addr, addrlen);
@@ -256,8 +264,7 @@ int getaddrinfo(const char *node, const char *service,
         int is_ip = inet_pton(AF_INET, node, &ip4) == 1 ||
                     inet_pton(AF_INET6, node, &ip6) == 1;
         if (!is_ip && match_banned_domain(node, banned_hosts)) {
-            fprintf(stderr, "Permission denied to access %s.\n", node);
-            errno = EACCES;
+            throw_permission_denied_err(false, "access %s", node);
             return EAI_SYSTEM;
         }
     }
@@ -270,11 +277,6 @@ static int allow_create_subprocess() {
     ensure_config_loaded();
     return allow_subprocess || !is_sandbox_user();
 }
-static int deny() {
-    fprintf(stderr, "Permission denied to create subprocess.\n");
-    _exit(126);
-    return -1;
-}
 static int not_supported(const char *function_name) {
     fprintf(stderr, "Not supported function: %s\n", function_name);
     _exit(126);
@@ -282,7 +284,7 @@ static int not_supported(const char *function_name) {
 }
 int execv(const char *path, char *const argv[]) {
     RESOLVE_REAL(execv);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_execv(path, argv);
 }
 int __execv(const char *path, char *const argv[]) {
@@ -290,7 +292,7 @@ int __execv(const char *path, char *const argv[]) {
 }
 int execve(const char *filename, char *const argv[], char *const envp[]) {
     RESOLVE_REAL(execve);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_execve(filename, argv, envp);
 }
 int __execve(const char *filename, char *const argv[], char *const envp[]) {
@@ -299,12 +301,12 @@ int __execve(const char *filename, char *const argv[], char *const envp[]) {
 int execveat(int dirfd, const char *pathname,
              char *const argv[], char *const envp[], int flags) {
     RESOLVE_REAL(execveat);
-    if (!allow_create_subprocess())  return deny();
+    if (!allow_create_subprocess())  return throw_permission_denied_err(true, "create subprocess");
     return real_execveat(dirfd, pathname, argv, envp, flags);
 }
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
     RESOLVE_REAL(execvpe);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_execvpe(file, argv, envp);
 }
 int __execvpe(const char *file, char *const argv[], char *const envp[]) {
@@ -312,7 +314,7 @@ int __execvpe(const char *file, char *const argv[], char *const envp[]) {
 }
 int execvp(const char *file, char *const argv[]) {
     RESOLVE_REAL(execvp);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_execvp(file, argv);
 }
 int __execvp(const char *file, char *const argv[]) {
@@ -335,7 +337,7 @@ int execle(const char *path, const char *arg, ...) {
 }
 pid_t fork(void) {
     RESOLVE_REAL(fork);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_fork();
 }
 pid_t __fork(void) {
@@ -343,7 +345,7 @@ pid_t __fork(void) {
 }
 pid_t vfork(void) {
     RESOLVE_REAL(vfork);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_vfork();
 }
 pid_t __vfork(void) {
@@ -351,7 +353,7 @@ pid_t __vfork(void) {
 }
 int clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ...) {
     RESOLVE_REAL(clone);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     va_list ap;
     va_start(ap, arg);
     long a4 = va_arg(ap, long);
@@ -361,7 +363,7 @@ int clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ...) {
 }
 int clone3(struct clone_args *cl_args, size_t size) {
     RESOLVE_REAL(clone3);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_clone3(cl_args, size);
 }
 int posix_spawn(pid_t *pid, const char *path,
@@ -369,7 +371,7 @@ int posix_spawn(pid_t *pid, const char *path,
                 const posix_spawnattr_t *attrp,
                 char *const argv[], char *const envp[]) {
     RESOLVE_REAL(posix_spawn);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_posix_spawn(pid, path, file_actions, attrp, argv, envp);
 }
 int __posix_spawn(pid_t *pid, const char *path,
@@ -383,7 +385,7 @@ int posix_spawnp(pid_t *pid, const char *file,
                  const posix_spawnattr_t *attrp,
                  char *const argv[], char *const envp[]) {
     RESOLVE_REAL(posix_spawnp);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_posix_spawnp(pid, file, file_actions, attrp, argv, envp);
 }
 int __posix_spawnp(pid_t *pid, const char *file,
@@ -406,17 +408,17 @@ FILE *__popen(const char *command, const char *type) {
 }
 int system(const char *command) {
     RESOLVE_REAL(system);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_system(command);
 }
 int __libc_system(const char *command) {
     RESOLVE_REAL(__libc_system);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real___libc_system(command);
 }
 pid_t __libc_clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ...) {
     RESOLVE_REAL(__libc_clone);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     va_list ap;
     va_start(ap, arg);
     long a4 = va_arg(ap, long);
@@ -427,13 +429,15 @@ pid_t __libc_clone(int (*fn)(void *), void *child_stack, int flags, void *arg, .
 
 pid_t forkpty(int *amaster, char *name, const struct termios *termp, const struct winsize *winp) {
     RESOLVE_REAL(forkpty);
-    if (!allow_create_subprocess()) return deny();
+    if (!allow_create_subprocess()) return throw_permission_denied_err(true, "create subprocess");
     return real_forkpty(amaster, name, termp, winp);
 }
 pid_t __forkpty(int *amaster, char *name, const struct termios *termp, const struct winsize *winp) {
     return forkpty(amaster, name, termp, winp);
 }
-/* syscall wrapper to intercept syscalls that directly create processes */
+/**
+ * 限制调用syscall
+ */
 static int allow_access_syscall() {
     ensure_config_loaded();
     return allow_syscall || !is_sandbox_user();
@@ -505,10 +509,7 @@ long syscall(long number, ...) {
         case SYS_shmctl:
         case SYS_prctl:
             if (!allow_access_syscall()) {
-                fprintf(stderr, "Permission denied to access syscall %ld.\n", number);
-                errno = EACCES;
-                _exit(126);
-                return -1;
+                throw_permission_denied_err(true, "access syscall %ld", number);
              }
     }
     return real_syscall(number, a1, a2, a3, a4, a5, a6);
@@ -545,9 +546,7 @@ static int is_in_allow_dl_paths(const char *filename) {
 void *dlopen(const char *filename, int flag) {
     RESOLVE_REAL(dlopen);
     if (is_sandbox_user() && !is_in_allow_dl_paths(filename)) {
-        fprintf(stderr, "Permission denied to access file %s.\n", filename);
-        errno = EACCES;
-        _exit(126);
+        throw_permission_denied_err(true, "access file %s", filename);
     }
     return real_dlopen(filename, flag);
 }
@@ -557,9 +556,7 @@ void *__dlopen(const char *filename, int flag) {
 void *dlmopen(Lmid_t lmid, const char *filename, int flags) {
     RESOLVE_REAL(dlmopen);
     if (is_sandbox_user() && !is_in_allow_dl_paths(filename)) {
-        fprintf(stderr, "Permission denied to access file %s.\n", filename);
-        errno = EACCES;
-        _exit(126);
+        throw_permission_denied_err(true, "access file %s", filename);
     }
     return real_dlmopen(lmid, filename, flags);
 }
@@ -570,24 +567,18 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
     RESOLVE_REAL(mmap);
     if (is_sandbox_user() && (prot & PROT_EXEC)) {
         if ((flags & MAP_ANONYMOUS) || fd < 0) { //匿名映射：直接拒绝
-            fprintf(stderr, "Permission denied to mmap(anonymous).\n");
-            errno = EACCES;
-            _exit(126);
+            throw_permission_denied_err(true, "mmap(anonymous)");
         }
         char link[64];
         snprintf(link, sizeof(link), "/proc/self/fd/%d", fd);
         char real_path[PATH_MAX];
         ssize_t n = readlink(link, real_path, sizeof(real_path) - 1);
         if (n < 0) {
-            fprintf(stderr, "Permission denied to mmap(readlink failed).\n");
-            errno = EACCES;
-            _exit(126);
+            throw_permission_denied_err(true, "mmap(readlink failed)");
         }
         real_path[n] = '\0';
         if (!is_in_allow_dl_paths(real_path)) {
-            fprintf(stderr,"Permission denied to mmap %s.\n", real_path);
-            errno = EACCES;
-            _exit(126);
+            throw_permission_denied_err(true, "mmap %s", real_path);
         }
     }
     return real_mmap(addr, len, prot, flags, fd, off);
@@ -598,9 +589,7 @@ void* mmap64(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
 int mprotect(void *addr, size_t len, int prot) {
     RESOLVE_REAL(mprotect);
     if (is_sandbox_user() && (prot & PROT_EXEC)) {
-        fprintf(stderr, "Permission denied to mprotect.\n");
-        errno = EACCES;
-        _exit(126);
+        throw_permission_denied_err(true, "mprotect");
     }
     return real_mprotect(addr, len, prot);
 }
