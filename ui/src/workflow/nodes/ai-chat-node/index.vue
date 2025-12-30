@@ -140,172 +140,203 @@
           />
         </el-form-item>
 
-        <!-- MCP-->
-        <div class="flex-between mb-16">
-          <div class="lighter">MCP</div>
+        <div class="mb-8 mt-12 flex-between">
+          <span class="mr-4 lighter">
+            {{ $t('views.application.skill') }}
+          </span>
+          <div class="flex">
+            <el-checkbox
+              v-model="chat_data.mcp_output_enable"
+              :label="$t('views.application.form.mcp_output_enable')"
+            />
+          </div>
+        </div>
+        <el-card shadow="never" style="--el-card-padding: 12px" class="mb-12">
+          <!-- MCP-->
           <div>
-            <el-button
-              type="primary"
-              class="mr-4"
-              link
-              @click="openMcpServersDialog"
-              @refreshForm="refreshParam"
-              v-if="chat_data.mcp_enable"
-            >
-              <AppIcon iconName="app-setting"></AppIcon>
-            </el-button>
-            <el-switch size="small" v-model="chat_data.mcp_enable" />
-          </div>
-        </div>
-        <div class="w-full mb-16" v-if="chat_data.mcp_tool_ids?.length > 0">
-          <template v-for="(item, index) in chat_data.mcp_tool_ids" :key="index">
-            <div
-              class="flex-between border border-r-6 white-bg mb-4"
-              style="padding: 5px 8px"
-              v-if="relatedObject(mcpToolSelectOptions, item, 'id')"
-            >
-              <div class="flex align-center" style="line-height: 20px">
-                <el-avatar
-                  v-if="relatedObject(mcpToolSelectOptions, item, 'id')?.icon"
-                  shape="square"
-                  :size="20"
-                  style="background: none"
-                  class="mr-8"
+            <div class="flex-between mb-8" @click="collapseData.MCP = !collapseData.MCP">
+              <div class="flex align-center lighter cursor">
+                <el-icon class="mr-8 arrow-icon" :class="collapseData.MCP ? 'rotate-90' : ''">
+                  <CaretRight /> </el-icon
+                >MCP
+                <span class="ml-4" v-if="chat_data.mcp_tool_ids?.length">
+                  ({{ chat_data.mcp_tool_ids?.length }})</span
                 >
-                  <img
-                    :src="resetUrl(relatedObject(mcpToolSelectOptions, item, 'id')?.icon)"
-                    alt=""
-                  />
-                </el-avatar>
-                <ToolIcon v-else type="MCP" class="mr-8" :size="20" />
-
-                <div
-                  class="ellipsis"
-                  :title="relatedObject(mcpToolSelectOptions, item, 'id')?.name"
-                >
-                  {{
-                    relatedObject(mcpToolSelectOptions, item, 'id')?.name ||
-                    $t('common.custom') + ' MCP'
-                  }}
-                </div>
               </div>
-              <el-button text @click="removeMcpTool(item)">
-                <el-icon><Close /></el-icon>
-              </el-button>
-            </div>
-          </template>
-        </div>
-        <div
-          v-if="chat_data.mcp_servers && chat_data.mcp_servers.length > 0"
-          class="flex-between border border-r-6 white-bg mb-4"
-          style="padding: 5px 8px"
-        >
-          <div class="flex align-center" style="line-height: 20px">
-            <ToolIcon type="MCP" class="mr-8" :size="20" />
-            <div class="ellipsis">
-              {{ $t('common.custom') + ' MCP' }}
-            </div>
-          </div>
-          <el-button text @click="chat_data.mcp_servers = ''">
-            <el-icon><Close /></el-icon>
-          </el-button>
-        </div>
-        <!-- 工具       -->
-        <div class="flex-between mb-16">
-          <div class="lighter">{{ $t('views.tool.title') }}</div>
-          <div>
-            <el-button
-              type="primary"
-              class="mr-4"
-              link
-              @click="openToolDialog"
-              @refreshForm="refreshParam"
-              v-if="chat_data.tool_enable"
-            >
-              <AppIcon iconName="app-setting"></AppIcon>
-            </el-button>
-            <el-switch size="small" v-model="chat_data.tool_enable" />
-          </div>
-        </div>
-        <div class="w-full mb-16" v-if="chat_data.tool_ids?.length > 0">
-          <template v-for="(item, index) in chat_data.tool_ids" :key="index">
-            <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
-              <div class="flex align-center" style="line-height: 20px">
-                <el-avatar
-                  v-if="relatedObject(toolSelectOptions, item, 'id')?.icon"
-                  shape="square"
-                  :size="20"
-                  style="background: none"
-                  class="mr-8"
-                >
-                  <img :src="resetUrl(relatedObject(toolSelectOptions, item, 'id')?.icon)" alt="" />
-                </el-avatar>
-                <ToolIcon v-else class="mr-8" :size="20" />
-
-                <div class="ellipsis" :title="relatedObject(toolSelectOptions, item, 'id')?.name">
-                  {{ relatedObject(toolSelectOptions, item, 'id')?.name }}
-                </div>
-              </div>
-              <el-button text @click="removeTool(item)">
-                <el-icon><Close /></el-icon>
-              </el-button>
-            </div>
-          </template>
-        </div>
-        <!-- 应用       -->
-        <div class="flex-between mb-16">
-          <div class="lighter">{{ $t('views.application.title') }}</div>
-          <div>
-            <el-button
-              type="primary"
-              class="mr-4"
-              link
-              @click="openApplicationDialog"
-              @refreshForm="refreshParam"
-              v-if="chat_data.application_enable"
-            >
-              <AppIcon iconName="app-setting"></AppIcon>
-            </el-button>
-            <el-switch size="small" v-model="chat_data.application_enable" />
-          </div>
-        </div>
-        <div class="w-full mb-16" v-if="chat_data.application_ids?.length > 0">
-          <template v-for="(item, index) in chat_data.application_ids" :key="index">
-            <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
-              <div class="flex align-center" style="line-height: 20px">
-                <el-avatar
-                  v-if="relatedObject(applicationSelectOptions, item, 'id')?.icon"
-                  shape="square"
-                  :size="20"
-                  style="background: none"
-                  class="mr-8"
-                >
-                  <img :src="resetUrl(relatedObject(applicationSelectOptions, item, 'id')?.icon)" alt="" />
-                </el-avatar>
-                <AppIcon v-else class="mr-8" :size="20" />
-
-                <div class="ellipsis" :title="relatedObject(applicationSelectOptions, item, 'id')?.name">
-                  {{ relatedObject(applicationSelectOptions, item, 'id')?.name }}
-                </div>
-              </div>
-              <el-button text @click="removeApplication(item)">
-                <el-icon><Close /></el-icon>
-              </el-button>
-            </div>
-          </template>
-        </div>
-        <el-form-item @click.prevent v-if="chat_data.mcp_enable || chat_data.tool_enable || chat_data.application_enable">
-          <template #label>
-            <div class="flex-between">
-              <span class="mr-4">
-                {{ $t('views.application.form.mcp_output_enable') }}
-              </span>
               <div class="flex">
-                <el-switch class="ml-8" size="small" v-model="chat_data.mcp_output_enable" />
+                <el-button
+                  type="primary"
+                  link
+                  @click="openMcpServersDialog"
+                  @refreshForm="refreshParam"
+                >
+                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                </el-button>
               </div>
             </div>
-          </template>
-        </el-form-item>
+            <div class="w-full mb-16" v-if="chat_data.mcp_tool_ids?.length > 0 && collapseData.MCP">
+              <template v-for="(item, index) in chat_data.mcp_tool_ids" :key="index">
+                <div
+                  class="flex-between border border-r-6 white-bg mb-4"
+                  style="padding: 5px 8px"
+                  v-if="relatedObject(mcpToolSelectOptions, item, 'id')"
+                >
+                  <div class="flex align-center" style="line-height: 20px">
+                    <el-avatar
+                      v-if="relatedObject(mcpToolSelectOptions, item, 'id')?.icon"
+                      shape="square"
+                      :size="20"
+                      style="background: none"
+                      class="mr-8"
+                    >
+                      <img
+                        :src="resetUrl(relatedObject(mcpToolSelectOptions, item, 'id')?.icon)"
+                        alt=""
+                      />
+                    </el-avatar>
+                    <ToolIcon v-else type="MCP" class="mr-8" :size="20" />
+
+                    <div
+                      class="ellipsis"
+                      :title="relatedObject(mcpToolSelectOptions, item, 'id')?.name"
+                    >
+                      {{
+                        relatedObject(mcpToolSelectOptions, item, 'id')?.name ||
+                        $t('common.custom') + ' MCP'
+                      }}
+                    </div>
+                  </div>
+                  <el-button text @click="removeMcpTool(item)">
+                    <el-icon><Close /></el-icon>
+                  </el-button>
+                </div>
+              </template>
+            </div>
+            <div
+              v-if="chat_data.mcp_servers && chat_data.mcp_servers.length > 0 && collapseData.MCP"
+              class="flex-between border border-r-6 white-bg mb-16"
+              style="padding: 5px 8px"
+            >
+              <div class="flex align-center" style="line-height: 20px">
+                <ToolIcon type="MCP" class="mr-8" :size="20" />
+                <div class="ellipsis">
+                  {{ $t('common.custom') + ' MCP' }}
+                </div>
+              </div>
+              <el-button text @click="chat_data.mcp_servers = ''">
+                <el-icon><Close /></el-icon>
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 工具       -->
+          <div>
+            <div class="flex-between mb-8" @click="collapseData.tool = !collapseData.tool">
+              <div class="flex align-center lighter cursor">
+                <el-icon class="mr-8 arrow-icon" :class="collapseData.tool ? 'rotate-90' : ''">
+                  <CaretRight />
+                </el-icon>
+                {{ $t('views.tool.title') }}
+                <span class="ml-4" v-if="chat_data.tool_ids?.length">
+                  ({{ chat_data.tool_ids?.length }})</span
+                >
+              </div>
+              <div class="flex">
+                <el-button type="primary" link @click="openToolDialog" @refreshForm="refreshParam">
+                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                </el-button>
+              </div>
+            </div>
+            <div class="w-full mb-16" v-if="chat_data.tool_ids?.length > 0 && collapseData.tool">
+              <template v-for="(item, index) in chat_data.tool_ids" :key="index">
+                <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
+                  <div class="flex align-center" style="line-height: 20px">
+                    <el-avatar
+                      v-if="relatedObject(toolSelectOptions, item, 'id')?.icon"
+                      shape="square"
+                      :size="20"
+                      style="background: none"
+                      class="mr-8"
+                    >
+                      <img
+                        :src="resetUrl(relatedObject(toolSelectOptions, item, 'id')?.icon)"
+                        alt=""
+                      />
+                    </el-avatar>
+                    <ToolIcon v-else class="mr-8" :size="20" />
+
+                    <div
+                      class="ellipsis"
+                      :title="relatedObject(toolSelectOptions, item, 'id')?.name"
+                    >
+                      {{ relatedObject(toolSelectOptions, item, 'id')?.name }}
+                    </div>
+                  </div>
+                  <el-button text @click="removeTool(item)">
+                    <el-icon><Close /></el-icon>
+                  </el-button>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 应用       -->
+          <div>
+            <div class="flex-between" @click="collapseData.agent = !collapseData.agent">
+              <div class="flex align-center lighter cursor">
+                <el-icon class="mr-8 arrow-icon" :class="collapseData.agent ? 'rotate-90' : ''">
+                  <CaretRight />
+                </el-icon>
+                {{ $t('views.application.title') }}
+                <span class="ml-4" v-if="chat_data.application_ids?.length">
+                  ({{ chat_data.application_ids?.length }})</span
+                >
+              </div>
+              <div class="flex">
+                <el-button
+                  type="primary"
+                  link
+                  @click="openApplicationDialog"
+                  @refreshForm="refreshParam"
+                >
+                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                </el-button>
+              </div>
+            </div>
+            <div class="w-full mt-8" v-if="chat_data.application_ids?.length && collapseData.agent">
+              <template v-for="(item, index) in chat_data.application_ids" :key="index">
+                <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
+                  <div class="flex align-center" style="line-height: 20px">
+                    <el-avatar
+                      v-if="relatedObject(applicationSelectOptions, item, 'id')?.icon"
+                      shape="square"
+                      :size="20"
+                      style="background: none"
+                      class="mr-8"
+                    >
+                      <img
+                        :src="resetUrl(relatedObject(applicationSelectOptions, item, 'id')?.icon)"
+                        alt=""
+                      />
+                    </el-avatar>
+                    <AppIcon v-else class="mr-8" :size="20" />
+
+                    <div
+                      class="ellipsis"
+                      :title="relatedObject(applicationSelectOptions, item, 'id')?.name"
+                    >
+                      {{ relatedObject(applicationSelectOptions, item, 'id')?.name }}
+                    </div>
+                  </div>
+                  <el-button text @click="removeApplication(item)">
+                    <el-icon><Close /></el-icon>
+                  </el-button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </el-card>
+
         <el-form-item @click.prevent>
           <template #label>
             <div class="flex-between w-full">
@@ -368,7 +399,7 @@
 import { cloneDeep, set, groupBy } from 'lodash'
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import type { FormInstance } from 'element-plus'
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, reactive } from 'vue'
 import { isLastNode } from '@/workflow/common/data'
 import AIModeParamSettingDialog from '@/views/application/component/AIModeParamSettingDialog.vue'
 import GeneratePromptDialog from '@/views/application/component/GeneratePromptDialog.vue'
@@ -382,7 +413,7 @@ import { useRoute } from 'vue-router'
 import { resetUrl } from '@/utils/common'
 import { relatedObject } from '@/utils/array.ts'
 import { WorkflowMode } from '@/enums/application'
-import ApplicationDialog from "@/views/application/component/ApplicationDialog.vue";
+import ApplicationDialog from '@/views/application/component/ApplicationDialog.vue'
 const workflowMode = (inject('workflowMode') as WorkflowMode) || WorkflowMode.Application
 const getResourceDetail = inject('getResourceDetail') as any
 const route = useRoute()
@@ -429,6 +460,12 @@ const defaultPrompt = `${t('workflow.nodes.aiChatNode.defaultPrompt')}：
 {{${t('workflow.nodes.searchKnowledgeNode.label')}.data}}
 ${t('views.problem.title')}：
 {{${t('workflow.nodes.startNode.label')}.question}}`
+
+const collapseData = reactive({
+  MCP: true,
+  tool: true,
+  agent: true,
+})
 
 const form = {
   model_id: '',
@@ -613,11 +650,9 @@ function getMcpToolSelectOptions() {
 const applicationSelectOptions = ref<any[]>([])
 function getApplicationSelectOptions() {
   loadSharedApi({ type: 'application', systemType: apiType.value })
-    .getAllApplication({folder_id: resource.value?.workspace_id})
+    .getAllApplication({ folder_id: resource.value?.workspace_id })
     .then((res: any) => {
-      applicationSelectOptions.value = res.data.filter(
-        (item: any) => item.is_publish,
-      )
+      applicationSelectOptions.value = res.data.filter((item: any) => item.is_publish)
     })
 }
 
@@ -631,9 +666,7 @@ function submitApplicationDialog(config: any) {
 }
 function removeApplication(id: any) {
   if (chat_data.value.application_ids) {
-    chat_data.value.application_ids = chat_data.value.application_ids.filter(
-      (v: any) => v !== id,
-    )
+    chat_data.value.application_ids = chat_data.value.application_ids.filter((v: any) => v !== id)
   }
 }
 
