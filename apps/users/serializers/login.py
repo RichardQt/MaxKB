@@ -59,7 +59,7 @@ def record_login_fail(username: str, expire: int = 600):
         cache.incr(fail_key, 1, version=system_version)
 
 
-def record_login_fail_lock(username: str, expire: int = 600):
+def record_login_fail_lock(username: str, expire: int = 10):
     if not username:
         return
     fail_key = system_get_key(f'system_{username}_lock_count')
