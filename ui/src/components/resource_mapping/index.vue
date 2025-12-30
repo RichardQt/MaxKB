@@ -1,25 +1,53 @@
 <template>
   <el-drawer
     v-model="visible"
-    :title="$t('views.system.resourceMapping.title', '关联资源')"
+    :title="$t('views.system.resourceMapping.title')"
     size="60%"
     :append-to-body="true"
   >
+    <div class="lighter mb-12">
+      {{ currentSourceName }}
+    </div>
+    <div class="flex align-center mb-16">
+      <KnowledgeIcon
+        v-if="currentSourceType === 'KNOWLEDGE'"
+        class="mr-12"
+        :size="24"
+        :type="currentSource.type"
+      />
+      <el-avatar
+        v-else-if="currentSourceType === 'TOOL' && isAppIcon(currentSource?.icon)"
+        shape="square"
+        :size="24"
+        style="background: none"
+        class="mr-12"
+      >
+        <img :src="resetUrl(currentSource?.icon, resetUrl('./favicon.ico'))" alt="" />
+      </el-avatar>
+      <ToolIcon
+        v-else-if="currentSourceType === 'TOOL'"
+        class="mr-12"
+        :size="24"
+        :type="currentSource.type"
+      />
+
+      <span
+        v-else-if="currentSourceType === 'MODEL'"
+        style="height: 24px; width: 24px"
+        :innerHTML="getProviderIcon(currentSource)"
+        class="mr-12"
+      ></span>
+      {{ currentSource.name }}
+    </div>
+    <div class="lighter mb-12">
+      {{ $t('views.system.resourceMapping.sub_title') }}
+    </div>
     <div class="flex-between mb-16">
       <div class="flex-between complex-search">
         <el-select class="complex-search__left" v-model="searchType" style="width: 100px">
-          <el-option
-            :label="$t('views.userManage.userForm.resourceName.label', '名称')"
-            value="resource_name"
-          />
-          <el-option
-            :label="$t('views.userManage.userForm.user_name.label', '创建者')"
-            value="user_name"
-          />
-          <el-option
-            :label="$t('views.userManage.userForm.source_type.label', '资源类型')"
-            value="source_type"
-          />
+          <el-option :label="$t('common.name')" value="resource_name" />
+          <el-option :label="$t('common.creator')" value="user_name" />
+          <el-option :label="$t('common.type')" value="source_type" />
         </el-select>
         <el-input
           v-if="searchType === 'resource_name'"
@@ -49,8 +77,8 @@
           collapse-tags-tooltip
           style="width: 220px"
         >
-          <el-option :label="$t('views.application.title')" value="APPLICATION"/>
-          <el-option :label="$t('views.knowledge.title')" value="KNOWLEDGE"/>
+          <el-option :label="$t('views.application.title')" value="APPLICATION" />
+          <el-option :label="$t('views.knowledge.title')" value="KNOWLEDGE" />
         </el-select>
       </div>
     </div>
@@ -66,21 +94,43 @@
       :row-key="(row: any) => row.id"
       v-loading="loading"
     >
-      <el-table-column prop="name" label="名称" min-width="120" show-overflow-tooltip/>
-      <el-table-column prop="desc" min-width="120" show-overflow-tooltip label="描述"/>
-      <el-table-column prop="source_type" min-width="120" show-overflow-tooltip label="资源类型"/>
-      <el-table-column prop="username" min-width="120" show-overflow-tooltip label="创建者"/>
+      <el-table-column
+        prop="name"
+        :label="$t('common.name')"
+        min-width="120"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        prop="desc"
+        min-width="120"
+        show-overflow-tooltip
+        :label="$t('common.desc')"
+      />
+      <el-table-column
+        prop="source_type"
+        min-width="120"
+        show-overflow-tooltip
+        :label="$t('common.type')"
+      />
+      <el-table-column
+        prop="username"
+        min-width="120"
+        show-overflow-tooltip
+        :label="$t('common.creator')"
+      />
     </app-table>
   </el-drawer>
 </template>
 <script setup lang="ts">
-import {ref, reactive, computed} from 'vue'
-import {useRoute} from 'vue-router'
-import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import { isAppIcon, resetUrl } from '@/utils/common'
 import useStore from '@/stores'
-
+import { t } from '@/locales'
+import type { Provider } from '@/api/type/model'
 const route = useRoute()
-const {user} = useStore()
+const { model, user } = useStore()
 const searchType = ref<string>('resource_name')
 const query = ref<any>({
   resource_name: '',
@@ -105,16 +155,26 @@ const apiType = computed(() => {
   }
 })
 
+const currentSourceName = computed(() => {
+  if (currentSourceType.value === 'TOOL') {
+    return t('views.tool.title')
+  } else if (currentSourceType.value === 'MODEL') {
+    return t('views.model.title')
+  } else {
+    return t('views.knowledge.title')
+  }
+})
+
 const pageResouceMapping = () => {
   const workspaceId = user.getWorkspaceId() || 'default'
   const params: any = {}
   if (query.value[searchType.value]) {
     params[searchType.value] = query.value[searchType.value]
   }
-  loadSharedApi({type: 'resourceMapping', systemType: apiType.value})
+  loadSharedApi({ type: 'resourceMapping', systemType: apiType.value })
     .getResourceMapping(
       workspaceId,
-      currentSource.value,
+      currentSourceType.value,
       currentSourceId.value,
       paginationConfig,
       params,
@@ -131,18 +191,38 @@ function handleSizeChange() {
   pageResouceMapping()
 }
 
-const currentSource = ref<string>()
+const currentSourceType = ref<string>()
 const currentSourceId = ref<string>()
-const open = (source: string, sourceId: string) => {
+const currentSource = ref<any>()
+const open = (source: string, data: any) => {
   visible.value = true
-  currentSource.value = source
-  currentSourceId.value = sourceId
+  currentSourceType.value = source
+  currentSourceId.value = data.id
+  currentSource.value = data
   pageResouceMapping()
+  if (currentSourceType.value === 'MODEL') {
+    getProvider()
+  }
 }
 const close = () => {
   visible.value = false
   paginationConfig.current_page = 1
 }
+
+const getProviderIcon = computed(() => {
+  return (row: any) => {
+    return provider_list.value.find((p) => p.provider === row.provider)?.icon
+  }
+})
+
+const provider_list = ref<Array<Provider>>([])
+
+function getProvider() {
+  model.asyncGetProvider().then((res: any) => {
+    provider_list.value = res?.data
+  })
+}
+
 defineExpose({
   open,
   close,

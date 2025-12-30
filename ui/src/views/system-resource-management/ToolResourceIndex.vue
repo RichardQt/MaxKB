@@ -694,7 +694,7 @@ function refresh(data?: any) {
 
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 const openResourceMappingDrawer = (tool: any) => {
-  resourceMappingDrawerRef.value?.open('TOOL', tool.id)
+  resourceMappingDrawerRef.value?.open('TOOL', tool)
 }
 
 onMounted(() => {

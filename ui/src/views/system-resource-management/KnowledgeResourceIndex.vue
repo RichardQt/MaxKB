@@ -487,7 +487,7 @@ function getList() {
 
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 const openResourceMappingDrawer = (knowledge: any) => {
-  resourceMappingDrawerRef.value?.open('KNOWLEDGE', knowledge.id)
+  resourceMappingDrawerRef.value?.open('KNOWLEDGE', knowledge)
 }
 onMounted(() => {
   getWorkspaceList()

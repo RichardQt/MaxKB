@@ -427,7 +427,7 @@ function getProvider() {
 
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 const openResourceMappingDrawer = (model: any) => {
-  resourceMappingDrawerRef.value?.open('MODEL', model.id)
+  resourceMappingDrawerRef.value?.open('MODEL', model)
 }
 
 onMounted(() => {

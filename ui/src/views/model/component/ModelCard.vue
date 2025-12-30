@@ -176,7 +176,7 @@ const props = defineProps<{
   apiType: 'systemShare' | 'workspace' | 'systemManage'
 }>()
 const openResourceMappingDrawer = (model: any) => {
-  resourceMappingDrawerRef.value?.open('MODEL', model.id)
+  resourceMappingDrawerRef.value?.open('MODEL', model)
 }
 const isSystemShare = computed(() => {
   return props.apiType === 'systemShare'

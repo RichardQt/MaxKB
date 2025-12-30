@@ -355,7 +355,7 @@ import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 
 const openResourceMappingDrawer = (knowledge: any) => {
-  resourceMappingDrawerRef.value?.open('KNOWLEDGE', knowledge.id)
+  resourceMappingDrawerRef.value?.open('KNOWLEDGE', knowledge)
 }
 const router = useRouter()
 const route = useRoute()

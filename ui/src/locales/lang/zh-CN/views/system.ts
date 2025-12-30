@@ -164,6 +164,7 @@ export default {
   setting: '登录设置',
   third_party_user_default_role: '第三方用户默认角色分配',
   resourceMapping: {
-    title: "查看关联资源"
-  }
+    title: '查看关联资源',
+    sub_title: '关联资源',
+  },
 }

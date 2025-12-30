@@ -512,7 +512,8 @@
                       v-if="
                         applicationForm.application_ids &&
                         applicationForm.application_ids.length > 0 &&
-                        toolPermissionPrecise.read()
+                        toolPermissionPrecise.read() &&
+                        collapseData.agent
                       "
                     >
                       <template

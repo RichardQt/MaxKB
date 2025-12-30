@@ -407,7 +407,7 @@ import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 const route = useRoute()
 const openResourceMappingDrawer = (tool: any) => {
-  resourceMappingDrawerRef.value?.open('TOOL', tool.id)
+  resourceMappingDrawerRef.value?.open('TOOL', tool)
 }
 const {folder, user, tool} = useStore()
 onBeforeRouteLeave((to, from) => {
