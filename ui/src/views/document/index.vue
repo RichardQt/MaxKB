@@ -139,7 +139,12 @@
                 />
               </div>
 
-              <el-tooltip effect="dark" :content="$t('workflow.ExecutionRecord')" placement="top">
+              <el-tooltip
+                effect="dark"
+                :content="$t('workflow.ExecutionRecord')"
+                placement="top"
+                v-if="knowledgeDetail?.type === 4"
+              >
                 <el-button @click="openListAction" class="ml-12">
                   <AppIcon iconName="app-execution-record" class="color-secondary"></AppIcon>
                 </el-button>

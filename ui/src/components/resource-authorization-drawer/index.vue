@@ -2,7 +2,7 @@
   <el-drawer
     v-model="drawerVisible"
     :title="$t('views.system.resourceAuthorization.title')"
-    size="60%"
+    size="850"
     :append-to-body="true"
   >
     <div class="flex-between mb-16">
@@ -101,7 +101,7 @@
         v-if="hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')"
         prop="role_name"
         :label="$t('views.role.member.role')"
-        width="210"
+        width="160"
       >
         <template #default="{ row }">
           <TagGroup class="cursor" style="width: fit-content" :tags="row.role_name" />
