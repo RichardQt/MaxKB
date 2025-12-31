@@ -146,8 +146,61 @@
         min-width="120"
         show-overflow-tooltip
         :label="$t('views.workspace.title')"
-        v-if="showWorkspace"
-      />
+        v-if="showWorkspace">
+        <template #header>
+          <div>
+            <span>{{ $t('views.workspace.title') }}</span>
+            <el-popover :width="200" trigger="click" :visible="workspaceVisible">
+              <template #reference>
+                <el-button
+                  style="margin-top: -2px"
+                  :type="workspaceArr && workspaceArr.length > 0 ? 'primary' : ''"
+                  link
+                  @click="workspaceVisible = !workspaceVisible"
+                >
+                  <el-icon>
+                    <Filter/>
+                  </el-icon>
+                </el-button>
+              </template>
+              <div class="filter">
+                <div class="form-item mb-16 ml-4">
+                  <div @click.stop>
+                    <el-input
+                      v-model="filterText"
+                      :placeholder="$t('common.search')"
+                      prefix-icon="Search"
+                      clearable
+                    />
+                    <el-scrollbar height="300" v-if="filterData.length">
+                      <el-checkbox-group
+                        v-model="workspaceArr"
+                        style="display: flex; flex-direction: column"
+                      >
+                        <el-checkbox
+                          v-for="item in filterData"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-checkbox-group>
+                    </el-scrollbar>
+                    <el-empty v-else :description="$t('common.noData')"/>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <el-button size="small" @click="filterWorkspaceChange('clear')"
+                >{{ $t('common.clear') }}
+                </el-button>
+                <el-button type="primary" @click="filterWorkspaceChange" size="small"
+                >{{ $t('common.confirm') }}
+                </el-button>
+              </div>
+            </el-popover>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column
         prop="username"
         min-width="120"
@@ -158,13 +211,14 @@
   </el-drawer>
 </template>
 <script setup lang="ts">
-import {ref, reactive, computed, onMounted} from 'vue'
+import {ref, reactive, computed, onMounted, watch} from 'vue'
 import {useRoute} from 'vue-router'
 import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
 import {isAppIcon, resetUrl} from '@/utils/common'
 import useStore from '@/stores'
 import {t} from '@/locales'
 import type {Provider} from '@/api/type/model'
+import {loadPermissionApi} from "@/utils/dynamics-api/permission-api.ts";
 
 const route = useRoute()
 const {model, user} = useStore()
@@ -192,8 +246,7 @@ const apiType = computed(() => {
   }
 })
 
-const showWorkspace = computed(() => (user.isPE() || user.isEE()) && route.path.includes('shared')
-)
+const showWorkspace = computed(() => (user.isPE() || user.isEE()) && route.path.includes('shared'))
 
 const currentSourceName = computed(() => {
   if (currentSourceType.value === 'TOOL') {
@@ -210,6 +263,9 @@ const pageResourceMapping = () => {
   const params: any = {}
   if (query.value[searchType.value]) {
     params[searchType.value] = query.value[searchType.value]
+  }
+  if (workspaceArr.value.length > 0) {
+    params.workspace_ids = JSON.stringify(workspaceArr.value)
   }
   loadSharedApi({type: 'resourceMapping', systemType: apiType.value})
     .getResourceMapping(
@@ -243,6 +299,7 @@ const open = (source: string, data: any) => {
   if (currentSourceType.value === 'MODEL') {
     getProvider()
   }
+  getWorkspaceList()
 }
 const close = () => {
   visible.value = false
@@ -262,6 +319,45 @@ function getProvider() {
     provider_list.value = res?.data
   })
 }
+
+const workspaceOptions = ref<any[]>([])
+const workspaceVisible = ref(false)
+const workspaceArr = ref<any[]>([])
+
+const filterText = ref('')
+const filterData = ref<any[]>([])
+
+function filterWorkspaceChange(val: string) {
+  if (val === 'clear') {
+    workspaceArr.value = []
+  }
+  filterText.value = ''
+  pageResourceMapping()
+  workspaceVisible.value = false
+}
+
+async function getWorkspaceList() {
+  if (user.isEE()) {
+    const res = await loadPermissionApi('workspace').getSystemWorkspaceList(loading)
+    workspaceOptions.value = res.data.map((item: any) => ({
+      label: item.name,
+      value: item.id,
+    }))
+  }
+}
+
+watch(
+  [() => workspaceOptions.value, () => filterText.value],
+  () => {
+    if (!filterText.value.length) {
+      filterData.value = workspaceOptions.value
+    }
+    filterData.value = workspaceOptions.value.filter((v: any) =>
+      v.label.toLowerCase().includes(filterText.value.toLowerCase()),
+    )
+  },
+  {immediate: true},
+)
 
 defineExpose({
   open,
