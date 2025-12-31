@@ -6,6 +6,7 @@
     @date：2025/4/28 17:17
     @desc:
 """
+import json
 import os
 
 from django.db import models
@@ -29,6 +30,7 @@ class ResourceMappingSerializer(serializers.Serializer):
         label=_('source Type'),
         child=serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('source Type')))
     user_name = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('creator'))
+    workspace_ids = serializers.CharField(required=False, label=_('workspace_ids'))
 
     def get_query_set(self):
         queryset = QuerySet(model=get_dynamics_model({
@@ -36,7 +38,8 @@ class ResourceMappingSerializer(serializers.Serializer):
             'target_id': models.CharField(),
             "target_type": models.CharField(),
             "u.username": models.CharField(),
-            'rm.source_type': models.CharField()
+            'rm.source_type': models.CharField(),
+            'workspace_id': models.CharField(),
         }))
 
         queryset = queryset.filter(target_id=self.data.get('resource_id'),
@@ -48,6 +51,10 @@ class ResourceMappingSerializer(serializers.Serializer):
             queryset = queryset.filter(**{'u.username__icontains': self.data.get('user_name')})
         if self.data.get("source_type"):
             queryset = queryset.filter(**{'rm.source_type__in': self.data.get('source_type')})
+        if self.data.get('workspace_ids') is not None and len(self.data.get('workspace_ids')) > 0:
+            workspace_ids = json.loads(self.data.get('workspace_ids'))
+            queryset = queryset.filter(**{'workspace_id__in': workspace_ids})
+
         return queryset
 
     @staticmethod
