@@ -174,13 +174,10 @@ class BaseChatStep(IChatStep):
                 no_references_setting=None,
                 model_params_setting=None,
                 model_setting=None,
-                mcp_enable=False,
                 mcp_tool_ids=None,
                 mcp_servers='',
                 mcp_source="referencing",
-                tool_enable=False,
                 tool_ids=None,
-                application_enable=False,
                 application_ids=None,
                 mcp_output_enable=True,
                 **kwargs):
@@ -192,16 +189,16 @@ class BaseChatStep(IChatStep):
                                        manage, padding_problem_text, chat_user_id, chat_user_type,
                                        no_references_setting,
                                        model_setting,
-                                       mcp_enable, mcp_tool_ids, mcp_servers, mcp_source, tool_enable, tool_ids,
-                                       application_enable, application_ids,
+                                       mcp_tool_ids, mcp_servers, mcp_source, tool_ids,
+                                       application_ids,
                                        mcp_output_enable)
         else:
             return self.execute_block(message_list, chat_id, problem_text, post_response_handler, chat_model,
                                       paragraph_list,
                                       manage, padding_problem_text, chat_user_id, chat_user_type, no_references_setting,
                                       model_setting,
-                                      mcp_enable, mcp_tool_ids, mcp_servers, mcp_source, tool_enable, tool_ids,
-                                      application_enable, application_ids,
+                                      mcp_tool_ids, mcp_servers, mcp_source, tool_ids,
+                                      application_ids,
                                       mcp_output_enable)
 
     def get_details(self, manage, **kwargs):
@@ -288,13 +285,10 @@ class BaseChatStep(IChatStep):
                           paragraph_list=None,
                           no_references_setting=None,
                           problem_text=None,
-                          mcp_enable=False,
                           mcp_tool_ids=None,
                           mcp_servers='',
                           mcp_source="referencing",
-                          tool_enable=False,
                           tool_ids=None,
-                          application_enable=False,
                           application_ids=None,
                           mcp_output_enable=True):
         if paragraph_list is None:
@@ -333,19 +327,16 @@ class BaseChatStep(IChatStep):
                        chat_user_id=None, chat_user_type=None,
                        no_references_setting=None,
                        model_setting=None,
-                       mcp_enable=False,
                        mcp_tool_ids=None,
                        mcp_servers='',
                        mcp_source="referencing",
-                       tool_enable=False,
                        tool_ids=None,
-                       application_enable=False,
                        application_ids=None,
                        mcp_output_enable=True):
         chat_result, is_ai_chat = self.get_stream_result(message_list, chat_model, paragraph_list,
-                                                         no_references_setting, problem_text, mcp_enable, mcp_tool_ids,
-                                                         mcp_servers, mcp_source, tool_enable, tool_ids,
-                                                         application_enable, application_ids,
+                                                         no_references_setting, problem_text, mcp_tool_ids,
+                                                         mcp_servers, mcp_source, tool_ids,
+                                                         application_ids,
                                                          mcp_output_enable)
         chat_record_id = self.context.get('step_args', {}).get('chat_record_id') if self.context.get('step_args',
                                                                                                      {}).get(
@@ -365,13 +356,10 @@ class BaseChatStep(IChatStep):
                          paragraph_list=None,
                          no_references_setting=None,
                          problem_text=None,
-                         mcp_enable=False,
                          mcp_tool_ids=None,
                          mcp_servers='',
                          mcp_source="referencing",
-                         tool_enable=False,
                          tool_ids=None,
-                         application_enable=False,
                          application_ids=None,
                          mcp_output_enable=True
                          ):
@@ -409,13 +397,10 @@ class BaseChatStep(IChatStep):
                       padding_problem_text: str = None,
                       chat_user_id=None, chat_user_type=None, no_references_setting=None,
                       model_setting=None,
-                      mcp_enable=False,
                       mcp_tool_ids=None,
                       mcp_servers='',
                       mcp_source="referencing",
-                      tool_enable=False,
                       tool_ids=None,
-                      application_enable=False,
                       application_ids=None,
                       mcp_output_enable=True):
         reasoning_content_enable = model_setting.get('reasoning_content_enable', False)
@@ -427,9 +412,9 @@ class BaseChatStep(IChatStep):
         # 调用模型
         try:
             chat_result, is_ai_chat = self.get_block_result(message_list, chat_model, paragraph_list,
-                                                            no_references_setting, problem_text, mcp_enable,
-                                                            mcp_tool_ids, mcp_servers, mcp_source, tool_enable,
-                                                            tool_ids, application_enable, application_ids,
+                                                            no_references_setting, problem_text,
+                                                            mcp_tool_ids, mcp_servers, mcp_source,
+                                                            tool_ids, application_ids,
                                                             mcp_output_enable)
             if is_ai_chat:
                 request_token = chat_model.get_num_tokens_from_messages(message_list)
