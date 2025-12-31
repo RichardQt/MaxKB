@@ -39,7 +39,7 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 - 你也可以通过 [1Panel 应用商店](https://apps.fit2cloud.com/1panel) 快速部署 MaxKB；
 - 如果是内网环境，推荐使用 [离线安装包](https://community.fit2cloud.com/#/products/maxkb/downloads) 进行安装部署；
 - MaxKB 不同产品产品版本的对比请参见：[MaxKB 产品版本对比](https://maxkb.cn/price)；
-- 如果您需要向团队介绍 MaxKB，可以使用这个 [官方 PPT 材料](https://fit2cloud.com/maxkb/download/introduce-maxkb_202507.pdf)。
+- 如果您需要向团队介绍 MaxKB，可以使用这个 [官方 PPT 材料](https://fit2cloud.com/maxkb/download/introduce-maxkb_2026.pdf)。
 
 如你有更多问题，可以查看使用手册，或者通过论坛与我们交流。
 
@@ -72,6 +72,7 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 
 ## 飞致云的其他明星项目
 
+- [Cordys CRM]https://github.com/1Panel-dev/CordysCRM) - 广受欢迎的开源堡垒机
 - [1Panel](https://github.com/1panel-dev/1panel/) - 现代化、开源的 Linux 服务器运维管理面板
 - [JumpServer](https://github.com/jumpserver/jumpserver/) - 广受欢迎的开源堡垒机
 - [DataEase](https://github.com/dataease/dataease/) - 人人可用的开源数据可视化分析工具
@@ -80,7 +81,7 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 
 ## License
 
-Copyright (c) 2014-2025 飞致云 FIT2CLOUD, All rights reserved.
+Copyright (c) 2014-2026 飞致云 FIT2CLOUD, All rights reserved.
 
 Licensed under The GNU General Public License version 3 (GPLv3)  (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
