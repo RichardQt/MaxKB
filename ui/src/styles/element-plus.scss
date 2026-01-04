@@ -30,6 +30,9 @@
   .el-card__body {
     overflow: inherit;
   }
+  &.el-card.is-hover-shadow:hover {
+    box-shadow: var(--el-box-shadow-light) !important;
+  }
 }
 
 // tree
@@ -79,6 +82,9 @@
   &.is-link:focus {
     background: none;
     border: none;
+  }
+  &.is-link:not(.is-disabled):hover {
+    color: var(--el-color-primary);
   }
 }
 .el-button--text {

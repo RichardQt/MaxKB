@@ -4,11 +4,11 @@
       <el-avatar :size="30">
         <img src="@/assets/user-icon.svg" style="width: 54%" alt=""/>
       </el-avatar>
-      <span class="ml-8 color-text-primary ellipsis"
+      <!-- <span class="ml-8 color-text-primary ellipsis"
             :title="user.userInfo?.nick_name">{{ user.userInfo?.nick_name }}</span>
       <el-icon class="el-icon--right">
         <CaretBottom/>
-      </el-icon>
+      </el-icon> -->
     </div>
 
     <template #dropdown>
