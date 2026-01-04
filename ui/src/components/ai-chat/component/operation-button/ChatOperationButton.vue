@@ -52,21 +52,29 @@
           </el-button>
         </el-tooltip>
         <el-divider direction="vertical" />
+
+        <el-tooltip
+          v-if="buttonData?.vote_status === '-1' && mode === 'mobile'"
+          effect="dark"
+          :content="$t('chat.operation.like')"
+          placement="top"
+        >
+          <el-button text :disabled="loading" @click="mobileVoteReasonHandler('0')">
+            <AppIcon class="color-secondary" iconName="app-like"></AppIcon>
+          </el-button>
+        </el-tooltip>
+
         <el-popover
           ref="likePopoverRef"
           trigger="click"
           placement="bottom-start"
           :width="360"
           popper-class="vote-popover"
+          v-if="buttonData?.vote_status === '-1' && mode !== 'mobile'"
         >
           <template #reference>
             <span>
-              <el-tooltip
-                effect="dark"
-                :content="$t('chat.operation.like')"
-                placement="top"
-                v-if="buttonData?.vote_status === '-1'"
-              >
+              <el-tooltip effect="dark" :content="$t('chat.operation.like')" placement="top">
                 <el-button text :disabled="loading">
                   <AppIcon class="color-secondary" iconName="app-like"></AppIcon>
                 </el-button>
@@ -74,7 +82,6 @@
             </span>
           </template>
           <VoteReasonContent
-            v-if="props.data.record_id"
             vote-type="0"
             :chat-id="props.chatId"
             :record-id="props.data.record_id"
@@ -95,21 +102,27 @@
           </el-button>
         </el-tooltip>
         <el-divider direction="vertical" v-if="buttonData?.vote_status === '-1'" />
+        <el-tooltip
+          v-if="buttonData?.vote_status === '-1' && mode === 'mobile'"
+          effect="dark"
+          :content="$t('chat.operation.oppose')"
+          placement="top"
+        >
+          <el-button text :disabled="loading" @click="mobileVoteReasonHandler('1')">
+            <AppIcon class="color-secondary" iconName="app-oppose"></AppIcon>
+          </el-button>
+        </el-tooltip>
         <el-popover
           ref="opposePopoverRef"
           trigger="click"
           placement="bottom-start"
           :width="360"
           popper-class="vote-popover"
+          v-if="buttonData?.vote_status === '-1' && mode !== 'mobile'"
         >
           <template #reference>
             <span>
-              <el-tooltip
-                effect="dark"
-                :content="$t('chat.operation.oppose')"
-                placement="top"
-                v-if="buttonData?.vote_status === '-1'"
-              >
+              <el-tooltip effect="dark" :content="$t('chat.operation.oppose')" placement="top">
                 <el-button text :disabled="loading">
                   <AppIcon class="color-secondary" iconName="app-oppose"></AppIcon>
                 </el-button>
@@ -117,7 +130,6 @@
             </span>
           </template>
           <VoteReasonContent
-            v-if="props.data.record_id"
             vote-type="1"
             :chat-id="props.chatId"
             :record-id="props.data.record_id"
@@ -139,6 +151,12 @@
       </span>
       <div ref="audioCiontainer"></div>
     </div>
+    <MobileVoteReasonDrawer
+      ref="mobileVoteReasonDrawerRef"
+      :chat-id="props.chatId"
+      :record-id="props.data.record_id"
+      @success="handleVoteSuccess"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -150,26 +168,13 @@ import chatAPI from '@/api/chat/chat'
 import { datetimeFormat } from '@/utils/time'
 import { MsgError } from '@/utils/message'
 import VoteReasonContent from '@/components/ai-chat/component/operation-button/VoteReasonContent.vue'
+import MobileVoteReasonDrawer from '@/components/ai-chat/component/operation-button/MobileVoteReasonDrawer.vue'
 import bus from '@/bus'
-const copy = (data: any) => {
-  try {
-    const text = data.answer_text_list
-      .map((item: Array<any>) => item.map((i) => i.content).join('\n'))
-      .join('\n\n')
-    copyClick(removeFormRander(text))
-  } catch (e: any) {
-    copyClick(removeFormRander(data?.answer_text.trim()))
-  }
-}
-const likePopoverRef = ref()
-const opposePopoverRef = ref()
-const closePopover = () => {
-  likePopoverRef.value.hide()
-  opposePopoverRef.value.hide()
-}
+
 const route = useRoute()
 const {
   params: { id },
+  query: { mode },
 } = route as any
 
 const props = withDefaults(
@@ -191,6 +196,30 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:data', 'regeneration'])
 
+const copy = (data: any) => {
+  try {
+    const text = data.answer_text_list
+      .map((item: Array<any>) => item.map((i) => i.content).join('\n'))
+      .join('\n\n')
+    copyClick(removeFormRander(text))
+  } catch (e: any) {
+    copyClick(removeFormRander(data?.answer_text.trim()))
+  }
+}
+
+const likePopoverRef = ref()
+const opposePopoverRef = ref()
+const closePopover = () => {
+  likePopoverRef.value.hide()
+  opposePopoverRef.value.hide()
+}
+const mobileVoteReasonDrawerRef = ref<InstanceType<typeof MobileVoteReasonDrawer> | null>(null)
+const mobileVoteReasonHandler = (voteStatus: string) => {
+  if (mobileVoteReasonDrawerRef.value) {
+    mobileVoteReasonDrawerRef.value.open(voteStatus)
+  }
+}
+
 const audioPlayer = ref<HTMLAudioElement[] | null>([])
 const audioCiontainer = ref<HTMLDivElement>()
 const buttonData = ref(props.data)
@@ -204,7 +233,9 @@ function regeneration() {
 function handleVoteSuccess(voteStatus: string) {
   buttonData.value['vote_status'] = voteStatus
   emit('update:data', buttonData.value)
-  closePopover()
+  if (mode !== 'mobile') {
+    closePopover()
+  }
 }
 
 function cancelVoteHandle(val: string) {

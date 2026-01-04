@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <h4>{{ title }}</h4>
-    <div class="mt-16">
+  <el-drawer v-model="visible" direction="btt" size="-" footer-class="mobile-vote-drawer-footer" :modal="true">
+    <template #header>
+      <h4 class="text-center">{{ title }}</h4>
+    </template>
+    <template #default>
       <el-space wrap :size="12">
         <template v-for="reason in reasons" :key="reason.value">
           <el-check-tag
@@ -13,24 +15,26 @@
           >
         </template>
       </el-space>
-    </div>
-    <div v-if="selectedReason === 'other'" class="mt-16">
-      <el-input
-        v-model="feedBack"
-        type="textarea"
-        :autosize="{ minRows: 4, maxRows: 20 }"
-        :placeholder="$t('chat.vote.placeholder')"
-        :readonly="readonly"
-      >
-      </el-input>
-    </div>
-    <div v-if="!readonly" class="dialog-footer mt-24 text-right">
-      <el-button @click="emit('close')"> {{ $t('common.cancel') }}</el-button>
-      <el-button :disabled="isSubmitDisabled" type="primary" @click="voteHandle()">
-        {{ $t('common.submit') }}</el-button
-      >
-    </div>
-  </div>
+
+      <div v-if="selectedReason === 'other'" class="mt-16">
+        <el-input
+          v-model="feedBack"
+          type="textarea"
+          :autosize="{ minRows: 4, maxRows: 20 }"
+          :placeholder="$t('chat.vote.placeholder')"
+        >
+        </el-input>
+      </div>
+    </template>
+    <template #footer>
+      <el-space fill wrap :fill-ratio="40" style="width: 100%">
+        <el-button @click="visible = false"> {{ $t('common.cancel') }}</el-button>
+        <el-button :disabled="isSubmitDisabled" type="primary" @click="voteHandle()">
+          {{ $t('common.submit') }}</el-button
+        >
+      </el-space>
+    </template>
+  </el-drawer>
 </template>
 
 <script setup lang="ts">
@@ -39,22 +43,19 @@ import { t } from '@/locales'
 import chatAPI from '@/api/chat/chat'
 
 const props = defineProps<{
-  voteType: '0' | '1'
   chatId: string
   recordId: string
-  readonly?: boolean
   defaultReason?: string
   defaultOtherContent?: string
 }>()
 
-const selectedReason = ref<string>(props.readonly ? props.defaultReason || '' : '')
-const feedBack = ref<string>(props.readonly ? props.defaultOtherContent || '' : '')
+const visible = ref(false)
+const voteType = ref<string>('') // '0' like, '1' oppose
+const selectedReason = ref<string>('')
+const feedBack = ref<string>('')
 const loading = ref(false)
 
 const selectReason = (value: string) => {
-  if (props.readonly) {
-    return
-  }
   selectedReason.value = value
 }
 
@@ -81,11 +82,11 @@ const OPPOSE_REASONS = [
 ]
 
 const title = computed(() => {
-  return props.voteType === '0' ? t('chat.vote.likeTitle') : t('chat.vote.opposeTitle')
+  return voteType.value === '0' ? t('chat.vote.likeTitle') : t('chat.vote.opposeTitle')
 })
 
 const reasons = computed(() => {
-  return props.voteType === '0' ? LIKE_REASONS : OPPOSE_REASONS
+  return voteType.value === '0' ? LIKE_REASONS : OPPOSE_REASONS
 })
 
 function voteHandle() {
@@ -93,21 +94,34 @@ function voteHandle() {
     .vote(
       props.chatId,
       props.recordId,
-      props.voteType,
+      voteType.value,
       selectedReason.value,
       feedBack.value,
       loading,
     )
     .then(() => {
-      emit('success', props.voteType)
-      emit('close')
+      emit('success', voteType.value)
+      visible.value = false
     })
 }
 
 const emit = defineEmits<{
   success: [voteStatus: string]
-  close: []
 }>()
+
+const open = (voteStatus: string) => {
+  selectedReason.value = ''
+  feedBack.value = ''
+  voteType.value = voteStatus
+  visible.value = true
+}
+
+defineExpose({ open })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+.mobile-vote-drawer-footer {
+  padding: 0 24px 32px 24px;
+  border: none!important;
+}
+</style>

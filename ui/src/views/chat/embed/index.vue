@@ -312,7 +312,5 @@ onMounted(() => {
 }
 </style>
 <style lang="scss" scoped>
-:deep(.el-overlay) {
-  background-color: transparent;
-}
+
 </style>

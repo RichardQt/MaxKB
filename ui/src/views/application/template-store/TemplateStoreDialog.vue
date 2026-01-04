@@ -75,7 +75,7 @@
             {{ t('views.tool.toolStore.searchResult', { count: filterList.length }) }}
           </h4> -->
         <el-row :gutter="16" v-if="filterList.length">
-          <el-col v-for="tool in filterList" :key="tool.id" :span="12" class="mb-16">
+          <el-col v-for="tool in filterList" :key="tool.id" :span="8" class="mb-16">
             <TemplateCard
               :tool="tool"
               :addLoading="addLoading"
