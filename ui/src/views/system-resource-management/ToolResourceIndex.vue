@@ -447,6 +447,7 @@ const MoreFilledPermission = (row: any) => {
     permissionPrecise.value.export() ||
     permissionPrecise.value.delete() ||
     permissionPrecise.value.auth() ||
+    permissionPrecise.value.relate_map() ||
     (row.init_field_list?.length > 0 && permissionPrecise.value.edit())
   )
 }

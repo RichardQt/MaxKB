@@ -304,7 +304,7 @@ const paginationConfig = reactive({
 })
 
 const MoreFilledPermission = () => {
-  return permissionPrecise.value.delete() || permissionPrecise.value.modify()
+  return permissionPrecise.value.delete() || permissionPrecise.value.modify() || permissionPrecise.value.relate_map()
 }
 
 const ResourceAuthorizationDrawerRef = ref()
