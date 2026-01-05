@@ -101,13 +101,13 @@
               <KnowledgeIcon
                 v-if="row.source_type === 'KNOWLEDGE'"
                 class="mr-8"
-                :size="16"
+                :size="22"
                 :type="row.icon"
               />
               <el-avatar
                 v-else-if="row.source_type === 'APPLICATION' && isAppIcon(row?.icon)"
                 shape="square"
-                :size="16"
+                :size="22"
                 style="background: none"
                 class="mr-8"
               >

@@ -44,7 +44,6 @@ const isActive = computed(() => {
   }
 
   &:hover {
-    color: var(--el-color-primary);
     background-color: var(--app-text-color-light-1);
   }
   &.active {
