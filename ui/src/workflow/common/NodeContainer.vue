@@ -94,8 +94,8 @@
                 <h5 class="title-decoration-1 mb-8 mt-8">
                   {{ $t('common.param.outputParam') }}
                 </h5>
-                <div v-if="exceptionNodeList.includes(nodeModel.type)">
-                  <span class="mt-8 mr-8">{{ $t('common.param.exception', '异常捕获') }}</span>
+                <div v-if="exceptionNodeList.includes(nodeModel.type)" class="text-right">
+                  <span class="mt-8 mr-8 lighter">{{ $t('common.param.exception') }}</span>
                   <el-switch v-model="enable_exception" size="small" />
                 </div>
               </div>
