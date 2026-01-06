@@ -5,7 +5,8 @@ WITH source_data_cte AS (SELECT 'APPLICATION' as source_type,
                                 "user_id",
                                 "workspace_id",
                                 "icon",
-                                "type"
+                                "type",
+                                "folder_id"
                          FROM application
                          UNION ALL
                          SELECT 'KNOWLEDGE' as source_type,
@@ -14,7 +15,7 @@ WITH source_data_cte AS (SELECT 'APPLICATION' as source_type,
                                 "desc",
                                 "user_id",
                                 "workspace_id",
-                                "type"::text as "icon" , "type"::text as "type"
+                                "type"::text as "icon" , "type"::text as "type", "folder_id"
                          FROM knowledge)
 SELECT rm.*,
        sdc.*,
