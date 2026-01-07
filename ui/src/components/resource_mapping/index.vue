@@ -403,8 +403,16 @@ function toSetting(row: any) {
       MsgError(t('common.noTargetPermission'))
       return
     }
+    const knowledge_from =
+      from === 'workspace'
+        ? row.folder_id
+        : from === 'shared'
+          ? row.workspace_id === 'None'
+            ? 'shared'
+            : 'resource-management'
+          : from
     const newUrl = router.resolve({
-      path: `/knowledge/${row.source_id}/${from === 'shared' ? (row.workspace_id === 'None' ? 'shared' : 'resource-management') : from}/${row.type}/document`,
+      path: `/knowledge/${row.source_id}/${knowledge_from}/${row.type}/document`,
     }).href
     window.open(newUrl)
   } else if (row.source_type === 'APPLICATION') {
