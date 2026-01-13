@@ -14,7 +14,7 @@ dependencies = [
     "psycopg[binary]==3.2.9",
     "python-dotenv==1.1.1",
     "uuid-utils==0.11.0",
-    "captcha==0.7.1",
+    "captcha==0.7.1",【怕 
     "pytz==2025.2",
     "psutil==7.0.0",
     "cffi==1.17.1",
@@ -81,6 +81,12 @@ torch = [
     { index = "pytorch", marker = "sys_platform == 'win'" },
     { index = "macpytorch", marker = "sys_platform == 'darwin'" },
 ]
+
+
+[[tool.poetry.source]]
+name = "mirrors"
+url = "http://mirrors.aliyun.com/pypi/simple"
+priority = "primary"
 
 [build-system]
 requires = ["hatchling"]

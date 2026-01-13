@@ -5,9 +5,7 @@ import getpass
 import gzip
 import json
 import os
-import pwd
 import random
-import resource
 import socket
 import subprocess
 import sys
@@ -16,6 +14,14 @@ import time
 from contextlib import contextmanager
 from contextlib import suppress
 from textwrap import dedent
+
+# Unix-only modules, handle Windows compatibility
+if sys.platform != 'win32':
+    import pwd
+    import resource
+else:
+    pwd = None
+    resource = None
 
 import uuid_utils.compat as uuid
 from django.utils.translation import gettext_lazy as _
@@ -92,7 +98,10 @@ class ToolExecutor:
     def exec_code(self, code_str, keywords, function_name=None):
         _id = str(uuid.uuid7())
         action_function = f'({function_name !a}, locals_v.get({function_name !a}))' if function_name else 'locals_v.popitem()'
-        set_run_user = f'os.setgid({pwd.getpwnam(_run_user).pw_gid});os.setuid({pwd.getpwnam(_run_user).pw_uid});' if _enable_sandbox else ''
+        if _enable_sandbox and pwd is not None:
+            set_run_user = f'os.setgid({pwd.getpwnam(_run_user).pw_gid});os.setuid({pwd.getpwnam(_run_user).pw_uid});'
+        else:
+            set_run_user = ''
         _exec_code = f"""
 try:
     import os, sys, json
@@ -245,7 +254,8 @@ exec({dedent(code)!a})
         }}
         def _set_resource_limit():
             if not _enable_sandbox or not sys.platform.startswith("linux"): return
-            with suppress(Exception): resource.setrlimit(resource.RLIMIT_AS, (_process_limit_mem_mb * 1024 * 1024,) * 2)
+            if resource is not None:
+                with suppress(Exception): resource.setrlimit(resource.RLIMIT_AS, (_process_limit_mem_mb * 1024 * 1024,) * 2)
             with suppress(Exception): os.sched_setaffinity(0, set(random.sample(list(os.sched_getaffinity(0)), _process_limit_cpu_cores)))
         try:
             subprocess_result = subprocess.run(

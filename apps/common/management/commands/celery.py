@@ -9,9 +9,8 @@
 import os
 import subprocess
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
-
-from maxkb.const import BASE_DIR
 
 
 class Command(BaseCommand):
@@ -42,5 +41,6 @@ class Command(BaseCommand):
             '-n', f'{",".join(service)}@{server_hostname}',
             '--without-mingle',
         ]
-        kwargs = {'cwd': BASE_DIR}
+        # 使用 APPS_DIR 作为工作目录，确保能找到 ops 模块
+        kwargs = {'cwd': settings.APPS_DIR}
         subprocess.run(cmd, **kwargs)

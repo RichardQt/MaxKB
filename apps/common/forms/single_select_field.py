@@ -21,7 +21,7 @@ class SingleSelect(BaseExecField):
                  label: str or BaseLabel,
                  text_field: str,
                  value_field: str,
-                 option_list: List[str:object],
+                 option_list: List[Dict[str, object]],
                  provider: str = None,
                  method: str = None,
                  required: bool = False,

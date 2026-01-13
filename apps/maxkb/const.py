@@ -19,5 +19,8 @@ load_dotenv()
 if os.getenv('MAXKB_CONFIG') is not None:
     CONFIG = ConfigManager.load_user_config(root_path=PROJECT_DIR)
 else:
-    CONFIG = ConfigManager.load_user_config(root_path=os.path.abspath('/opt/maxkb/conf'))
+    import os
+    # 获取当前文件的上一级目录的上一级（即项目根目录）
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    CONFIG = ConfigManager.load_user_config(root_path=BASE_DIR)
 
