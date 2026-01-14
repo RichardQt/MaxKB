@@ -49,37 +49,33 @@
             </p>
           </el-radio>
           <el-form-item class="ml-24" v-if="form.authentication_value.type === 'password'">
-            <el-input
-              class="authentication-append-input"
-              v-model="form.authentication_value.password_value"
-              readonly
-              style="width: 268px"
-            >
-              <template #append>
+            <div class="complex-search flex align-center">
+              <el-input
+                class="authentication-append-input"
+                v-model="form.authentication_value.password_value"
+                readonly
+                style="width: 268px"
+              >
+              </el-input>
+              <div>
                 <el-tooltip :content="$t('common.copy')" placement="top">
-                  <el-button
-                    type="primary"
-                    text
-                    @click="copyClick(form.authentication_value.password_value)"
-                    style="margin: 0 0 0 4px !important"
-                  >
-                    <AppIcon iconName="app-copy"></AppIcon>
+                  <el-button text @click="copyClick(form.authentication_value.password_value)">
+                    <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip :content="$t('common.refresh')" placement="top">
                   <el-button
                     @click="refreshAuthentication"
-                    type="primary"
                     text
                     style="margin: 0 4px 0 0 !important"
                   >
-                    <el-icon>
+                    <el-icon class="color-secondary">
                       <RefreshRight />
                     </el-icon>
                   </el-button>
                 </el-tooltip>
-              </template>
-            </el-input>
+              </div>
+            </div>
           </el-form-item>
         </el-card>
         <el-card
@@ -98,7 +94,12 @@
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
 
-              <el-button v-if="form.authentication_value.type === 'login'" type="primary" link @click="router.push({ name: 'applicationChatUser' })">
+              <el-button
+                v-if="form.authentication_value.type === 'login'"
+                type="primary"
+                link
+                @click="router.push({ name: 'applicationChatUser' })"
+              >
                 {{ $t('views.applicationOverview.appInfo.LimitDialog.toSettingChatUser') }}
               </el-button>
             </p>
@@ -309,8 +310,5 @@ defineExpose({ open })
 </script>
 <style lang="scss" scoped>
 .authentication-append-input {
-  :deep(.el-input-group__append) {
-    padding: 0 !important;
-  }
 }
 </style>
