@@ -23,6 +23,7 @@ export default {
   },
   addToKnowledge: '添加至知识库',
   daysText: '天之前的对话记录',
+  fileDaysText: '天之前的对话上传的附件',
   selectKnowledge: '选择知识库',
   selectKnowledgePlaceholder: '请选择知识库',
   saveToDocument: '保存至文档',

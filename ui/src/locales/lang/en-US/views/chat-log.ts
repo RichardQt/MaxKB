@@ -23,6 +23,7 @@ export default {
   },
   addToKnowledge: 'Add to Knowledge',
   daysText: 'Days ago',
+  fileDaysText: 'The attachment uploaded from the previous conversation',
   selectKnowledge: 'Select Knowledge',
   selectKnowledgePlaceholder: 'Please select a knowledge',
   saveToDocument: 'Save to Document',
