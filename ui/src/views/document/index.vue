@@ -97,6 +97,20 @@
                         v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_sync(id)"
                         >{{ $t('views.document.syncDocument') }}
                       </el-dropdown-item>
+                      <el-dropdown-item
+                        @click="exportMulDocument"
+                        :disabled="multipleSelection.length === 0"
+                        v-if="permissionPrecise.doc_export(id)"
+                      >
+                        {{ $t('views.document.setting.export') }} Excel
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        @click="exportMulDocumentZip"
+                        :disabled="multipleSelection.length === 0"
+                        v-if="permissionPrecise.doc_export(id)"
+                      >
+                        {{ $t('views.document.setting.export') }} Zip
+                      </el-dropdown-item>
 
                       <el-dropdown-item
                         divided
@@ -1121,6 +1135,34 @@ function syncLarkMulDocument() {
     .then(() => {
       MsgSuccess(t('views.document.sync.successMessage'))
       getList()
+    })
+}
+
+function exportMulDocument() {
+  const arr: string[] = []
+  multipleSelection.value.map((v) => {
+    if (v) {
+      arr.push(v.id)
+    }
+  })
+  loadSharedApi({ type: 'document', systemType: apiType.value })
+    .exportMulDocument('documents', id, arr, loading)
+    .then(() => {
+      MsgSuccess(t('common.exportSuccess'))
+    })
+}
+
+function exportMulDocumentZip() {
+  const arr: string[] = []
+  multipleSelection.value.map((v) => {
+    if (v) {
+      arr.push(v.id)
+    }
+  })
+  loadSharedApi({ type: 'document', systemType: apiType.value })
+    .exportMulDocumentZip('documents', id, arr, loading)
+    .then(() => {
+      MsgSuccess(t('common.exportSuccess'))
     })
 }
 
