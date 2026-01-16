@@ -2,7 +2,7 @@ import moment from 'moment'
 import 'moment/dist/locale/zh-cn'
 
 moment.locale('zh-cn')
-import { t } from '@/locales'
+import {t} from '@/locales'
 
 export const expiredTimeList = {
   'never': t('layout.time.neverExpires'),
@@ -20,9 +20,10 @@ export const nowDate = moment().format('YYYY-MM-DD')
 export function beforeDay(n: number | string) {
   return moment().subtract(n, 'days').format('YYYY-MM-DD')
 }
+
 // 当前时间的n天后的时间戳
 export function AfterTimestamp(n: number | string) {
-  return Number(moment().add(parseInt(n as string), 'days').format('x'))
+  return moment().add(parseInt(n as string), 'days').format('YYYY-MM-DD HH:mm:ss')
 }
 
 export function formatEndDate(date: any) {
@@ -65,39 +66,32 @@ export const dateFormat = (timestamp: any) => {
 }
 
 export function fromNowDate(time: any) {
-  // 拿到当前时间戳和发布时的时间戳，然后得出时间戳差
   const curTime = new Date()
   const futureTime = new Date(time)
   const timeDiff = futureTime.getTime() - curTime.getTime()
 
-  // 单位换算
+  // 统一时间单位
+  const absTimeDiff = Math.abs(timeDiff)
   const min = 60 * 1000
   const hour = min * 60
   const day = hour * 24
-  const week = day * 7
 
-  // 计算发布时间距离当前时间的周、天、时、分
-  const exceedWeek = Math.floor(timeDiff / week)
-  const exceedDay = Math.floor(timeDiff / day)
-  const exceedHour = Math.floor(timeDiff / hour)
-  const exceedMin = Math.floor(timeDiff / min)
-
-  // 最后判断时间差到底是属于哪个区间，然后return
-  if (exceedWeek > 0) {
-    return ''
-  } else {
-    if (exceedDay < 7 && exceedDay > 0) {
-      return exceedDay + t('layout.time.daysLater')
-    } else {
-      if (exceedHour < 24 && exceedHour > 0) {
-        return exceedHour + t('layout.time.hoursLater')
-      } else {
-        if (exceedMin < 0) {
-          return t('layout.time.expired')
-        } else {
-          return t('layout.time.expiringSoon')
-        }
-      }
-    }
+  // 按优先级判断
+  if (timeDiff < 0) {
+    return t('layout.time.expired') // 已过期
   }
+
+  if (absTimeDiff < hour) {
+    const mins = Math.floor(timeDiff / min)
+    return mins > 0 ? mins + t('layout.time.minutesLater') : t('layout.time.expiringSoon')
+  }
+
+  if (absTimeDiff < day) {
+    return Math.floor(timeDiff / hour) + t('layout.time.hoursLater')
+  }
+
+  if (absTimeDiff < day * 7) {
+    return Math.floor(timeDiff / day) + t('layout.time.daysLater')
+  }
+  return ''
 }

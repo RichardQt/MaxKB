@@ -1,6 +1,6 @@
 <template>
   <el-drawer
-    :title="isCreate ? $t('common.create') : $t('common.setting') + ' API Key'"
+    :title=" $t('common.edit') + ' API Key'"
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -10,7 +10,7 @@
     <el-form label-position="top" ref="settingFormRef" :model="form">
       <el-form-item label="API KEY">
         <div class="complex-search flex align-center w-full">
-          <el-input v-model="form.name"> </el-input>
+          <el-input v-model="form.secret_key" :disabled="true"></el-input>
           <el-tooltip :content="$t('common.copy')" placement="top">
             <el-button text>
               <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
@@ -42,10 +42,9 @@
       </el-form-item>
       <el-form-item v-if="form.expiredTimeType === 'custom'">
         <el-date-picker
-          v-model="form.expired_time"
+          v-model="form.expire_time"
           type="datetime"
           format="YYYY-MM-DD hh:mm:ss"
-          value-format="x"
           style="width: 100%"
           :placeholder="$t('common.selectPlaceholder')"
         />
@@ -64,32 +63,32 @@
         />
       </el-form-item>
       <el-form-item :label="$t('views.document.enableStatus.label')" @click.prevent>
-        <el-switch size="small" v-model="form.allow_cross_domain"></el-switch>
+        <el-switch size="small" v-model="form.is_active"></el-switch>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click.prevent="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" @click="submit(settingFormRef)" :loading="loading">
-          {{ isCreate ? $t('common.create') : $t('common.save') }}
+          {{ $t('common.save') }}
         </el-button>
       </span>
     </template>
   </el-drawer>
 </template>
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import type { FormInstance, FormRules } from 'element-plus'
+import {ref, watch, computed} from 'vue'
+import {useRoute} from 'vue-router'
+import type {FormInstance, FormRules} from 'element-plus'
 import overviewSystemApi from '@/api/system/api-key'
-import { MsgSuccess } from '@/utils/message'
-import { t } from '@/locales'
-import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import { expiredTimeList, AfterTimestamp } from '@/utils/time'
+import {MsgSuccess} from '@/utils/message'
+import {t} from '@/locales'
+import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
+import {expiredTimeList, AfterTimestamp} from '@/utils/time'
 
 const route = useRoute()
 const {
-  params: { id },
+  params: {id},
 } = route
 
 const apiType = computed(() => {
@@ -104,10 +103,12 @@ const emit = defineEmits(['refresh'])
 
 const settingFormRef = ref()
 const form = ref<any>({
-  name: '',
+  secret_key: '',
   allow_cross_domain: false,
   cross_domain_list: '',
   expired_time: '',
+  is_active: true,
+  is_permanent: true,
   expiredTimeType: 'never',
 })
 
@@ -116,7 +117,6 @@ const loading = ref(false)
 
 const APIKeyId = ref('')
 const APIType = ref('APPLICATION')
-const isCreate = ref(false)
 
 watch(dialogVisible, (bool) => {
   if (!bool) {
@@ -129,14 +129,17 @@ watch(dialogVisible, (bool) => {
 
 const open = (data: any, type: string) => {
   if (data) {
-    isCreate.value = false
     APIKeyId.value = data.id
-    form.value.allow_cross_domain = data.allow_cross_domain
-    form.value.cross_domain_list = data.cross_domain_list?.length
-      ? data.cross_domain_list?.join('\n')
-      : ''
-  } else {
-    isCreate.value = true
+    form.value = {
+      secret_key: data.secret_key || '',
+      allow_cross_domain: data.allow_cross_domain || false,
+      cross_domain_list: data.cross_domain_list?.length
+        ? data.cross_domain_list?.join('\n')
+        : '',
+      expire_time: data.expire_time || '',
+      expiredTimeType: data.is_permanent ? 'never' : 'custom',
+      is_active: data.is_active,
+    }
   }
   APIType.value = type
   dialogVisible.value = true
@@ -150,19 +153,21 @@ const submit = async (formEl: FormInstance | undefined) => {
         allow_cross_domain: form.value.allow_cross_domain,
         cross_domain_list: form.value.cross_domain_list
           ? form.value.cross_domain_list.split('\n').filter(function (item: string) {
-              return item !== ''
-            })
+            return item !== ''
+          })
           : [],
+        expire_time: form.value.expire_time,
+        is_permanent: form.value.expiredTimeType === 'never',
       }
 
       const apiCall =
         APIType.value === 'APPLICATION'
-          ? loadSharedApi({ type: 'applicationKey', systemType: apiType.value }).putAPIKey(
-              id as string,
-              APIKeyId.value,
-              obj,
-              loading,
-            )
+          ? loadSharedApi({type: 'applicationKey', systemType: apiType.value}).putAPIKey(
+            id as string,
+            APIKeyId.value,
+            obj,
+            loading,
+          )
           : overviewSystemApi.putAPIKey(APIKeyId.value, obj, loading)
 
       apiCall.then(() => {
@@ -177,14 +182,14 @@ const submit = async (formEl: FormInstance | undefined) => {
 
 function changeExpiredTimeHandle(value: string) {
   if (value === 'custom') {
-    form.value.expired_time = ''
+    form.value.expire_time = ''
   } else if (value === 'never') {
-    form.value.expired_time = null
+    form.value.expire_time = null
   } else {
-    form.value.expired_time = AfterTimestamp(value)
+    form.value.expire_time = AfterTimestamp(value)
   }
 }
 
-defineExpose({ open })
+defineExpose({open})
 </script>
 <style lang="scss" scoped></style>

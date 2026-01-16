@@ -30,9 +30,11 @@ export default {
     default_user_group: '預設使用者群組',
   },
   time: {
-    daysLater: '天後',
-    hoursLater: '小時後',
+    daysLater: '天後过期',
+    hoursLater: '小時後过期',
     expired: '已過期',
+    neverExpires: '永不过期',
+    minutesLater: '分鐘後过期',
     expiringSoon: '即將到期',
   },
   copyright: '版權所有 © 2014-2026 杭州飛致雲信息科技有限公司',

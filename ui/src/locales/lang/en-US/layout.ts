@@ -30,8 +30,10 @@ export default {
     default_user_group: 'Default User Group',
   },
   time: {
-    daysLater: 'days later',
-    hoursLater: 'hours later',
+    daysLater: 'days later expire',
+    hoursLater: 'hours later expire',
+    neverExpires: 'never expires',
+    minutesLater: 'minutes later expire',
     expired: 'expired',
     expiringSoon: 'expiring soon',
   },

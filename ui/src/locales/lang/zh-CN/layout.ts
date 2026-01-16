@@ -30,8 +30,9 @@ export default {
     default_user_group: '默认用户组',
   },
   time: {
-    daysLater: '天后',
-    hoursLater: '小时后',
+    daysLater: '天后过期',
+    hoursLater: '小时后过期',
+    minutesLater: '分钟后过期',
     expired: '已过期',
     expiringSoon: '即将到期',
     neverExpires: '永不过期',

@@ -9046,3 +9046,9 @@ msgstr "内容不准确"
 
 msgid "incomplete"
 msgstr "内容不完善"
+
+msgid "Secret key is invalid"
+msgstr "密钥无效"
+
+msgid "Secret key is expired"
+msgstr "密钥已过期"

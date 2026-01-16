@@ -8926,3 +8926,9 @@ msgstr "inaccurate"
 
 msgid "incomplete"
 msgstr "incomplete"
+
+msgid "Secret key is invalid"
+msgstr ""
+
+msgid "Secret key is expired"
+msgstr ""
