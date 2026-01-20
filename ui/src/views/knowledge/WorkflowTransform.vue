@@ -3,12 +3,16 @@
     <el-card style="height: calc(var(--app-main-height) + 50px)">
       <div class="flex-center h-full">
         <div style="margin-left: 20px">
-          <h1 class="mb-12">{{$t('views.knowledge.transform.title')}}</h1>
+          <h1 class="mb-12">{{ $t('views.knowledge.transform.title') }}</h1>
           <div class="color-secondary lighter line-height-22">
-            {{$t('views.knowledge.transform.message1')}}<br />{{$t('views.knowledge.transform.message2')}}
+            {{ $t('views.knowledge.transform.message1') }}<br />{{
+              $t('views.knowledge.transform.message2')
+            }}
           </div>
-          <p class="mt-24 mb-8 color-organe">{{$t('views.knowledge.transform.tip')}}</p>
-          <el-button type="primary" @click="transformHandle">{{$t('views.knowledge.transform.button')}}</el-button>
+          <p class="mt-24 mb-8 color-organe">{{ $t('views.knowledge.transform.tip') }}</p>
+          <el-button type="primary" @click="transformHandle">{{
+            $t('views.knowledge.transform.button')
+          }}</el-button>
         </div>
         <img class="ml-24" src="@/assets/workflow-demo.png" width="708" alt="" />
       </div>
@@ -19,14 +23,15 @@
 import { ref, onMounted, reactive, computed } from 'vue'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import { t } from '@/locales'
-import { loadSharedApi } from "@/utils/dynamics-api/shared-api.ts";
-import { useRoute } from "vue-router";
-import { knowledgeTemplate } from "@/workflow/common/template.ts";
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
+import { useRoute, useRouter } from 'vue-router'
+import { knowledgeTemplate } from '@/workflow/common/template.ts'
 const route = useRoute()
 const {
   params: { id, folderId },
 } = route as any
 
+const router = useRouter()
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
     return 'systemShare'
@@ -45,10 +50,11 @@ function transformHandle() {
     type: 'warning',
   })
     .then(() => {
-      loadSharedApi({type: 'knowledge', systemType: apiType.value})
-        .postTransformWorkflow(id as string, {work_flow: workflowDefault.value}, loading)
+      loadSharedApi({ type: 'knowledge', systemType: apiType.value })
+        .postTransformWorkflow(id as string, { work_flow: workflowDefault.value }, loading)
         .then(() => {
           MsgSuccess(t('common.submitSuccess'))
+          router.push({ path: `/knowledge/${id}/${folderId}/workflow` })
         })
         .catch(() => {
           loading.value = false
