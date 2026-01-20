@@ -60,7 +60,7 @@ function showMenu() {
 function clickHandle(item?: any) {
   if (isWorkFlow(type) && item?.name === 'AppSetting') {
     router.push({ path: `/application/${from}/${id}/workflow` })
-  } else if (type === 4 && item?.name === 'knowledgeWorkflowSetting') {
+  } else if (type === '4' && item?.name === 'knowledgeWorkflowSetting') {
     router.push({ path: `/knowledge/${id}/${folderId}/workflow` })
   }
 }
