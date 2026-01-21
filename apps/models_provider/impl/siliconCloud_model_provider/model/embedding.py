@@ -7,7 +7,7 @@
     @desc:
 """
 from typing import Dict, List
-
+from common.utils.logger import maxkb_logger
 import requests
 
 from models_provider.base_model_provider import MaxKBBaseModel
@@ -51,10 +51,13 @@ class SiliconCloudEmbeddingModel(MaxKBBaseModel):
 
         response = requests.post(self.base_url + '/embeddings', json=payload, headers=headers)
         data = response.json()
-        if data['data'] is None or 'code' in data:
-            raise ValueError(f"Embedding API returned no data: {data}")
-        # 假设返回结构中有 'data[0].embedding'
-        return data["data"][0]["embedding"]
+        if isinstance(data, dict):
+            if data['data'] is None or 'code' in data:
+                raise ValueError(f"Embedding API returned no data: {data}")
+            # 假设返回结构中有 'data[0].embedding'
+            return data["data"][0]["embedding"]
+        else:
+            maxkb_logger.error(f"Unexpected response from Embedding API: {data}")
 
     def embed_documents(self, texts: list) -> list:
         return [self.embed_query(text) for text in texts]
