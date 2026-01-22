@@ -29,6 +29,7 @@
       />
     </div>
     <el-table
+      ref="tableRef"
       :data="pagedTableData"
       :span-method="spanMethod"
       v-loading="loading"
@@ -130,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
 import CreateTagDialog from './CreateTagDialog.vue'
@@ -235,8 +236,42 @@ const spanMethod = ({ row, columnIndex }: any) => {
 }
 
 const multipleSelection = ref<any[]>([])
-const handleSelectionChange = (val: any[]) => {
-  multipleSelection.value = val
+const tableRef = ref<any>(null)
+const syncingSelection = ref(false)
+
+const handleSelectionChange = async (val: any[]) => {
+  if (syncingSelection.value) return
+
+  // 当前已选中的 id 集合（用于判断哪些行刚刚被取消）
+  const selectedIds = new Set(val.map((r) => r.id))
+
+  // 找出“刚被取消选中的行”
+  const deselectedRows = multipleSelection.value.filter((r) => !selectedIds.has(r.id))
+  if (deselectedRows.length === 0) {
+    multipleSelection.value = val
+    return
+  }
+
+  // 取消选中时：把同 key 分组里其它行也一并取消
+  syncingSelection.value = true
+  await nextTick()
+
+  for (const dr of deselectedRows) {
+    const sameGroupRows = pagedTableData.value.filter((r) => r.key === dr.key)
+    for (const r of sameGroupRows) {
+      if (!selectedIds.has(r.id)) continue
+      tableRef.value?.toggleRowSelection?.(r, false)
+    }
+  }
+
+  await nextTick()
+  syncingSelection.value = false
+
+  // 以表格最终状态为准更新缓存（这里直接用传入 val 可能已过期）
+  // 简化：重新从表格取 selection（Element Plus 有 store，没暴露就用 val\+补丁）
+  multipleSelection.value = pagedTableData.value.filter((r) =>
+    tableRef.value?.getSelectionRows ? tableRef.value.getSelectionRows().some((s: any) => s.id === r.id) : selectedIds.has(r.id)
+  )
 }
 
 const createTagDialogRef = ref()
