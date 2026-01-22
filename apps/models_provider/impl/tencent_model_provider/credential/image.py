@@ -15,7 +15,6 @@ from common import forms
 from common.exception.app_exception import AppApiException
 from common.forms import BaseForm, TooltipLabel
 from common.utils.logger import maxkb_logger
-from apps.models_provider.impl.xf_model_provider.xf_model_provider import default_tts_credential
 from models_provider.base_model_provider import BaseModelCredential, ValidCode
 
 
