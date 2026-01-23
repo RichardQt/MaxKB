@@ -22,7 +22,6 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from application.models import ApplicationKnowledgeMapping
 from common.config.embedding_config import VectorStore
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.db.search import native_search, get_dynamics_model, native_page_search
@@ -414,7 +413,6 @@ class KnowledgeSerializer(serializers.Serializer):
             File.objects.filter(
                 source_id=knowledge.id,
             ).delete()
-            QuerySet(ApplicationKnowledgeMapping).filter(knowledge_id=knowledge.id).delete()
             QuerySet(ResourceMapping).filter(
                 Q(target_id=self.data.get('knowledge_id')) | Q(source_id=self.data.get('knowledge_id'))
             ).delete()
