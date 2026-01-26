@@ -25,6 +25,7 @@ from common.utils.common import get_file_content
 from knowledge.serializers.common import BatchSerializer
 from maxkb.conf import PROJECT_DIR
 from tools.models import Tool
+from trigger.handler.simple_tools import deploy, undeploy
 from trigger.models import TriggerTypeChoices, Trigger, TriggerTaskTypeChoices, TriggerTask, TaskRecord
 
 
@@ -401,12 +402,17 @@ class TriggerSerializer(serializers.Serializer):
                 self.is_valid(raise_exception=True)
             workspace_id = self.data.get("workspace_id")
             trigger_id_list = instance.get("id_list")
+            for trigger_id in trigger_id_list:
+                trigger = QuerySet(Trigger).filter(id=trigger_id).first()
+                undeploy(TriggerModelSerializer(trigger).data, **{})
+
             TaskRecord.objects.filter(trigger_id__in=trigger_id_list).delete()
             TriggerTask.objects.filter(trigger_id__in=trigger_id_list).delete()
             Trigger.objects.filter(workspace_id=workspace_id, id__in=trigger_id_list).delete()
 
             return True
 
+        @transaction.atomic
         def batch_switch(self, instance: Dict, with_valid=True):
             if with_valid:
                 BatchActiveSerializer(data=instance).is_valid(model=Trigger, raise_exception=True)
@@ -416,6 +422,15 @@ class TriggerSerializer(serializers.Serializer):
             is_active = instance.get("is_active")
             Trigger.objects.filter(workspace_id=workspace_id, id__in=trigger_id_list, is_active=not is_active).update(
                 is_active=is_active)
+            if is_active:
+                for trigger_id in trigger_id_list:
+                    trigger = QuerySet(Trigger).filter(id=trigger_id).first()
+                    deploy(TriggerModelSerializer(trigger).data, **{})
+            else:
+                for trigger_id in trigger_id_list:
+                    trigger = QuerySet(Trigger).filter(id=trigger_id).first()
+                    undeploy(TriggerModelSerializer(trigger).data, **{})
+
             return True
 
 
@@ -464,11 +479,20 @@ class TriggerOperateSerializer(serializers.Serializer):
             ) for task_data in trigger_tasks]
             TriggerTask.objects.bulk_create(trigger_task_model_list)
 
+        # 重新部署触发器任务
+        if trigger.is_active:
+            deploy(TriggerModelSerializer(trigger).data, **{})
+        else:
+            undeploy(TriggerModelSerializer(trigger).data, **{})
+
         return self.one(with_valid=False)
 
     def delete(self):
         self.is_valid(raise_exception=True)
         trigger_id = self.data.get('trigger_id')
+        trigger = QuerySet(Trigger).filter(workspace_id=self.data.get('workspace_id'), id=trigger_id).first()
+        if trigger:
+            undeploy(TriggerModelSerializer(trigger).data, **{})
         TaskRecord.objects.filter(trigger_id=trigger_id).delete()
         TriggerTask.objects.filter(trigger_id=trigger_id).delete()
         Trigger.objects.filter(id=trigger_id).delete()
