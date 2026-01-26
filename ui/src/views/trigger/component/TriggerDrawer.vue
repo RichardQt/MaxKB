@@ -81,7 +81,7 @@
             ><div>
               <el-row style="font-size: 14px" class="mb-8 w-full" :gutter="10">
                 <el-col :span="24" class="w-full">
-                  <span class="w-full">触发周期</span>
+                  <span class="w-full">{{ $t('views.trigger.triggerCycle.title') }}</span>
                 </el-col>
               </el-row>
               <el-row style="width: 100%" :gutter="10" class="mb-8">
@@ -133,7 +133,7 @@
             <el-form-item>
               <template #label>
                 <div class="flex-between">
-                  {{ $t('请求参数') }}
+                  {{ $t('views.trigger.requestParameter') }}
                   <el-button link type="primary" @click.stop="addParameter()">
                     <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
                   </el-button>
@@ -203,7 +203,7 @@
           </el-card>
         </el-card>
       </el-form-item>
-      <el-form-item label="任务执行">
+      <el-form-item :label="$t('views.trigger.taskExecution')">
         <el-card shadow="never" class="card-never w-full" style="--el-card-padding: 8px 12px">
           <!-- 智能体    -->
           <div class="flex-between" @click="collapseData.agent = !collapseData.agent">
@@ -365,7 +365,8 @@ import triggerAPI from '@/api/trigger/trigger'
 import toolAPI from '@/api/tool/tool'
 import ToolParameter from './ToolParameter.vue'
 import ApplicationParameter from './ApplicationParameter.vue'
-import { resetUrl } from '@/utils/common'
+import { resetUrl } from '@/utils/common.ts'
+import { t } from '@/locales'
 import { type FormInstance } from 'element-plus'
 import Result from '@/request/Result'
 
@@ -482,49 +483,49 @@ const openToolDialog = () => {
 }
 const drawer = ref<boolean>(false)
 const times = Array.from({ length: 24 }, (_, i) => {
-  const t = i.toString().padStart(2, '0') + ':00'
-  return { label: t, value: t }
+  const time = i.toString().padStart(2, '0') + ':00'
+  return { label: time, value: time }
 })
 const days = Array.from({ length: 31 }, (_, i) => {
-  const t = i.toString() + '日'
-  return { label: t, value: i.toString(), children: times }
+  const day = i.toString() + t('views.trigger.triggerCycle.days')
+  return { label: day, value: i.toString(), children: times }
 })
 const hours = Array.from({ length: 24 }, (_, i) => {
-  const t = i.toString().padStart(2, '0')
-  return { label: t, value: i }
+  const time = i.toString().padStart(2, '0')
+  return { label: time, value: i }
 })
 const minutes = Array.from({ length: 60 }, (_, i) => {
-  const t = i.toString().padStart(2, '0')
-  return { label: t, value: i }
+  const time = i.toString().padStart(2, '0')
+  return { label: time, value: i }
 })
 
 const options = [
   {
     value: 'daily',
-    label: '每日触发',
+    label: t('views.trigger.triggerCycle.daily'),
     multiple: true,
     children: times,
   },
   {
     value: 'weekly',
-    label: '每周触发',
+    label: t('views.trigger.triggerCycle.weekly'),
     children: [
-      { label: '周日', value: 7, children: times },
-      { label: '周一', value: 1, children: times },
-      { label: '周二', value: 2, children: times },
-      { label: '周三', value: 3, children: times },
-      { label: '周四', value: 4, children: times },
-      { label: '周五', value: 5, children: times },
-      { label: '周六', value: 6, children: times },
+      { label: t('views.trigger.triggerCycle.sunday'), value: 7, children: times },
+      { label: t('views.trigger.triggerCycle.monday'), value: 1, children: times },
+      { label: t('views.trigger.triggerCycle.tuesday'), value: 2, children: times },
+      { label: t('views.trigger.triggerCycle.wednesday'), value: 3, children: times },
+      { label: t('views.trigger.triggerCycle.thursday'), value: 4, children: times },
+      { label: t('views.trigger.triggerCycle.friday'), value: 5, children: times },
+      { label: t('views.trigger.triggerCycle.saturday'), value: 6, children: times },
     ],
   },
-  { value: 'monthly', label: '每月触发', children: days },
+  { value: 'monthly', label: t('views.trigger.triggerCycle.monthly'), children: days },
   {
     value: 'interval',
-    label: '间隔触发',
+    label: t('views.trigger.triggerCycle.interval'),
     children: [
-      { label: '小时', value: 'hours', children: hours },
-      { label: '分钟', value: 'minutes', children: minutes },
+      { label: t('views.trigger.triggerCycle.hours'), value: 'hours', children: hours },
+      { label: t('views.trigger.triggerCycle.minutes'), value: 'minutes', children: minutes },
     ],
   },
 ]

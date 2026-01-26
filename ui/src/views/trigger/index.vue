@@ -193,7 +193,11 @@
                     </div>
                     <el-divider
                       class="mt-8 mb-8"
-                      v-if="row.trigger_task.filter((item: any) => item.type === 'TOOL').length"
+                      v-if="
+                        row.trigger_task.filter((item: any) => item.type === 'APPLICATION')
+                          .length &&
+                        row.trigger_task.filter((item: any) => item.type === 'TOOL').length
+                      "
                     />
 
                     <!-- 工具部分 -->
@@ -217,7 +221,7 @@
                           <img :src="resetUrl(item?.icon)" alt="" />
                         </el-avatar>
                         <ToolIcon v-else :size="20" :type="item?.tool_type" class="mr-8" />
-                        <span>{{ item.name }}</span>
+                        <span class="ellipsis" :title="item.name">{{ item.name }}</span>
                       </div>
                     </div>
                   </div>
@@ -345,7 +349,7 @@ function searchHandle() {
 }
 
 function deleteTrigger(row: any) {
-  MsgConfirm(`${t('views.document.delete.confirmTitle3', '是否删除触发器')} ${row.name} ?`, ``, {
+  MsgConfirm(`${t('views.trigger.delete.confirmTitle')} ${row.name} ?`, ``, {
     confirmButtonText: t('common.confirm'),
     confirmButtonClass: 'danger',
   }).then(() => {
@@ -369,8 +373,8 @@ function batchChangeState(is_active: boolean) {
   })
   triggerAPI.activateMulTrigger({ id_list: idList, is_active: is_active }, loading).then(() => {
     const msg: string = is_active
-      ? t('views.trigger.delete.successMessage', '批量启用成功')
-      : t('views.trigger.delete.successMessage', '批量禁用成功')
+      ? t('common.status.enableSuccess')
+      : t('common.status.disableSuccess')
     MsgSuccess(msg)
     multipleTableRef.value?.clearSelection()
     getList()
@@ -379,7 +383,7 @@ function batchChangeState(is_active: boolean) {
 
 function batchDelete() {
   MsgConfirm(
-    `${t('views.document.delete.confirmTitle1')} ${multipleSelection.value.length} ${t('views.trigger.delete.confirmTitle2', '个触发器?')}`,
+    `${t('views.document.delete.confirmTitle1')} ${multipleSelection.value.length} ${t('views.trigger.delete.confirmTitle2')}`,
     '',
     {
       confirmButtonText: t('common.confirm'),
