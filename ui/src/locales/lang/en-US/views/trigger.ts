@@ -2,6 +2,7 @@ export default {
   title: 'Trigger',
   tip: 'When triggered, the system will automatically call task execution based on the input parameters settings',
   task: 'Task',
+  triggerTask: 'Trigger Task',
   taskExecution: 'Task Execution',
   delete: {
     confirmTitle: 'Confirm deleting trigger:',
@@ -37,6 +38,9 @@ export default {
       label: 'Trigger Name',
       placeholder: 'Please enter the trigger name',
       requiredMessage: 'Please enter the trigger name',
+    },
+    event_url: {
+      label: 'Copy URL to your application',
     },
   },
   requestParameter: 'Request Parameters',

@@ -1,11 +1,19 @@
 <template>
-  <el-drawer v-model="drawer" title="执行记录" direction="rtl" size="800px" :before-close="close">
-    <div class="lighter mb-12">
-      {{ $t('views.system.resourceMapping.sub_title') }}
-    </div>
+  <el-drawer
+    v-model="drawer"
+    :title="$t('workflow.ExecutionRecord')"
+    direction="rtl"
+    size="800px"
+    :before-close="close"
+  >
     <div class="flex-between mb-16">
       <div class="flex-between complex-search">
-        <el-select class="complex-search__left" v-model="searchType" style="width: 100px">
+        <el-select
+          class="complex-search__left"
+          v-model="searchType"
+          @change="changeFilterHandle"
+          style="width: 100px"
+        >
           <el-option :label="$t('common.name')" value="name" />
           <el-option :label="$t('common.status.label')" value="state" />
         </el-select>
@@ -15,12 +23,12 @@
           :placeholder="$t('common.search')"
           style="width: 220px"
           clearable
-          @keyup.enter="page()"
+          @change="getList(true)"
         />
         <el-select
           v-else-if="searchType === 'state'"
           v-model="query.source_type"
-          @change="page()"
+          @change="getList(true)"
           filterable
           clearable
           :reserve-keyword="false"
@@ -41,8 +49,8 @@
       class="mt-16"
       :data="tableData"
       :pagination-config="paginationConfig"
-      @sizeChange="handleSizeChange"
-      @changePage="page"
+      @sizeChange="changeSize"
+      @changePage="getList(true)"
       :maxTableHeight="200"
       :row-key="(row: any) => row.id"
       v-loading="loading"
@@ -50,26 +58,29 @@
         popperClass: 'max-w-350',
       }"
     >
-      <el-table-column prop="name" :label="$t('common.name')" min-width="130" show-overflow-tooltip>
+      <el-table-column
+        prop="name"
+        :label="$t('views.trigger.triggerTask')"
+        min-width="130"
+        show-overflow-tooltip
+      >
         <template #default="{ row }">
-          <el-button link>
-            <div class="flex align-center">
-              <el-avatar shape="square" :size="22" style="background: none" class="mr-8">
-                <img
-                  v-if="row.source_type === 'TOOL'"
-                  :src="resetUrl(row?.icon, resetUrl('./favicon.ico'))"
-                  alt=""
-                />
-                <img
-                  v-if="row.source_type === 'APPLICATION'"
-                  :src="resetUrl(row?.icon, resetUrl('./favicon.ico'))"
-                  alt=""
-                />
-              </el-avatar>
+          <div class="flex align-center">
+            <el-avatar shape="square" :size="22" style="background: none" class="mr-8">
+              <img
+                v-if="row.source_type === 'TOOL'"
+                :src="resetUrl(row?.source_icon, resetUrl('./favicon.ico'))"
+                alt=""
+              />
+              <img
+                v-if="row.source_type === 'APPLICATION'"
+                :src="resetUrl(row?.source_icon, resetUrl('./favicon.ico'))"
+                alt=""
+              />
+            </el-avatar>
 
-              <span>{{ row.source_name }}</span>
-            </div>
-          </el-button>
+            <span>{{ row.source_name }}</span>
+          </div>
         </template>
       </el-table-column>
 
@@ -139,18 +150,26 @@
         </template>
       </el-table-column>
     </app-table>
+
+    <ExecutionDetailDrawer
+      ref="ExecutionDetailDrawerRef"
+      v-model:currentId="currentId"
+      v-model:currentContent="currentContent"
+      :next="nextRecord"
+      :pre="preRecord"
+      :pre_disable="pre_disable"
+      :next_disable="next_disable"
+    />
   </el-drawer>
 </template>
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { isAppIcon, resetUrl } from '@/utils/common'
 import triggerAPI from '@/api/trigger/trigger'
 import { datetimeFormat } from '@/utils/time'
-const toDetails = (row: any) => {
-  triggerAPI.getTriggerTaskRecordDetails(row.trigger_id, row.trigger_task_id, row.id).then((ok) => {
-    console.log(ok)
-  })
-}
+import type { Dict } from '@/api/type/common'
+import ExecutionDetailDrawer from './ExecutionDetailDrawer.vue'
+
 const searchType = ref<string>('name')
 const drawer = ref<boolean>(false)
 const paginationConfig = reactive({
@@ -159,31 +178,107 @@ const paginationConfig = reactive({
   total: 0,
 })
 const tableData = ref<Array<any>>([])
-const page = () => {
-  if (current_trigger_id.value) {
-    triggerAPI
-      .pageTriggerTaskRecord(current_trigger_id.value, paginationConfig, { ...query.value })
-      .then((ok) => {
-        tableData.value = ok.data.records
-        paginationConfig.total = ok.data.total
-      })
-  }
-}
 const query = ref<any>({
   state: '',
   name: '',
 })
 const loading = ref<boolean>(false)
 const current_trigger_id = ref<string>()
+
+const tableIndexMap = computed<Dict<number>>(() => {
+  return tableData.value
+    .map((row, index) => ({
+      [row.id]: index,
+    }))
+    .reduce((pre, next) => ({ ...pre, ...next }), {})
+})
+const ExecutionDetailDrawerRef = ref<any>()
+
+const currentId = ref<string>('')
+const currentContent = ref<string>('')
+
+const toDetails = (row: any) => {
+  currentContent.value = row
+  currentId.value = row.id
+  ExecutionDetailDrawerRef.value?.open(row)
+}
+
+const changeFilterHandle = () => {
+  query.value = { name: '', statu: '' }
+}
+const changeSize = () => {
+  paginationConfig.current_page = 1
+  getList()
+}
+
+const getList = (isLoading?: boolean) => {
+  if (current_trigger_id.value) {
+    return triggerAPI
+      .pageTriggerTaskRecord(
+        current_trigger_id.value,
+        paginationConfig,
+        { ...query.value },
+        isLoading ? loading : undefined,
+      )
+      .then((ok) => {
+        tableData.value = ok.data.records
+        paginationConfig.total = ok.data.total
+      })
+  } else return Promise.resolve()
+}
+
+const pre_disable = computed(() => {
+  const index = tableIndexMap.value[currentId.value] - 1
+  return index < 0
+})
+
+const next_disable = computed(() => {
+  const index = tableIndexMap.value[currentId.value] + 1
+  return index >= tableData.value.length && index >= paginationConfig.total - 1
+})
+
+/**
+ * 下一页
+ */
+const nextRecord = () => {
+  const index = tableIndexMap.value[currentId.value] + 1
+  if (index >= tableData.value.length) {
+    if (index >= paginationConfig.total - 1) {
+      return
+    }
+    paginationConfig.current_page = paginationConfig.current_page + 1
+    getList(true).then(() => {
+      currentId.value = tableData.value[index].id
+      currentContent.value = tableData.value[index]
+    })
+  } else {
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
+  }
+}
+/**
+ * 上一页
+ */
+const preRecord = () => {
+  const index = tableIndexMap.value[currentId.value] - 1
+
+  if (index >= 0) {
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
+  }
+}
 const open = (trigger_id: string) => {
   current_trigger_id.value = trigger_id
+  getList(true)
   drawer.value = true
-  page()
 }
-const handleSizeChange = () => {}
 const close = () => {
+  paginationConfig.current_page = 1
+  paginationConfig.total = 0
+  tableData.value = []
   drawer.value = false
 }
+
 defineExpose({ open, close })
 </script>
 <style lang="scss" scoped></style>

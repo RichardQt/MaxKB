@@ -2,6 +2,7 @@ export default {
   title: '触发器',
   tip: '触发时系统将会根据入参设置自动调用任务执行',
   task: '任务',
+  triggerTask: '触发任务',
   taskExecution: '任务执行',
   delete: {
     confirmTitle: '是否删除触发器：',
@@ -38,6 +39,10 @@ export default {
       placeholder: '请输入触发器名称',
       requiredMessage: '请输入触发器名称',
     },
+    event_url: {
+      label: '复制 URL 到你的应用',
+    },
   },
   requestParameter: '请求参数',
+  xecutionRecord: '执行记录',
 }

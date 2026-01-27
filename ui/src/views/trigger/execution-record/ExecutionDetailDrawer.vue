@@ -27,8 +27,25 @@
         <el-card class="mb-24" shadow="never" style="--el-card-padding: 12px 16px">
           <el-row :gutter="16" class="lighter">
             <el-col :span="6">
-              <p class="color-secondary mb-4">{{ $t('workflow.initiator') }}</p>
-              <p>{{ props.currentContent?.meta?.user_name || '-' }}</p>
+              <p class="color-secondary mb-4">{{ $t('views.trigger.triggerTask') }}</p>
+              <p class="flex align-center">
+                <el-avatar shape="square" :size="22" style="background: none" class="mr-8">
+                  <img
+                    v-if="props.currentContent?.source_type === 'TOOL'"
+                    :src="resetUrl(props.currentContent?.source_icon, resetUrl('./favicon.ico'))"
+                    alt=""
+                  />
+                  <img
+                    v-if="props.currentContent?.source_type === 'APPLICATION'"
+                    :src="resetUrl(props.currentContent?.source_icon, resetUrl('./favicon.ico'))"
+                    alt=""
+                  />
+                </el-avatar>
+
+                <span class="ellipsis-1" :title="props.currentContent?.source_name">{{
+                  props.currentContent?.source_name || '-'
+                }}</span>
+              </p>
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('common.status.label') }}</p>
@@ -83,12 +100,12 @@
             </el-col>
           </el-row>
         </el-card>
-        <Result
-          :knowledge_id="props.currentContent.knowledge_id"
-          :id="currentId"
-          is-record
-          v-if="props.currentContent"
-        />
+        <h4 class="title-decoration-1 mb-16 mt-4">
+          {{ $t('chat.executionDetails.title') }}
+        </h4>
+        <template v-for="(item, index) in arraySort(detail ?? [], 'index')" :key="index">
+          <ExecutionDetailCard :data="item"> </ExecutionDetailCard>
+        </template>
       </el-scrollbar>
     </div>
     <template #footer>
@@ -107,8 +124,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import Result from '@/views/knowledge-workflow/component/action/Result.vue'
+import { arraySort } from '@/utils/array'
+import { isAppIcon, resetUrl } from '@/utils/common'
+import ExecutionDetailCard from '@/components/execution-detail-card/index.vue'
 import { datetimeFormat } from '@/utils/time'
+import triggerAPI from '@/api/trigger/trigger'
 const props = withDefaults(
   defineProps<{
     /**
@@ -146,6 +166,8 @@ const apiType = computed(() => {
   }
 })
 
+const detail = ref<any>(null)
+
 const loading = ref(false)
 const visible = ref(false)
 
@@ -153,7 +175,9 @@ function closeHandle() {}
 
 watch(
   () => props.currentId,
-  () => {},
+  () => {
+     getDetail()
+  },
 )
 
 watch(visible, (bool) => {
@@ -163,7 +187,19 @@ watch(visible, (bool) => {
   }
 })
 
-const open = () => {
+function getDetail() {
+  triggerAPI
+    .getTriggerTaskRecordDetails(
+      props.currentContent?.trigger_id,
+      props.currentContent?.trigger_task_id,
+      props.currentContent?.id,
+    )
+    .then((ok) => {
+      detail.value = Object.values(ok.data.details)
+    })
+}
+
+const open = (row: any) => {
   visible.value = true
 }
 

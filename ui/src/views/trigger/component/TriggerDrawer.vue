@@ -111,7 +111,7 @@
             </div>
           </div>
           <el-card v-if="form.trigger_type === 'EVENT'" shadow="never" class="card-never mt-16">
-            <el-form-item label="复制 URL 到你的应用">
+            <el-form-item :label="$t('views.trigger.from.event_url.label')">
               <div class="complex-input flex align-center w-full" style="background-color: #ffffff">
                 <el-input class="complex-input__left" v-bind:modelValue="event_url"></el-input>
 

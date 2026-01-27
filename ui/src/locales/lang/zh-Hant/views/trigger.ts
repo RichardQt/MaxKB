@@ -2,6 +2,7 @@ export default {
   title: '觸發器',
   tip: '觸發時系統將會根據入參設置自動調用任務執行',
   task: '任務',
+  triggerTask: '觸發任務',
   taskExecution: '任務執行',
   delete: {
     confirmTitle: '是否刪除觸發器：',
@@ -37,6 +38,9 @@ export default {
       label: '觸發器名稱',
       placeholder: '請輸入觸發器名稱',
       requiredMessage: '請輸入觸發器名稱',
+    },
+    event_url: {
+      label: '複製 URL 到你的應用',
     },
   },
   requestParameter: '請求參數',
