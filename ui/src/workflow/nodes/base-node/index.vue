@@ -172,11 +172,27 @@
             </el-button>
           </div>
         </template>
-        <el-card shadow="never" class="card-never" style="--el-card-padding: 12px">
-          <div class="w-full">
-            <!-- TO DO -->
-          </div>
-        </el-card>
+        <div v-if="triggerList.length > 0" class="w-full">
+          <template v-for="(item, index) in triggerList" :key="index">
+            <div class="flex-between border border-r-6 white-bg mb-8" style="padding: 2px 8px">
+              <div class="flex align-center">
+                <TriggerIcon :type="item.trigger_type" class="mr-8" :size="20" />
+                <span class="ellipsis-1"> {{ item.name }}</span>
+              </div>
+              <div>
+                <span class="mr-4">
+                  <el-button text @click="openEditTriggerDrawer(item)">
+                    <AppIcon iconName="app-edit" class="color-secondary"></AppIcon>
+                  </el-button>
+                </span>
+
+                <el-button text @click="removeTrigger(item)">
+                  <el-icon><Close /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </template>
+        </div>
       </el-form-item>
     </el-form>
     <TTSModeParamSettingDialog ref="TTSModeParamSettingDialogRef" @refresh="refreshTTSForm" />
@@ -185,7 +201,13 @@
       :node-model="nodeModel"
       @refresh="refreshFileUploadForm"
     />
-    <TriggerDrawer @refresh="refreshTrigger" ref="triggerDrawerRef"></TriggerDrawer>
+    <TriggerDrawer
+      @refresh="refreshTrigger"
+      ref="triggerDrawerRef"
+      :create-trigger="createTrigger"
+      :edit-trigger="editTrigger"
+      resourceType="APPLICATION"
+    ></TriggerDrawer>
   </NodeContainer>
 </template>
 <script setup lang="ts">
@@ -203,6 +225,7 @@ import ChatFieldTable from './component/ChatFieldTable.vue'
 import TriggerDrawer from '@/views/trigger/component/TriggerDrawer.vue'
 import { useRoute } from 'vue-router'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import triggerAPI from '@/api/trigger/trigger'
 const getResourceDetail = inject('getResourceDetail') as any
 const route = useRoute()
 
@@ -287,18 +310,44 @@ const validate = () => {
 
 const resource = getResourceDetail()
 
+const triggerList = ref<Array<any>>([])
+
 const triggerDrawerRef = ref<InstanceType<typeof TriggerDrawer>>()
 
 const openCreateTriggerDrawer = () => {
-  triggerDrawerRef.value?.open()
+  triggerDrawerRef.value?.open(undefined, 'APPLICATION', id)
 }
 const openEditTriggerDrawer = (trigger: any) => {
   triggerDrawerRef.value?.open(trigger.id)
 }
 
-function refreshTrigger() {
-  // do nothing, just to refresh the trigger list in the drawer
+const createTrigger = (trigger: any) => {
+  return triggerAPI.postResourceTrigger('APPLICATION', id, trigger)
 }
+const editTrigger = (trigger_id: string, trigger: any) => {
+  return triggerAPI.putResourceTrigger('APPLICATION', id, trigger_id, trigger)
+}
+
+function getTriggerList() {
+  loadSharedApi({ type: 'trigger', systemType: apiType.value })
+    .getResourceTriggerList('APPLICATION', id)
+    .then((res: any) => {
+      triggerList.value = res.data
+    })
+}
+
+function refreshTrigger() {
+  getTriggerList()
+}
+
+function removeTrigger(trigger: any) {
+  loadSharedApi({ type: 'trigger', systemType: apiType.value })
+    .deleteResourceTrigger('APPLICATION', id, trigger.id)
+    .then((res: any) => {
+      getTriggerList()
+    })
+}
+
 function getSTTModel() {
   const obj =
     apiType.value === 'systemManage'

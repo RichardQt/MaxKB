@@ -3,6 +3,7 @@
     v-model="drawer"
     :title="is_edit ? $t('views.trigger.editTrigger') : $t('views.trigger.createTrigger')"
     size="600"
+    append-to-body
   >
     <el-form
       :model="form"
@@ -63,7 +64,7 @@
           @click="form.trigger_type = 'SCHEDULED'"
         >
           <div class="flex align-center line-height-22">
-            <el-avatar shape="square" size="32">
+            <el-avatar shape="square" :size="32">
               <img src="@/assets/trigger/icon_scheduled.svg" style="width: 58%" alt="" />
             </el-avatar>
             <div class="ml-12">
@@ -99,7 +100,7 @@
           @click="form.trigger_type = 'EVENT'"
         >
           <div class="flex align-center line-height-22">
-            <el-avatar shape="square" class="avatar-orange" size="32">
+            <el-avatar shape="square" class="avatar-orange" :size="32">
               <img src="@/assets/trigger/icon_event.svg" style="width: 58%" alt="" />
             </el-avatar>
             <div class="ml-12">
@@ -204,7 +205,109 @@
         </el-card>
       </el-form-item>
       <el-form-item :label="$t('views.trigger.taskExecution')">
-        <el-card shadow="never" class="card-never w-full" style="--el-card-padding: 8px 12px">
+        <!-- 资源端智能体 -->
+        <div class="w-full" v-if="resourceType === 'APPLICATION'">
+          <template v-for="(item, index) in applicationTask" :key="index">
+            <div class="border border-r-6 white-bg" style="padding: 2px 8px">
+              <div class="flex-between">
+                <div class="flex align-center" style="line-height: 20px">
+                  <el-avatar
+                    v-if="applicationDetailsDict[item.source_id]?.icon"
+                    shape="square"
+                    :size="20"
+                    style="background: none"
+                    class="mr-8"
+                  >
+                    <img :src="resetUrl(applicationDetailsDict[item.source_id]?.icon)" alt="" />
+                  </el-avatar>
+                  <AppIcon v-else class="mr-8" :size="20" />
+
+                  <div class="ellipsis-1" :title="applicationDetailsDict[item.source_id]?.name">
+                    {{ applicationDetailsDict[item.source_id]?.name }}
+                  </div>
+                </div>
+                <div style="margin-top: -2px">
+                  <span class="mr-4">
+                    <el-button
+                      text
+                      @click="showTast = showTast === 'agent' + index ? '' : 'agent' + index"
+                    >
+                      <el-icon
+                        class="arrow-icon"
+                        :class="showTast === 'agent' + index ? 'rotate-180' : ''"
+                      >
+                        <ArrowDown />
+                      </el-icon>
+                    </el-button>
+                  </span>
+                </div>
+              </div>
+              <ApplicationParameter
+                class="mt-8 mb-8"
+                ref="applicationParameterRef"
+                v-if="showTast === 'agent' + index && applicationDetailsDict[item.source_id]"
+                :application="applicationDetailsDict[item.source_id]"
+                :trigger="form"
+                v-model="item.parameter"
+              ></ApplicationParameter>
+            </div>
+          </template>
+        </div>
+        <!-- 资源端工具 -->
+        <div class="w-full" v-if="resourceType === 'TOOL'">
+          <template v-for="(item, index) in toolTask" :key="index">
+            <div class="border border-r-6 white-bg mb-4" style="padding: 2px 8px 5px">
+              <div class="flex-between">
+                <div class="flex align-center" style="line-height: 20px">
+                  <el-avatar
+                    v-if="toolDetailsDict[item.source_id]?.icon"
+                    shape="square"
+                    :size="20"
+                    style="background: none"
+                    class="mr-8"
+                  >
+                    <img :src="resetUrl(toolDetailsDict[item.source_id]?.icon)" alt="" />
+                  </el-avatar>
+                  <ToolIcon v-else class="mr-8" :size="20" />
+
+                  <div class="ellipsis-1" :title="toolDetailsDict[item.source_id]?.name">
+                    {{ toolDetailsDict[item.source_id]?.name }}
+                  </div>
+                </div>
+                <div style="margin-top: -2px">
+                  <span class="mr-4">
+                    <el-button
+                      text
+                      @click="showTast = showTast === 'tool' + index ? '' : 'tool' + index"
+                    >
+                      <el-icon
+                        class="arrow-icon"
+                        :class="showTast === 'tool' + index ? 'rotate-180' : ''"
+                      >
+                        <ArrowDown />
+                      </el-icon>
+                    </el-button>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ToolParameter
+              class="mt-8 mb-8"
+              ref="toolParameterRef"
+              v-if="showTast === 'tool' + index && toolDetailsDict[item.source_id]"
+              :tool="toolDetailsDict[item.source_id]"
+              :trigger="form"
+              v-model="item.parameter"
+            ></ToolParameter>
+          </template>
+        </div>
+        <!-- 触发器 -->
+        <el-card
+          shadow="never"
+          class="card-never w-full"
+          style="--el-card-padding: 8px 12px"
+          v-else
+        >
           <!-- 智能体    -->
           <div class="flex-between" @click="collapseData.agent = !collapseData.agent">
             <div class="flex align-center lighter cursor">
@@ -224,7 +327,7 @@
           </div>
           <div class="w-full" v-if="collapseData.agent">
             <template v-for="(item, index) in applicationTask" :key="index">
-              <div class="border border-r-6 white-bg mt-8" style="padding: 2px 8px">
+              <div class="border border-r-6 white-bg" style="padding: 2px 8px">
                 <div class="flex-between">
                   <div class="flex align-center" style="line-height: 20px">
                     <el-avatar
@@ -257,8 +360,8 @@
                       </el-button>
                     </span>
                     <span class="mr-4">
-                      <el-button text>
-                        <el-icon><Close @click="deleteTask(item)" /></el-icon>
+                      <el-button text @click="deleteTask(item)">
+                        <el-icon><Close /></el-icon>
                       </el-button>
                     </span>
                   </div>
@@ -324,8 +427,8 @@
                       </el-button>
                     </span>
                     <span class="mr-4">
-                      <el-button text>
-                        <el-icon><Close @click="deleteTask(item)" /></el-icon>
+                      <el-button text @click="deleteTask(item)">
+                        <el-icon><Close /></el-icon>
                       </el-button>
                     </span>
                   </div>
@@ -375,10 +478,12 @@ const props = withDefaults(
   defineProps<{
     createTrigger?: (trigger: any) => Promise<Result<any>>
     editTrigger?: (trigger_id: string, trigger: any) => Promise<Result<any>>
+    resourceType?: string
   }>(),
   {
     createTrigger: triggerAPI.postTrigger,
     editTrigger: triggerAPI.putTrigger,
+    resourceType: '',
   },
 )
 

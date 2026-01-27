@@ -18,7 +18,7 @@ const prefix = 'system/resource'
  */
 const postResourceTrigger: (
   source_type: string,
-  resource_id: string,
+  source_id: string,
   data: TriggerData,
   loading?: Ref<boolean>,
 ) => Promise<Result<any>> = (source_type, source_id, data, loading) => {
@@ -32,14 +32,14 @@ const postResourceTrigger: (
 
 /**
  * 资源端触发器列表
- * @param source_type 
- * @param source_id 
- * @param loading 
- * @returns 
+ * @param source_type
+ * @param source_id
+ * @param loading
+ * @returns
  */
 const getResourceTriggerList: (
   source_type: string,
-  resource_id: string,
+  source_id: string,
   loading?: Ref<boolean>,
 ) => Promise<Result<any>> = (source_type, source_id, loading) => {
   return get(
@@ -51,15 +51,15 @@ const getResourceTriggerList: (
 
 /**
  * 资源端触发器详情
- * @param source_type 
- * @param source_id 
- * @param trigger_id 
- * @param loading 
- * @returns 
+ * @param source_type
+ * @param source_id
+ * @param trigger_id
+ * @param loading
+ * @returns
  */
 const getResourceTriggerDetail: (
     source_type: string,
-  resource_id: string,
+  source_id: string,
   trigger_id: string,
   loading?: Ref<boolean>,
 ) => Promise<Result<any>> = (source_type, source_id, trigger_id, loading) => {
@@ -72,15 +72,15 @@ const getResourceTriggerDetail: (
 
 /**
  * 资源端删除触发器
- * @param source_type 
- * @param source_id 
- * @param trigger_id 
- * @param loading 
- * @returns 
+ * @param source_type
+ * @param source_id
+ * @param trigger_id
+ * @param loading
+ * @returns
  */
 const deleteResourceTrigger: (
     source_type: string,
-  resource_id: string,
+  source_id: string,
   trigger_id: string,
   loading?: Ref<boolean>,
 ) => Promise<Result<any>> = (source_type, source_id, trigger_id, loading) => {
@@ -103,7 +103,7 @@ const deleteResourceTrigger: (
  */
 const putResourceTrigger: (
   source_type: string,
-  resource_id: string,
+  source_id: string,
   trigger_id: string,
   data: TriggerData,
   loading?: Ref<boolean>,

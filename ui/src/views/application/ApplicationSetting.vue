@@ -760,11 +760,30 @@
                       </el-button>
                     </div>
                   </template>
-                  <el-card shadow="never" class="card-never" style="--el-card-padding: 12px">
-                    <div class="w-full">
-                      <!-- TO DO -->
-                    </div>
-                  </el-card>
+                  <div v-if="triggerList.length > 0" class="w-full">
+                    <template v-for="(item, index) in triggerList" :key="index">
+                      <div
+                        class="flex-between border border-r-6 white-bg mb-8"
+                        style="padding: 2px 8px"
+                      >
+                        <div class="flex align-center">
+                          <TriggerIcon :type="item.trigger_type" class="mr-8" :size="20" />
+                          <span class="ellipsis-1"> {{ item.name }}</span>
+                        </div>
+                        <div>
+                          <span class="mr-4">
+                            <el-button text @click="openEditTriggerDrawer(item)">
+                              <AppIcon iconName="app-edit" class="color-secondary"></AppIcon>
+                            </el-button>
+                          </span>
+
+                          <el-button text @click="removeTrigger(item)">
+                            <el-icon><Close /></el-icon>
+                          </el-button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
                 </el-form-item>
               </el-form>
             </el-scrollbar>
@@ -808,6 +827,7 @@
       ref="triggerDrawerRef"
       :create-trigger="createTrigger"
       :edit-trigger="editTrigger"
+      resourceType="APPLICATION"
     ></TriggerDrawer>
   </div>
 </template>
@@ -855,12 +875,6 @@ const apiType = computed(() => {
 const permissionPrecise = computed(() => {
   return permissionMap['application'][apiType.value]
 })
-const createTrigger = (trigger: any) => {
-  return triggerAPI.postResourceTrigger('APPLICATION', id, trigger)
-}
-const editTrigger = (trigger_id: string, trigger: any) => {
-  return triggerAPI.putResourceTrigger('APPLICATION', id, trigger_id, trigger)
-}
 const toolPermissionPrecise = computed(() => {
   return permissionMap['tool'][apiType.value]
 })
@@ -939,7 +953,6 @@ const applicationForm = ref<ApplicationFormType>({
   tool_ids: [],
   mcp_output_enable: false,
 })
-const themeDetail = ref({})
 
 const rules = reactive<FormRules<ApplicationFormType>>({
   name: [
@@ -955,6 +968,8 @@ const knowledgeList = ref<Array<any>>([])
 const sttModelOptions = ref<any>(null)
 const ttsModelOptions = ref<any>(null)
 
+const triggerList = ref<Array<any>>([])
+
 const triggerDrawerRef = ref<InstanceType<typeof TriggerDrawer>>()
 
 const openCreateTriggerDrawer = () => {
@@ -964,8 +979,31 @@ const openEditTriggerDrawer = (trigger: any) => {
   triggerDrawerRef.value?.open(trigger.id)
 }
 
+const createTrigger = (trigger: any) => {
+  return triggerAPI.postResourceTrigger('APPLICATION', id, trigger)
+}
+const editTrigger = (trigger_id: string, trigger: any) => {
+  return triggerAPI.putResourceTrigger('APPLICATION', id, trigger_id, trigger)
+}
+
+function getTriggerList() {
+  loadSharedApi({ type: 'trigger', systemType: apiType.value })
+    .getResourceTriggerList('APPLICATION', id, loading)
+    .then((res: any) => {
+      triggerList.value = res.data
+    })
+}
+
 function refreshTrigger() {
-  // do nothing, just to refresh the trigger list in the drawer
+  getTriggerList()
+}
+
+function removeTrigger(trigger: any) {
+  loadSharedApi({ type: 'trigger', systemType: apiType.value })
+    .deleteResourceTrigger('APPLICATION', id, trigger.id, loading)
+    .then((res: any) => {
+      getTriggerList()
+    })
 }
 
 function submitPrologueDialog(val: string) {
@@ -1352,6 +1390,7 @@ onMounted(() => {
   getDetail()
   getSTTModel()
   getTTSModel()
+  getTriggerList()
   if (toolPermissionPrecise.value.read()) {
     getToolSelectOptions()
     getMcpToolSelectOptions()

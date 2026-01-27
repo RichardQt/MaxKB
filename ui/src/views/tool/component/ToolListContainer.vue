@@ -292,6 +292,14 @@
                             ></AppIcon>
                             {{ $t('views.system.resourceAuthorization.title') }}
                           </el-dropdown-item>
+
+                          <el-dropdown-item
+                            @click.stop="openToolTriggerDrawer(item)"
+                            v-if="apiType === 'workspace'"
+                          >
+                            <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
+                            {{ $t('views.trigger.title') }}
+                          </el-dropdown-item>
                           <el-dropdown-item
                             text
                             @click.stop="openResourceMappingDrawer(item)"
@@ -374,6 +382,7 @@
   />
   <ToolStoreDescDrawer ref="toolStoreDescDrawerRef" />
   <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
+  <ToolTriggerDrawer ref="toolTriggerDrawerRef"></ToolTriggerDrawer>
 </template>
 
 <script lang="ts" setup>
@@ -391,6 +400,7 @@ import AddInternalToolDialog from '@/views/tool/tool-store/AddInternalToolDialog
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import McpToolConfigDialog from '@/views/tool/component/McpToolConfigDialog.vue'
+import ToolTriggerDrawer from '@/views/tool/ToolTriggerDrawer.vue'
 import { resetUrl } from '@/utils/common'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import { SourceTypeEnum } from '@/enums/common'
@@ -405,11 +415,8 @@ import ToolStoreDescDrawer from '@/views/tool/component/ToolStoreDescDrawer.vue'
 import bus from '@/bus'
 import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 
-const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
 const route = useRoute()
-const openResourceMappingDrawer = (tool: any) => {
-  resourceMappingDrawerRef.value?.open('TOOL', tool)
-}
+
 const { folder, user, tool } = useStore()
 onBeforeRouteLeave((to, from) => {
   tool.setToolList([])
@@ -446,6 +453,16 @@ const MoreFieldPermission = (id: any) => {
     permissionPrecise.value.relate_map(id) ||
     isSystemShare.value
   )
+}
+
+const toolTriggerDrawerRef = ref<InstanceType<typeof ToolTriggerDrawer>>()
+const openToolTriggerDrawer = (tool: any) => {
+  toolTriggerDrawerRef.value?.open(tool)
+}
+
+const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
+const openResourceMappingDrawer = (tool: any) => {
+  resourceMappingDrawerRef.value?.open('TOOL', tool)
 }
 
 const ResourceAuthorizationDrawerRef = ref()
