@@ -39,7 +39,7 @@
         <template #default="{ row }">
           <div v-if="row.is_active" class="flex align-center">
             <el-icon class="color-success mr-8" style="font-size: 16px">
-              <SuccessFilled />
+              <SuccessFilled/>
             </el-icon>
             <span class="color-text-primary">
               {{ $t('common.status.enabled') }}
@@ -89,9 +89,9 @@
       <el-table-column :label="$t('common.operation')" align="left" width="130">
         <template #default="{ row }">
           <span @click.stop>
-            <el-switch size="small" v-model="row.is_active" @change="changeState(row)" />
+            <el-switch size="small" v-model="row.is_active" @change="changeState($event, row)"/>
           </span>
-          <el-divider direction="vertical" />
+          <el-divider direction="vertical"/>
           <span class="mr-4">
             <el-tooltip effect="dark" :content="$t('common.setting')" placement="top">
               <el-button type="primary" text @click.stop="settingApiKey(row)">
@@ -107,23 +107,23 @@
         </template>
       </el-table-column>
     </app-table>
-    <SettingAPIKeyDialog ref="SettingAPIKeyDialogRef" @refresh="refresh" />
+    <SettingAPIKeyDialog ref="SettingAPIKeyDialogRef" @refresh="refresh"/>
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, watch, computed, reactive } from 'vue'
-import { useRoute } from 'vue-router'
-import { copyClick } from '@/utils/clipboard'
+import {ref, watch, computed, reactive} from 'vue'
+import {useRoute} from 'vue-router'
+import {copyClick} from '@/utils/clipboard'
 import SettingAPIKeyDialog from './SettingAPIKeyDrawer.vue'
-import { datetimeFormat, fromNowDate } from '@/utils/time'
-import { MsgSuccess, MsgConfirm } from '@/utils/message'
-import { t } from '@/locales'
-import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import {datetimeFormat, fromNowDate} from '@/utils/time'
+import {MsgSuccess, MsgConfirm} from '@/utils/message'
+import {t} from '@/locales'
+import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
 
 const orderBy = ref<string>('')
 const route = useRoute()
 const {
-  params: { id },
+  params: {id},
 } = route
 
 const apiType = computed(() => {
@@ -173,22 +173,23 @@ function deleteApiKey(row: any) {
     },
   )
     .then(() => {
-      loadSharedApi({ type: 'applicationKey', systemType: apiType.value })
+      loadSharedApi({type: 'applicationKey', systemType: apiType.value})
         .delAPIKey(id as string, row.id, loading)
         .then(() => {
           MsgSuccess(t('common.deleteSuccess'))
           getApiKeyList()
         })
     })
-    .catch(() => {})
+    .catch(() => {
+    })
 }
 
-async function changeState(row: any) {
+async function changeState(bool: boolean, row: any) {
   const obj = {
-    is_active: !row.is_active,
+    is_active: bool,
   }
   const str = obj.is_active ? t('common.status.enabled') : t('common.status.disabled')
-  await loadSharedApi({ type: 'applicationKey', systemType: apiType.value })
+  await loadSharedApi({type: 'applicationKey', systemType: apiType.value})
     .putAPIKey(id as string, row.id, obj, loading)
     .then(() => {
       MsgSuccess(str)
@@ -201,7 +202,7 @@ async function changeState(row: any) {
 }
 
 function createApiKey() {
-  loadSharedApi({ type: 'applicationKey', systemType: apiType.value })
+  loadSharedApi({type: 'applicationKey', systemType: apiType.value})
     .postAPIKey(id as string, loading)
     .then(() => {
       getApiKeyList()
@@ -217,7 +218,7 @@ function getApiKeyList() {
   const param = {
     order_by: orderBy.value,
   }
-  loadSharedApi({ type: 'applicationKey', systemType: apiType.value })
+  loadSharedApi({type: 'applicationKey', systemType: apiType.value})
     .getAPIKey(
       id as string,
       paginationConfig.current_page,
@@ -231,7 +232,7 @@ function getApiKeyList() {
     })
 }
 
-function handleSortChange({ prop, order }: { prop: string; order: string }) {
+function handleSortChange({prop, order}: { prop: string; order: string }) {
   orderBy.value = order === 'ascending' ? prop : `-${prop}`
   getApiKeyList()
 }
@@ -249,7 +250,7 @@ function refresh() {
   getApiKeyList()
 }
 
-defineExpose({ open })
+defineExpose({open})
 </script>
 <style lang="scss" scoped>
 .api-key-container {

@@ -9,11 +9,14 @@
   >
     <el-form label-position="top" ref="settingFormRef" :model="form">
       <el-form-item label="API KEY">
-        <div class="complex-input flex align-center w-full" style="background-color: var(--el-disabled-bg-color);">
-          <el-input class="complex-input__left" v-model="form.secret_key" :disabled="true"></el-input>
+        <div class="complex-input flex align-center w-full"
+             style="background-color: var(--el-disabled-bg-color);">
+          <el-input class="complex-input__left" v-model="form.secret_key"
+                    :disabled="true"></el-input>
           <el-tooltip :content="$t('common.copy')" placement="top">
             <el-button text>
-              <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
+              <AppIcon iconName="app-copy" class="color-secondary"
+                       @click="copyClick(form.secret_key)"></AppIcon>
             </el-button>
           </el-tooltip>
         </div>
@@ -85,6 +88,7 @@ import {MsgSuccess} from '@/utils/message'
 import {t} from '@/locales'
 import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
 import {expiredTimeList, AfterTimestamp} from '@/utils/time'
+import {copyClick} from "@/utils/clipboard.ts";
 
 const route = useRoute()
 const {
@@ -158,6 +162,7 @@ const submit = async (formEl: FormInstance | undefined) => {
           : [],
         expire_time: form.value.expire_time,
         is_permanent: form.value.expiredTimeType === 'never',
+        is_active: form.value.is_active,
       }
 
       const apiCall =
