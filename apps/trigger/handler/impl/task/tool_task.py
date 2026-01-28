@@ -6,6 +6,7 @@
     @date：2026/1/14 19:14
     @desc:
 """
+import json
 import time
 import traceback
 
@@ -13,6 +14,7 @@ import uuid_utils.compat as uuid
 from django.db.models import QuerySet
 
 from common.utils.logger import maxkb_logger
+from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models.knowledge_action import State
 from tools.models import Tool
@@ -128,9 +130,15 @@ class ToolTask(BaseTriggerTask):
         try:
             tool = QuerySet(Tool).filter(id=tool_id).first()
             parameters = get_tool_execute_parameters(tool.input_field_list, parameter_setting, kwargs)
+            init_params_default_value = {i["field"]: i.get('default_value') for i in tool.init_field_list}
 
+            if tool.init_params is not None:
+                all_params = init_params_default_value | json.loads(rsa_long_decrypt(tool.init_params)) | parameters
+            else:
+                all_params = init_params_default_value | parameters
             executor = ToolExecutor()
-            result = executor.exec_code(tool.code, parameters)
+            result = executor.exec_code(tool.code, all_params)
+
             maxkb_logger.info(f"Tool execution result: {result}")
 
             QuerySet(TaskRecord).filter(id=task_record_id).update(
