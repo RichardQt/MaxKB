@@ -202,7 +202,16 @@
           </el-card>
         </el-card>
       </el-form-item>
-      <el-form-item :label="$t('views.trigger.taskExecution')">
+      <el-form-item
+        :label="$t('views.trigger.taskExecution')"
+        prop="trigger_task"
+        :rules="{
+          type: 'array',
+          message: $t('common.selectPlaceholder'),
+          trigger: 'change',
+          required: true,
+        }"
+      >
         <template v-if="['APPLICATION', 'TOOL'].includes(resourceType)">
           <!-- 资源端智能体 -->
           <div class="w-full" v-if="resourceType === 'APPLICATION'">
