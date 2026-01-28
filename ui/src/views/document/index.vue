@@ -1146,7 +1146,7 @@ function exportMulDocument() {
     }
   })
   loadSharedApi({ type: 'document', systemType: apiType.value })
-    .exportMulDocument('documents', id, arr, loading)
+    .exportMulDocument(knowledgeDetail.value.name, id, arr, loading)
     .then(() => {
       MsgSuccess(t('common.exportSuccess'))
     })
@@ -1160,7 +1160,7 @@ function exportMulDocumentZip() {
     }
   })
   loadSharedApi({ type: 'document', systemType: apiType.value })
-    .exportMulDocumentZip('documents', id, arr, loading)
+    .exportMulDocumentZip(knowledgeDetail.value.name, id, arr, loading)
     .then(() => {
       MsgSuccess(t('common.exportSuccess'))
     })
