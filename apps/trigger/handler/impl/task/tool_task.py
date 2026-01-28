@@ -9,6 +9,7 @@
 import json
 import time
 import traceback
+from typing import Any
 
 import uuid_utils.compat as uuid
 from django.db.models import QuerySet
@@ -122,7 +123,7 @@ class ToolTask(BaseTriggerTask):
             source_type="TOOL",
             source_id=tool_id,
             task_record_id=task_record_id,
-            meta={},
+            meta={'input': parameter_setting, 'output': {}},
             state=State.STARTED
         ).save()
 
@@ -139,11 +140,14 @@ class ToolTask(BaseTriggerTask):
             executor = ToolExecutor()
             result = executor.exec_code(tool.code, all_params)
 
-            maxkb_logger.info(f"Tool execution result: {result}")
+            result_dict = self.get_result_detail(result)
+
+            maxkb_logger.debug(f"Tool execution result: {result}")
 
             QuerySet(TaskRecord).filter(id=task_record_id).update(
                 state=State.SUCCESS,
-                run_time=time.time() - start_time
+                run_time=time.time() - start_time,
+                meta={'input': parameter_setting, 'output': result_dict}
             )
         except Exception as e:
             maxkb_logger.error(f"Tool execution error: {traceback.format_exc()}")
@@ -151,3 +155,14 @@ class ToolTask(BaseTriggerTask):
                 state=State.FAILURE,
                 run_time=time.time() - start_time
             )
+
+    def get_result_detail(self, result) -> dict[Any, str | Any]:
+        if isinstance(result, dict):
+            result_dict = {k: (str(v)[:500] if len(str(v)) > 500 else v) for k, v in result.items()}
+        elif isinstance(result, list):
+            result_dict = [str(item)[:500] if len(str(item)) > 500 else item for item in result]
+        elif isinstance(result, str):
+            result_dict = result[:500] if len(result) > 500 else result
+        else:
+            result_dict = result
+        return result_dict
