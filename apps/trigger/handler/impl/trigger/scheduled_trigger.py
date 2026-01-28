@@ -163,7 +163,7 @@ def _deploy_interval(trigger: dict, trigger_tasks: list[dict], setting: dict, tr
             **{unit: value_i},
         )
 
-
+@celery_app.task(name="celery:undeploy_scheduled_trigger")
 def _remove_trigger_jobs(trigger_id: str) -> None:
     from common.job import scheduler
 
@@ -256,6 +256,6 @@ class ScheduledTrigger(BaseTrigger):
             return
 
         try:
-            _remove_trigger_jobs(trigger_id)
+            _remove_trigger_jobs.delay(trigger_id)
         finally:
             rlock.un_lock(lock_key)
