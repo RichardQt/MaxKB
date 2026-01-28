@@ -1,6 +1,6 @@
 export enum PermissionType {
   PRIVATE = 'common.private',
-  PUBLIC = 'common.public'
+  PUBLIC = 'common.public',
 }
 export enum PermissionDesc {
   PRIVATE = 'views.model.modelForm.permissionType.privateDesc',

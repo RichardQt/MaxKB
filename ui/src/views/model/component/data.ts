@@ -13,7 +13,6 @@ export const modelTypeList = [
   { text: t(modelType['OCR']), value: 'OCR' },
 ]
 
-
 export const allObj = {
   icon: '',
   provider: '',

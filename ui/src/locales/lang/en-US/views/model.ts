@@ -8,7 +8,8 @@ export default {
     confirmTitle: 'Delete Model：',
     confirmMessage:
       'Deleting the model will affect the resources currently using it. Please proceed with caution.',
-    resourceCountMessage: 'This model is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
+    resourceCountMessage:
+      'This model is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
   },
   tip: {
     createSuccessMessage: 'Model created successfully',
@@ -69,10 +70,8 @@ export default {
         'Vision Model: A visual model used for image understanding in advanced orchestration agent.',
       tooltip7:
         'Image Generation: A visual model used for image generation in advanced orchestration agent.',
-      tooltip8:
-        'Text-to-Video: A visual model used for text-to-video in the agent.',
-      tooltip9:
-        'Image-to-Video: A visual model used for image-to-video in the agent.',
+      tooltip8: 'Text-to-Video: A visual model used for text-to-video in the agent.',
+      tooltip9: 'Image-to-Video: A visual model used for image-to-video in the agent.',
       requiredMessage: 'Model type cannot be empty',
     },
     base_model: {
