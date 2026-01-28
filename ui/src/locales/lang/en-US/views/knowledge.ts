@@ -18,7 +18,8 @@ export default {
     confirmTitle: 'Confirm deletion of knowledge:',
     confirmMessage1: 'This knowledge is related with',
     confirmMessage2: 'agent. Deleting it will be irreversible, please proceed with caution.',
-    resourceCountMessage: 'This knowledge is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
+    resourceCountMessage:
+      'This knowledge is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
   },
   knowledgeType: {
     label: 'Type',
@@ -55,6 +56,11 @@ export default {
       placeholder: 'Please select a embedding model',
       requiredMessage: 'Please select the embedding model',
     },
+    OCRModel: {
+      label: 'OCR Model (Optional)',
+      placeholder: 'Please select an OCR model for image text recognition',
+      tip: 'After configuring the OCR model, text in uploaded images will be automatically recognized',
+    },
 
     source_url: {
       label: 'Web Root URL',
@@ -78,7 +84,8 @@ export default {
       },
       basic: {
         title: 'Basic Template',
-        description: 'Supports basic workflow templates for local files, Lark documents, and web site data sources',
+        description:
+          'Supports basic workflow templates for local files, Lark documents, and web site data sources',
       },
     },
   },

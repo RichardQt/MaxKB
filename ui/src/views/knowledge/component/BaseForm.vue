@@ -40,6 +40,18 @@
         showFooter
       ></ModelSelect>
     </el-form-item>
+    <el-form-item :label="$t('views.knowledge.form.OCRModel.label')" prop="ocr_model_id">
+      <ModelSelect
+        v-model="form.ocr_model_id"
+        :placeholder="$t('views.knowledge.form.OCRModel.placeholder')"
+        :options="ocrModelOptions"
+        @submit-model="getOCRSelectModel"
+        :model-type="'OCR'"
+        showFooter
+        clearable
+      ></ModelSelect>
+      <div class="el-form-item__tip">{{ $t('views.knowledge.form.OCRModel.tip') }}</div>
+    </el-form-item>
   </el-form>
 </template>
 <script setup lang="ts">
@@ -59,6 +71,7 @@ const form = ref<knowledgeData>({
   name: '',
   desc: '',
   embedding_model_id: '',
+  ocr_model_id: '',
 })
 const workspace_id = ref('')
 
@@ -89,6 +102,7 @@ const rules = reactive({
 const FormRef = ref()
 const loading = ref(false)
 const modelOptions = ref<any>([])
+const ocrModelOptions = ref<any>([])
 
 watch(
   () => props.data,
@@ -97,9 +111,11 @@ watch(
       form.value.name = value.name
       form.value.desc = value.desc
       form.value.embedding_model_id = value.embedding_model_id
+      form.value.ocr_model_id = value.ocr_model_id || ''
       workspace_id.value = value.workspace_id || ''
       // 重新刷新模型列表
       getSelectModel()
+      getOCRSelectModel()
     }
   },
   {
@@ -139,9 +155,30 @@ function getSelectModel() {
     })
 }
 
+function getOCRSelectModel() {
+  const obj =
+    props.apiType === 'systemManage'
+      ? {
+          model_type: 'OCR',
+          workspace_id: workspace_id.value,
+        }
+      : {
+          model_type: 'OCR',
+        }
+  loadSharedApi({ type: 'model', systemType: props.apiType })
+    .getSelectModelList(obj)
+    .then((res: any) => {
+      ocrModelOptions.value = groupBy(res?.data, 'provider')
+    })
+    .catch(() => {
+      // OCR模型获取失败不影响主流程
+    })
+}
+
 onMounted(() => {
   if (props.apiType !== 'systemManage') {
     getSelectModel()
+    getOCRSelectModel()
   }
 })
 
@@ -150,6 +187,7 @@ onUnmounted(() => {
     name: '',
     desc: '',
     embedding_model_id: '',
+    ocr_model_id: '',
   }
   FormRef.value?.clearValidate()
 })
@@ -159,4 +197,11 @@ defineExpose({
   form,
 })
 </script>
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.el-form-item__tip {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+</style>

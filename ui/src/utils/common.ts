@@ -1,5 +1,5 @@
-import {nanoid} from 'nanoid'
-import {t} from '@/locales'
+import { nanoid } from 'nanoid'
+import { t } from '@/locales'
 
 /**
  * 数字处理
@@ -56,7 +56,24 @@ export function fileType(name: string) {
   获得文件对应图片
 */
 const typeList: any = {
-  txt: ['txt', 'pdf', 'docx', 'md', 'html', 'zip', 'xlsx', 'xls', 'csv'],
+  txt: [
+    'txt',
+    'pdf',
+    'docx',
+    'md',
+    'html',
+    'zip',
+    'xlsx',
+    'xls',
+    'csv',
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'bmp',
+    'webp',
+    'tiff',
+  ],
   table: ['xlsx', 'xls', 'csv'],
   QA: ['xlsx', 'csv', 'xls', 'zip'],
 }
@@ -87,20 +104,19 @@ export function downloadByURL(url: string, name: string) {
 }
 
 // 替换固定数据国际化
-const i18n_default_name_map:any = {
-  "系统管理员": 'layout.about.inner_admin',
-  "工作空间管理员": 'layout.about.inner_wsm',
-  "普通用户": 'layout.about.inner_user',
-  "根目录": 'layout.about.root',
-  "默认工作空间": 'layout.about.default_workspace',
-  "默认用户组": 'layout.about.default_user_group',
+const i18n_default_name_map: any = {
+  系统管理员: 'layout.about.inner_admin',
+  工作空间管理员: 'layout.about.inner_wsm',
+  普通用户: 'layout.about.inner_user',
+  根目录: 'layout.about.root',
+  默认工作空间: 'layout.about.default_workspace',
+  默认用户组: 'layout.about.default_user_group',
 }
 
 export function i18n_name(name: string) {
   const key = i18n_default_name_map[name]
   return key ? t(key) : name
 }
-
 
 // 截取文件名
 export function cutFilename(filename: string, num: number) {
@@ -115,51 +131,51 @@ interface LoadScriptOptions {
 }
 
 export const loadScript = (url: string, options: LoadScriptOptions = {}): Promise<void> => {
-  const { jsId, forceReload = false } = options;
-  const scriptId = jsId || `script-${btoa(url).slice(0, 12)}`;
+  const { jsId, forceReload = false } = options
+  const scriptId = jsId || `script-${btoa(url).slice(0, 12)}`
 
   const cleanupScript = (script: HTMLScriptElement) => {
     if (script && script.parentElement) {
-      script.parentElement.removeChild(script);
+      script.parentElement.removeChild(script)
     }
-  };
+  }
 
   return new Promise((resolve, reject) => {
     if (typeof document === 'undefined') {
-      reject(new Error('Cannot load script in non-browser environment'));
-      return;
+      reject(new Error('Cannot load script in non-browser environment'))
+      return
     }
 
-    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
+    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null
 
     if (existingScript && !forceReload) {
       if (existingScript.src === url) {
-        console.log(`[loadScript] Reuse existing script: ${url}`);
-        resolve();
-        return;
+        console.log(`[loadScript] Reuse existing script: ${url}`)
+        resolve()
+        return
       }
-      existingScript.remove();
+      existingScript.remove()
     }
 
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = url;
-    script.async = true;
+    const script = document.createElement('script')
+    script.id = scriptId
+    script.src = url
+    script.async = true
 
     script.onload = () => {
-      console.log(`[loadScript] Script loaded: ${url}`);
-      resolve();
-    };
+      console.log(`[loadScript] Script loaded: ${url}`)
+      resolve()
+    }
 
     script.onerror = () => {
-      console.error(`[loadScript] Failed to load: ${url}`);
-      cleanupScript(script);
-      reject(new Error(`Failed to load script: ${url}`));
-    };
+      console.error(`[loadScript] Failed to load: ${url}`)
+      cleanupScript(script)
+      reject(new Error(`Failed to load script: ${url}`))
+    }
 
-    document.head.appendChild(script);
-  });
-};
+    document.head.appendChild(script)
+  })
+}
 
 // 清理脚本（可选）
 const cleanupScript = (script: HTMLScriptElement) => {

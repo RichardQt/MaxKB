@@ -10,6 +10,7 @@ export const modelTypeList = [
   { text: t(modelType['TTI']), value: 'TTI' },
   { text: t(modelType['ITV']), value: 'ITV' },
   { text: t(modelType['TTV']), value: 'TTV' },
+  { text: t(modelType['OCR']), value: 'OCR' },
 ]
 
 

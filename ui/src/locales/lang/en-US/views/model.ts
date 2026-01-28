@@ -34,6 +34,7 @@ export default {
     TTI: 'Image Generation',
     TTV: 'Text-to-Video',
     ITV: 'Image-to-Video',
+    OCR: 'OCR',
   },
   modelForm: {
     title: {

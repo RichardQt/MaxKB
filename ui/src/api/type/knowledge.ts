@@ -3,6 +3,7 @@ interface knowledgeData {
   folder_id?: string
   desc: string
   embedding_model_id?: string
+  ocr_model_id?: string
   documents?: Array<any>
 }
 

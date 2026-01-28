@@ -19,12 +19,14 @@ from models_provider.impl.siliconCloud_model_provider.credential.stt import Sili
 from models_provider.impl.siliconCloud_model_provider.credential.tti import \
     SiliconCloudTextToImageModelCredential
 from models_provider.impl.siliconCloud_model_provider.credential.tts import SiliconCloudTTSModelCredential
+from models_provider.impl.siliconCloud_model_provider.credential.ocr import SiliconCloudOCRModelCredential
 from models_provider.impl.siliconCloud_model_provider.model.embedding import SiliconCloudEmbeddingModel
 from models_provider.impl.siliconCloud_model_provider.model.llm import SiliconCloudChatModel
 from models_provider.impl.siliconCloud_model_provider.model.reranker import SiliconCloudReranker
 from models_provider.impl.siliconCloud_model_provider.model.stt import SiliconCloudSpeechToText
 from models_provider.impl.siliconCloud_model_provider.model.tti import SiliconCloudTextToImage
 from models_provider.impl.siliconCloud_model_provider.model.tts import SiliconCloudTextToSpeech
+from models_provider.impl.siliconCloud_model_provider.model.ocr import SiliconCloudOCR
 from maxkb.conf import PROJECT_DIR
 from django.utils.translation import gettext as _
 
@@ -33,6 +35,7 @@ openai_stt_model_credential = SiliconCloudSTTModelCredential()
 openai_reranker_model_credential = SiliconCloudRerankerCredential()
 openai_tti_model_credential = SiliconCloudTextToImageModelCredential()
 openai_tts_model_credential = SiliconCloudTTSModelCredential()
+openai_ocr_model_credential = SiliconCloudOCRModelCredential()
 model_info_list = [
     ModelInfo('deepseek-ai/DeepSeek-R1-Distill-Llama-8B', '', ModelTypeConst.LLM,
               openai_llm_model_credential, SiliconCloudChatModel
@@ -112,6 +115,18 @@ model_tts_list = [
               ModelTypeConst.TTS, openai_tts_model_credential,
               SiliconCloudTextToSpeech),
 ]
+# OCR模型列表 - 使用支持视觉的模型进行OCR
+model_ocr_list = [
+    ModelInfo('deepseek-ai/deepseek-vl2', 'DeepSeek VL2 OCR模型',
+              ModelTypeConst.OCR, openai_ocr_model_credential,
+              SiliconCloudOCR),
+    ModelInfo('Qwen/Qwen2-VL-72B-Instruct', 'Qwen2 VL OCR模型',
+              ModelTypeConst.OCR, openai_ocr_model_credential,
+              SiliconCloudOCR),
+    ModelInfo('Pro/Qwen/Qwen2-VL-7B-Instruct', 'Qwen2 VL 7B OCR模型',
+              ModelTypeConst.OCR, openai_ocr_model_credential,
+              SiliconCloudOCR),
+]
 model_info_manage = (
     ModelInfoManage.builder()
     .append_model_info_list(model_info_list)
@@ -130,6 +145,8 @@ model_info_manage = (
     .append_default_model_info(model_rerank_list[0])
     .append_model_info_list(model_tts_list)
     .append_default_model_info(model_tts_list[0])
+    .append_model_info_list(model_ocr_list)
+    .append_default_model_info(model_ocr_list[0])
 
     .build()
 )

@@ -150,6 +150,8 @@ class ModelTypeConst(Enum):
     #文生视频 图生视频
     TTV = {'code': 'TTV', 'message': _('Text to Video')}
     ITV = {'code': 'ITV', 'message': _('Image to Video')}
+    # OCR 图片识别
+    OCR = {'code': 'OCR', 'message': _('OCR')}
 
 
 

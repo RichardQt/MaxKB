@@ -32,6 +32,7 @@ export default {
     TTI: '圖片生成',
     TTV: '文生視頻',
     ITV: '圖生視頻',
+    OCR: '圖片識別',
   },
   modelForm: {
     title: {

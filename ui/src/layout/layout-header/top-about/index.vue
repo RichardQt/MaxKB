@@ -1,10 +1,9 @@
 <template>
-  <div class="flex align-center">
-  </div>
+  <div class="flex align-center"></div>
 </template>
 <script setup lang="ts">
 import useStore from '@/stores'
-import { EditionConst, RoleConst } from '@/utils/permission/data';
+import { EditionConst, RoleConst } from '@/utils/permission/data'
 const { theme, user } = useStore()
 
 function toUrl(url: string) {

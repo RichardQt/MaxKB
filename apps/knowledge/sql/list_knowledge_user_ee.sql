@@ -13,6 +13,7 @@ FROM (SELECT "temp_knowledge".id::text, "temp_knowledge".name,
              "temp_knowledge".file_count_limit,
              "temp_knowledge"."scope",
              "temp_knowledge"."embedding_model_id"::text,
+             "temp_knowledge"."ocr_model_id"::text,
              "document_temp"."char_length",
              to_json("temp_knowledge".meta)::jsonb       as meta,
              CASE

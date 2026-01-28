@@ -56,7 +56,7 @@ class KnowledgeModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Knowledge
         fields = ['id', 'name', 'desc', 'meta', 'folder_id', 'type', 'workspace_id', 'create_time',
-                  'update_time', 'file_size_limit', 'file_count_limit', 'embedding_model_id']
+                  'update_time', 'file_size_limit', 'file_count_limit', 'embedding_model_id', 'ocr_model_id']
 
 
 class KnowledgeBaseCreateRequest(serializers.Serializer):
@@ -64,6 +64,7 @@ class KnowledgeBaseCreateRequest(serializers.Serializer):
     folder_id = serializers.CharField(required=True, label=_('folder id'))
     desc = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('knowledge description'))
     embedding_model_id = serializers.CharField(required=True, label=_('knowledge embedding'))
+    ocr_model_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('OCR model'))
 
 
 class KnowledgeWebCreateRequest(serializers.Serializer):
@@ -71,6 +72,7 @@ class KnowledgeWebCreateRequest(serializers.Serializer):
     folder_id = serializers.CharField(required=True, label=_('folder id'))
     desc = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('knowledge description'))
     embedding_model_id = serializers.CharField(required=True, label=_('knowledge embedding'))
+    ocr_model_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('OCR model'))
     source_url = serializers.CharField(required=True, label=_('source url'))
     selector = serializers.CharField(required=False, label=_('knowledge selector'), allow_null=True, allow_blank=True)
 
@@ -79,6 +81,7 @@ class KnowledgeEditRequest(serializers.Serializer):
     name = serializers.CharField(required=False, max_length=64, min_length=1, label=_('knowledge name'))
     desc = serializers.CharField(required=False, max_length=256, min_length=1, label=_('knowledge description'))
     meta = serializers.DictField(required=False)
+    ocr_model_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('OCR model'))
     application_id_list = serializers.ListSerializer(
         required=False,
         child=serializers.UUIDField(required=True, label=_('application id')),
@@ -382,6 +385,8 @@ class KnowledgeSerializer(serializers.Serializer):
             KnowledgeEditRequest(data=instance).is_valid(knowledge=knowledge)
             if 'embedding_model_id' in instance:
                 knowledge.embedding_model_id = instance.get('embedding_model_id')
+            if 'ocr_model_id' in instance:
+                knowledge.ocr_model_id = instance.get('ocr_model_id') if instance.get('ocr_model_id') else None
             if "name" in instance:
                 knowledge.name = instance.get("name")
             if 'desc' in instance:
@@ -536,6 +541,7 @@ class KnowledgeSerializer(serializers.Serializer):
                 scope=self.data.get('scope', KnowledgeScope.WORKSPACE),
                 folder_id=folder_id,
                 embedding_model_id=instance.get('embedding_model_id'),
+                ocr_model_id=instance.get('ocr_model_id') if instance.get('ocr_model_id') else None,
                 meta=instance.get('meta', {}),
             )
 
@@ -600,6 +606,7 @@ class KnowledgeSerializer(serializers.Serializer):
                 folder_id=folder_id,
                 workspace_id=self.data.get('workspace_id'),
                 embedding_model_id=instance.get('embedding_model_id'),
+                ocr_model_id=instance.get('ocr_model_id') if instance.get('ocr_model_id') else None,
                 meta={
                     'source_url': instance.get('source_url'),
                     'selector': instance.get('selector', 'body'),

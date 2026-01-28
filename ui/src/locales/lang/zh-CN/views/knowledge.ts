@@ -53,6 +53,11 @@ export default {
       placeholder: '请选择向量模型',
       requiredMessage: '请选择向量模型',
     },
+    OCRModel: {
+      label: 'OCR 模型（可选）',
+      placeholder: '请选择 OCR 模型用于图片文字识别',
+      tip: '配置 OCR 模型后，上传图片时将自动识别图片中的文字内容',
+    },
 
     source_url: {
       label: 'Web 根地址',

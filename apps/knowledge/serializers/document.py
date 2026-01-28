@@ -2,16 +2,19 @@ import io
 import json
 import os
 import re
+import tempfile
 import traceback
 from collections import defaultdict
 from functools import reduce
 from tempfile import TemporaryDirectory
 from typing import Dict, List
 
+import fitz
 import openpyxl
 import uuid_utils.compat as uuid
 from celery_once import AlreadyQueued
 from django.contrib.postgres.fields import JSONField
+from django.core.files.base import ContentFile
 from django.core import validators
 from django.db import transaction, models
 from django.db.models import QuerySet, Func, F, Value
@@ -45,6 +48,7 @@ from common.handle.impl.text.text_split_handle import TextSplitHandle
 from common.handle.impl.text.xls_split_handle import XlsSplitHandle
 from common.handle.impl.text.xlsx_split_handle import XlsxSplitHandle
 from common.handle.impl.text.zip_split_handle import ZipSplitHandle
+from common.handle.impl.text.image_split_handle import ImageSplitHandle
 from common.utils.common import post, get_file_content, bulk_create_in_batches, parse_image
 from common.utils.fork import Fork
 from common.utils.logger import maxkb_logger
@@ -58,6 +62,7 @@ from knowledge.serializers.paragraph import ParagraphSerializers, ParagraphInsta
 from knowledge.task.embedding import embedding_by_document, delete_embedding_by_document_list, \
     delete_embedding_by_document, delete_embedding_by_paragraph_ids, embedding_by_document_list, \
     update_embedding_knowledge_id
+from models_provider.tools import get_model_instance_by_model_workspace_id
 from knowledge.task.generate import generate_related_by_document_id
 from knowledge.task.sync import sync_web_document
 from maxkb.const import PROJECT_DIR
@@ -1036,6 +1041,110 @@ class DocumentSerializers(serializers.Serializer):
                     file.source_id = self.data.get('knowledge_id')
                     file.save(file_bytes)
 
+        @staticmethod
+        def _write_upload_to_temp_file(file, suffix: str) -> str:
+            """将上传文件写入临时文件，返回临时文件路径（调用方负责删除）。"""
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+                if hasattr(file, 'chunks'):
+                    for chunk in file.chunks():
+                        temp_file.write(chunk)
+                else:
+                    temp_file.write(file.read())
+                return temp_file.name
+
+        def _is_image_based_pdf(self, file, max_pages: int = 5, min_total_text_chars: int = 50) -> bool:
+            """判断 PDF 是否为图片型（扫描件）：基本特征是可提取文本极少且含图片。"""
+            file.seek(0)
+            temp_path = None
+            try:
+                temp_path = self._write_upload_to_temp_file(file, suffix='.pdf')
+                pdf_document = fitz.open(temp_path)
+                try:
+                    page_count = pdf_document.page_count
+                    if page_count <= 0:
+                        return False
+
+                    pages_to_check = min(page_count, max_pages if max_pages and max_pages > 0 else page_count)
+                    total_text_len = 0
+                    pages_with_images = 0
+
+                    for page_num in range(pages_to_check):
+                        page = pdf_document.load_page(page_num)
+                        text = (page.get_text("text") or "").strip()
+                        total_text_len += len(text)
+                        try:
+                            if len(page.get_images(full=True)) > 0:
+                                pages_with_images += 1
+                        except Exception:
+                            # 某些 PDF 可能在 get_images 上抛错，保守处理为“不按图片型”
+                            return False
+
+                    # 必须“确实有图片”才认为是图片型 PDF
+                    if pages_with_images == 0:
+                        return False
+
+                    # 文本几乎为空时，判定为图片型 PDF
+                    return total_text_len < min_total_text_chars
+                finally:
+                    pdf_document.close()
+            except Exception as e:
+                maxkb_logger.error(f"Failed to detect image-based PDF for {getattr(file, 'name', '')}: {e}, {traceback.format_exc()}")
+                return False
+            finally:
+                try:
+                    file.seek(0)
+                except Exception:
+                    pass
+                if temp_path:
+                    try:
+                        os.remove(temp_path)
+                    except Exception:
+                        pass
+
+        def _ocr_pdf_to_text(self, file, ocr_model, zoom: float = 2.0) -> str:
+            """将 PDF 每页渲染为图片并逐页 OCR，返回拼接后的纯文本。"""
+            file.seek(0)
+            temp_path = None
+            try:
+                temp_path = self._write_upload_to_temp_file(file, suffix='.pdf')
+                pdf_document = fitz.open(temp_path)
+                try:
+                    texts: List[str] = []
+                    matrix = fitz.Matrix(zoom, zoom)
+                    for page_num in range(pdf_document.page_count):
+                        page = pdf_document.load_page(page_num)
+                        pix = page.get_pixmap(matrix=matrix, alpha=False)
+                        png_bytes = pix.tobytes("png")
+
+                        img_name = f"{os.path.splitext(os.path.basename(file.name))[0]}_page_{page_num + 1}.png"
+                        img_file = ContentFile(png_bytes, name=img_name)
+
+                        page_text = ""
+                        try:
+                            page_text = (ocr_model.recognize_file(img_file) or "").strip()
+                        except Exception as e:
+                            maxkb_logger.error(
+                                f"OCR processing failed for {file.name} page {page_num + 1}: {e}, {traceback.format_exc()}"
+                            )
+                            page_text = ""
+
+                        if page_text:
+                            # 用 markdown 标题分隔页，方便后续 SplitModel 分段
+                            texts.append(f"## Page {page_num + 1}\n\n{page_text}")
+                    return "\n\n".join(texts)
+                finally:
+                    pdf_document.close()
+            finally:
+                try:
+                    file.seek(0)
+                except Exception:
+                    pass
+                if temp_path:
+                    try:
+                        os.remove(temp_path)
+                    except Exception:
+                        pass
+
         def file_to_paragraph(self, file, pattern_list: List, with_filter: bool, limit: int):
             # 保存源文件
             file_id = uuid.uuid7()
@@ -1050,6 +1159,67 @@ class DocumentSerializers(serializers.Serializer):
             file.seek(0)
 
             get_buffer = FileBufferHandle().get_buffer
+            
+            # 检查是否是图片文件，如果是则使用OCR处理
+            if ImageSplitHandle.is_image_file(file.name):
+                knowledge = QuerySet(Knowledge).filter(id=self.data.get('knowledge_id')).first()
+                if knowledge and knowledge.ocr_model_id:
+                    try:
+                        ocr_model = get_model_instance_by_model_workspace_id(
+                            str(knowledge.ocr_model_id), 
+                            self.data.get('workspace_id') or knowledge.workspace_id
+                        )
+                        image_handle = ImageSplitHandle(ocr_model=ocr_model)
+                        result = image_handle.handle(file, pattern_list, with_filter, limit, get_buffer, self.save_image)
+                        if isinstance(result, list):
+                            for item in result:
+                                item['source_file_id'] = file_id
+                            return result
+                        result['source_file_id'] = file_id
+                        return [result]
+                    except Exception as e:
+                        maxkb_logger.error(f"OCR processing failed for {file.name}: {e}")
+                        # OCR处理失败，返回空内容
+                        return [{'name': file.name, 'content': [], 'source_file_id': file_id}]
+                else:
+                    # 没有配置OCR模型，提示用户
+                    maxkb_logger.warning(f"OCR model not configured for knowledge {self.data.get('knowledge_id')}, skipping image: {file.name}")
+                    return [{'name': file.name, 'content': [], 'source_file_id': file_id}]
+
+            # 仅当“图片型/扫描件 PDF”才走 OCR；普通 PDF 仍走原有 PdfSplitHandle 文本解析
+            if file.name.lower().endswith('.pdf'):
+                knowledge = QuerySet(Knowledge).filter(id=self.data.get('knowledge_id')).first()
+                if knowledge and knowledge.ocr_model_id:
+                    try:
+                        if self._is_image_based_pdf(file):
+                            ocr_model = get_model_instance_by_model_workspace_id(
+                                str(knowledge.ocr_model_id),
+                                self.data.get('workspace_id') or knowledge.workspace_id
+                            )
+                            ocr_text = self._ocr_pdf_to_text(file, ocr_model=ocr_model)
+                            if not ocr_text or ocr_text.strip() == '':
+                                maxkb_logger.warning(f"No text recognized from image-based PDF: {file.name}")
+                                return [{'name': file.name, 'content': [], 'source_file_id': file_id}]
+
+                            if type(limit) is str:
+                                limit = int(limit)
+                            if type(with_filter) is str:
+                                with_filter = with_filter.lower() == 'true'
+
+                            # 复用现有分段模型（md 模式即可），保持与其他文档一致的段落结构
+                            split_model = get_split_model('ocr.md', with_filter=with_filter, limit=limit)
+                            return [{
+                                'name': file.name,
+                                'content': split_model.parse(ocr_text),
+                                'source_file_id': file_id
+                            }]
+                    except Exception as e:
+                        maxkb_logger.error(f"OCR processing failed for image-based PDF {file.name}: {e}, {traceback.format_exc()}")
+                        return [{'name': file.name, 'content': [], 'source_file_id': file_id}]
+                else:
+                    # 未配置 OCR 模型时，不对 PDF 做 OCR（也不影响普通 PDF 的文本解析）
+                    pass
+            
             for split_handle in split_handles:
                 if split_handle.support(file, get_buffer):
                     result = split_handle.handle(file, pattern_list, with_filter, limit, get_buffer, self.save_image)
