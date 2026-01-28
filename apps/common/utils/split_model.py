@@ -276,46 +276,56 @@ def post_handler_paragraph(content: str, limit: int):
 
 def smart_split_paragraph(content: str, limit: int):
     """
-    智能分段:在limit前找到合适的分割点(句号、回车等)
+    智能分段: 在limit范围内优先寻找“自然断点”，尽量保证语义完整
+    优先级: 空行 > 句末标点 > 分号/冒号 > 逗号/顿号 > 单换行 > 强制截断
     :param content: 需要分段的文本
     :param limit: 最大字符限制
     :return: 分段后的文本列表
     """
+    if not content:
+        return []
     if len(content) <= limit:
         return [content]
 
+    def find_last_match(text: str, pattern: str):
+        last_end = -1
+        for m in re.finditer(pattern, text, flags=re.MULTILINE):
+            last_end = m.end()
+        return last_end
+
     result = []
     start = 0
+    length = len(content)
 
-    while start < len(content):
+    # 最短分段长度，避免过碎
+    min_len = max(50, int(limit * 0.4))
+
+    while start < length:
         end = start + limit
-
-        if end >= len(content):
-            # 剩余文本不超过限制,直接添加
+        if end >= length:
             result.append(content[start:])
             break
 
-        # 在limit范围内寻找最佳分割点
-        best_split = end
+        window = content[start:end]
+        search_window = window[min_len:] if len(window) > min_len else window
 
-        # 优先级:句号 > 感叹号/问号 > 回车
-        split_chars = [
-            ('。', 0), ('.', 0),  # 中英文句号
-            ('!', 0), ('!', 0),   # 中英文感叹号
-            ('?', 0), ('?', 0),   # 中英文问号
+        # 断点优先级列表（从高到低）
+        patterns = [
+            r"\n{2,}",                      # 空行
+            r"[。！？.!?]+(?=\s|\n|$)",     # 句末标点
+            r"[；;：:]+(?=\s|\n|$)",       # 分号/冒号
+            r"[，,、]+(?=\s|\n|$)",        # 逗号/顿号
+            r"\n"                           # 单换行
         ]
 
-        # 从后往前找分割点
-        for i in range(end - 1, start + limit // 2, -1):  # 至少保留一半内容
-            for char, offset in split_chars:
-                if content[i] == char:
-                    best_split = i + 1  # 包含分隔符在当前段
-                    break
-            if best_split != end:
+        best_split = -1
+        for pattern in patterns:
+            idx = find_last_match(search_window, pattern)
+            if idx != -1:
+                best_split = start + (min_len if len(window) > min_len else 0) + idx
                 break
 
-        # 如果找不到合适分割点,使用原始limit
-        if best_split == end and end < len(content):
+        if best_split == -1 or best_split <= start:
             best_split = end
 
         result.append(content[start:best_split])

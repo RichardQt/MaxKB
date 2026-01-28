@@ -2,8 +2,6 @@
 from http import HTTPStatus
 from typing import Dict
 
-from dashscope import ImageSynthesis, MultiModalConversation
-from dashscope.aigc.image_generation import ImageGeneration
 from django.utils.translation import gettext
 from langchain_community.chat_models import ChatTongyi
 from langchain_core.messages import HumanMessage
@@ -65,7 +63,13 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
 
     def generate_image(self, prompt: str, negative_prompt: str = None):
         if self.model_name.startswith("wan2.6") or self.model_name.startswith("z"):
-            from dashscope.api_entities.dashscope_response import Message
+            try:
+                from dashscope.aigc.image_generation import ImageGeneration
+                from dashscope.api_entities.dashscope_response import Message
+            except ModuleNotFoundError as exc:
+                raise RuntimeError(
+                    "DashScope 版本过旧或未安装 ImageGeneration。请升级/安装 dashscope 后重试。"
+                ) from exc
             # 以下为北京地域url，各地域的base_url不同
             message = Message(
                 role="user",
@@ -94,6 +98,12 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
                                 (rsp.status_code, rsp.code, rsp.message))
             return file_urls
         elif self.model_name.startswith("wan"):
+            try:
+                from dashscope import ImageSynthesis
+            except ModuleNotFoundError as exc:
+                raise RuntimeError(
+                    "未安装 dashscope，无法使用图片生成模型。请先安装/升级 dashscope。"
+                ) from exc
             rsp = ImageSynthesis.call(api_key=self.api_key,
                                       model=self.model_name,
                                       base_url=self.api_base,
@@ -111,6 +121,12 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
                                 (rsp.status_code, rsp.code, rsp.message))
             return file_urls
         elif self.model_name.startswith("qwen"):
+            try:
+                from dashscope import MultiModalConversation
+            except ModuleNotFoundError as exc:
+                raise RuntimeError(
+                    "未安装 dashscope，无法使用多模态模型。请先安装/升级 dashscope。"
+                ) from exc
             messages = [
                 {
                     "role": "user",
