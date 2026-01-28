@@ -387,6 +387,15 @@ const listKnowledgeVersion: (
   return get(`${prefix}/${knowledge_id}/knowledge_version`, {}, loading)
 }
 
+const postTransformWorkflow: (
+  knowledge_id: string,
+  data: any,
+  loading?: Ref<boolean>,
+) => Promise<Result<any>> = (knowledge_id, data, loading) => {
+  return post(`${prefix}/${knowledge_id}/transform_workflow`, data, undefined, loading)
+}
+
+
 export default {
   getKnowledgeList,
   getKnowledgeListPage,
@@ -418,6 +427,7 @@ export default {
   getWorkflowActionPage,
   exportKnowledgeWorkflow,
   importKnowledgeWorkflow,
+  postTransformWorkflow,
 } as {
   [key: string]: any
 }

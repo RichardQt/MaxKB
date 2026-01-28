@@ -22,7 +22,6 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from application.models import ApplicationKnowledgeMapping
 from common.config.embedding_config import VectorStore
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.db.search import native_search, get_dynamics_model, native_page_search
@@ -34,7 +33,7 @@ from common.utils.fork import Fork, ChildLink
 from common.utils.logger import maxkb_logger
 from common.utils.split_model import get_split_model
 from knowledge.models import Knowledge, KnowledgeScope, KnowledgeType, Document, Paragraph, Problem, \
-    ProblemParagraphMapping, TaskType, State, SearchMode, KnowledgeFolder, File, Tag
+    ProblemParagraphMapping, TaskType, State, SearchMode, KnowledgeFolder, File, Tag, KnowledgeWorkflow
 from knowledge.serializers.common import ProblemParagraphManage, drop_knowledge_index, \
     get_embedding_model_id_by_knowledge_id, MetaSerializer, \
     GenerateRelatedSerializer, get_embedding_model_by_knowledge_id, list_paragraph, write_image, zip_dir, \
@@ -419,7 +418,6 @@ class KnowledgeSerializer(serializers.Serializer):
             File.objects.filter(
                 source_id=knowledge.id,
             ).delete()
-            QuerySet(ApplicationKnowledgeMapping).filter(knowledge_id=knowledge.id).delete()
             QuerySet(ResourceMapping).filter(
                 Q(target_id=self.data.get('knowledge_id')) | Q(source_id=self.data.get('knowledge_id'))
             ).delete()
@@ -809,6 +807,36 @@ class KnowledgeSerializer(serializers.Serializer):
             except Exception as e:
                 maxkb_logger.error(f"fetch appstore tools error: {e}")
                 return {'apps': [], 'additionalProperties': {'tags': []}}
+
+    class TransformWorkflow(serializers.Serializer):
+        workspace_id = serializers.CharField(required=True, label=_('Workspace ID'))
+        knowledge_id = serializers.UUIDField(required=True, label=_('Knowledge ID'))
+        user_id = serializers.UUIDField(required=True, label=_('User ID'))
+
+        def transform(self, instance: Dict):
+            self.is_valid(raise_exception=True)
+            knowledge = QuerySet(Knowledge).filter(
+                id=self.data.get('knowledge_id'),
+                workspace_id=self.data.get('workspace_id')
+            ).first()
+
+            if not knowledge:
+                raise AppApiException(500, _('Knowledge not found'))
+            if knowledge.type == KnowledgeType.WORKFLOW:
+                raise AppApiException(500, _('Knowledge is already a workflow'))
+
+            knowledge.type = KnowledgeType.WORKFLOW
+            knowledge.save()
+
+            workflow_id = uuid.uuid7()
+            knowledge_workflow = KnowledgeWorkflow(
+                id=workflow_id,
+                workspace_id=knowledge.workspace_id,
+                knowledge_id=knowledge.id,
+                work_flow=instance.get('work_flow', {}),
+            )
+            knowledge_workflow.save()
+            return True
 
     class Tags(serializers.Serializer):
         workspace_id = serializers.CharField(required=True, label=_('workspace id'))

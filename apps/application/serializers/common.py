@@ -29,6 +29,8 @@ class ChatInfo:
                  chat_id: str,
                  chat_user_id: str,
                  chat_user_type: str,
+                 ip_address: str,
+                 source: {},
                  knowledge_id_list: List[str],
                  exclude_document_id_list: list[str],
                  application_id: str,
@@ -41,6 +43,8 @@ class ChatInfo:
         :param exclude_document_id_list:    排除的文档
         :param application_id               应用id
         :param debug                        是否是调试
+        :param ip_address:                  用户ip地址
+        :param source:                      用户来源
         """
         self.chat_id = chat_id
         self.chat_user_id = chat_user_id
@@ -51,6 +55,8 @@ class ChatInfo:
         self.chat_record_list: List[ChatRecord] = []
         self.application = None
         self.chat_user = None
+        self.ip_address = ip_address
+        self.source = source
         self.debug = debug
 
     @staticmethod
@@ -182,20 +188,22 @@ class ChatInfo:
         }
 
     def to_pipeline_manage_params(self, problem_text: str, post_response_handler,
-                                  exclude_paragraph_id_list, chat_user_id: str, chat_user_type, stream=True,
+                                  exclude_paragraph_id_list, chat_user_id: str, chat_user_type, ip_address, source,
+                                  stream=True,
                                   form_data=None):
         if form_data is None:
             form_data = {}
         params = self.to_base_pipeline_manage_params()
         return {**params, 'problem_text': problem_text, 'post_response_handler': post_response_handler,
                 'exclude_paragraph_id_list': exclude_paragraph_id_list, 'stream': stream, 'chat_user_id': chat_user_id,
-                'chat_user_type': chat_user_type, 'form_data': form_data}
+                'chat_user_type': chat_user_type, 'ip_address': ip_address, 'source': source, 'form_data': form_data}
 
     def set_chat(self, question):
         if not self.debug:
             if not QuerySet(Chat).filter(id=self.chat_id).exists():
                 Chat(id=self.chat_id, application_id=self.application_id, abstract=question[0:1024],
                      chat_user_id=self.chat_user_id, chat_user_type=self.chat_user_type,
+                     ip_address=self.ip_address, source=self.source,
                      asker=self.get_chat_user()).save()
 
     def set_chat_variable(self, chat_context):
@@ -236,6 +244,7 @@ class ChatInfo:
             if not QuerySet(Chat).filter(id=self.chat_id).exists():
                 Chat(id=self.chat_id, application_id=self.application_id, abstract=chat_record.problem_text[0:1024],
                      chat_user_id=self.chat_user_id, chat_user_type=self.chat_user_type,
+                     ip_address=self.ip_address, source=self.source,
                      asker=self.get_chat_user()).save()
             else:
                 QuerySet(Chat).filter(id=self.chat_id).update(update_time=timezone.now())
@@ -253,6 +262,8 @@ class ChatInfo:
                                                                    'details': chat_record.details,
                                                                    'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                                                                    'run_time': chat_record.run_time,
+                                                                   'source': chat_record.source,
+                                                                   'ip_address': chat_record.ip_address or '',
                                                                    'index': chat_record.index},
                                                   defaults={
                                                       "vote_status": chat_record.vote_status,
@@ -265,7 +276,9 @@ class ChatInfo:
                                                       'details': chat_record.details,
                                                       'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                                                       'run_time': chat_record.run_time,
-                                                      'index': chat_record.index
+                                                      'index': chat_record.index,
+                                                      'source': chat_record.source,
+                                                      'ip_address': chat_record.ip_address or '',
                                                   })
             ChatCountSerializer(data={'chat_id': self.chat_id}).update_chat()
 
@@ -275,6 +288,8 @@ class ChatInfo:
             'chat_id': self.chat_id,
             'chat_user_id': self.chat_user_id,
             'chat_user_type': self.chat_user_type,
+            'ip_address': self.ip_address,
+            'source': self.source,
             'knowledge_id_list': self.knowledge_id_list,
             'exclude_document_id_list': self.exclude_document_id_list,
             'application_id': self.application_id,
@@ -295,6 +310,8 @@ class ChatInfo:
                 'details': chat_record.details,
                 'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                 'run_time': chat_record.run_time,
+                'source': chat_record.source,
+                'ip_address': chat_record.ip_address,
                 'index': chat_record.index}
 
     @staticmethod
@@ -311,7 +328,9 @@ class ChatInfo:
                           details=chat_record_dict.get('details'),
                           improve_paragraph_id_list=chat_record_dict.get('improve_paragraph_id_list'),
                           run_time=chat_record_dict.get('run_time'),
-                          index=chat_record_dict.get('index'), )
+                          index=chat_record_dict.get('index'),
+                          source=chat_record_dict.get('source'),
+                          ip_address=chat_record_dict.get('ip_address'))
 
     def set_cache(self):
         cache.set(Cache_Version.CHAT.get_key(key=self.chat_id), self.to_dict(),
@@ -321,7 +340,9 @@ class ChatInfo:
     @staticmethod
     def map_to_chat_info(chat_info_dict):
         c = ChatInfo(chat_info_dict.get('chat_id'), chat_info_dict.get('chat_user_id'),
-                     chat_info_dict.get('chat_user_type'), chat_info_dict.get('knowledge_id_list'),
+                     chat_info_dict.get('chat_user_type'), chat_info_dict.get('ip_address'),
+                     chat_info_dict.get('source'),
+                     chat_info_dict.get('knowledge_id_list'),
                      chat_info_dict.get('exclude_document_id_list'),
                      chat_info_dict.get('application_id'),
                      debug=chat_info_dict.get('debug'))

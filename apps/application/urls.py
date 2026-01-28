@@ -16,6 +16,7 @@ urlpatterns = [
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_token_usage', views.ApplicationStats.TokenUsageStatistics.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/top_questions', views.ApplicationStats.TopQuestionsStatistics.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_key/<str:api_key_id>', views.ApplicationKey.Operate.as_view()),
+    path('workspace/<str:workspace_id>/application/<str:application_id>/application_key/<int:current_page>/<int:page_size>', views.ApplicationKey.Page.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/export', views.ApplicationAPI.Export.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_version', views.ApplicationVersionView.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/access_token', views.AccessToken.as_view()),

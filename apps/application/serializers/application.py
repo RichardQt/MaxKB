@@ -31,7 +31,7 @@ from rest_framework.utils.formatting import lazy_format
 
 from application.flow.common import Workflow
 from application.models.application import Application, ApplicationTypeChoices, \
-    ApplicationFolder, ApplicationVersion, ApplicationKnowledgeMapping
+    ApplicationFolder, ApplicationVersion
 from application.models.application_access_token import ApplicationAccessToken
 from application.serializers.common import update_resource_mapping_by_application
 from common import result
@@ -54,6 +54,7 @@ from system_manage.serializers.resource_mapping_serializers import ResourceMappi
 from system_manage.serializers.user_resource_permission import UserResourcePermissionSerializer
 from tools.models import Tool, ToolScope
 from tools.serializers.tool import ToolExportModelSerializer
+from trigger.models import TriggerTask
 from users.models import User
 from users.serializers.user import is_workspace_manage
 
@@ -678,6 +679,7 @@ class ApplicationSerializer(serializers.Serializer):
                            stt_model_enable=application.get('stt_model_enable'),
                            tts_type=application.get('tts_type'),
                            clean_time=application.get('clean_time'),
+                           file_clean_time=application.get('file_clean_time') or 180,
                            file_upload_enable=application.get('file_upload_enable'),
                            file_upload_setting=application.get('file_upload_setting'),
                            )
@@ -795,7 +797,6 @@ class ApplicationOperateSerializer(serializers.Serializer):
         QuerySet(ResourceMapping).filter(
             Q(target_id=application_id) | Q(source_id=application_id)
         ).delete()
-        QuerySet(ApplicationKnowledgeMapping).filter(application_id=application_id).delete()
         QuerySet(Application).filter(id=application_id).delete()
         return True
 
@@ -893,6 +894,8 @@ class ApplicationOperateSerializer(serializers.Serializer):
         else:
             access_token = application_access_token.access_token
         del_application_access_token(access_token)
+        QuerySet(TriggerTask).filter(source_type="APPLICATION", source_id=self.data.get("application_id")).update(
+            is_active=True)
         return self.one(with_valid=False)
 
     @staticmethod
@@ -987,7 +990,7 @@ class ApplicationOperateSerializer(serializers.Serializer):
                        'stt_model_params_setting',
                        'mcp_enable', 'mcp_tool_ids', 'mcp_servers', 'mcp_source', 'tool_enable', 'tool_ids',
                        'mcp_output_enable', 'application_enable', 'application_ids',
-                       'problem_optimization_prompt', 'clean_time', 'folder_id']
+                       'problem_optimization_prompt', 'clean_time', 'file_clean_time', 'folder_id']
         for update_key in update_keys:
             if update_key in instance and instance.get(update_key) is not None:
                 application.__setattr__(update_key, instance.get(update_key))

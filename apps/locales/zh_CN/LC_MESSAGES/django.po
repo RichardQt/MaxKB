@@ -9046,3 +9046,38 @@ msgstr "内容不准确"
 
 msgid "incomplete"
 msgstr "内容不完善"
+
+msgid "Secret key is invalid"
+msgstr "密钥无效"
+
+msgid "Secret key is expired"
+msgstr "密钥已过期"
+
+msgid "Online Usage"
+msgstr "线上使用"
+
+msgid "API Call"
+msgstr "API 调用"
+
+msgid "Enterprise WeChat"
+msgstr "企业微信应用"
+
+msgid "WeChat Public Account"
+msgstr "微信公众号"
+
+msgid "Lark"
+msgstr "飞书应用"
+
+msgid "DingTalk"
+msgstr "钉钉应用"
+
+msgid "Enterprise WeChat Robot"
+msgstr "企业微信机器人"
+
+msgid "Trigger"
+msgstr "触发器"
+
+msgid "Slack"
+msgstr "Slack 应用"
+
+

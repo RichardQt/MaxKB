@@ -82,7 +82,9 @@ class WorkFlowPostHandler:
                                      answer_text_list=answer_text_list,
                                      run_time=time.time() - workflow.context.get('start_time') if workflow.context.get(
                                          'start_time') is not None else 0,
-                                     index=0)
+                                     index=0,
+                                     ip_address=self.chat_info.ip_address,
+                                     source=self.chat_info.source)
 
         self.chat_info.append_chat_record(chat_record)
         self.chat_info.set_cache()

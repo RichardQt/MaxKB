@@ -54,8 +54,10 @@ class DockerAITextToImage(MaxKBBaseModel, BaseTextToImage):
         file_urls = []
         try:
             for content in res.data:
-                url = content.url
-                file_urls.append(url)
+                if content.url:
+                    file_urls.append(content.url)
+                elif content.b64_json:
+                    file_urls.append(content.b64_json)
             return file_urls
         except Exception as e:
             raise e

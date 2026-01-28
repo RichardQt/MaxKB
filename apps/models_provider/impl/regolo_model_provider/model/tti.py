@@ -21,7 +21,7 @@ class RegoloTextToImage(MaxKBBaseModel, BaseTextToImage):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = kwargs.get('api_key')
-        self.api_base = "https://api.regolo.ai/v1"
+        self.api_base = kwargs.get('api_base')
         self.model = kwargs.get('model')
         self.params = kwargs.get('params')
 
@@ -37,7 +37,7 @@ class RegoloTextToImage(MaxKBBaseModel, BaseTextToImage):
                 optional_params['params'][key] = value
         return RegoloTextToImage(
             model=model_name,
-            api_base="https://api.regolo.ai/v1",
+            api_base=model_credential.get('api_base') or "https://api.regolo.ai/v1",
             api_key=model_credential.get('api_key'),
             **optional_params,
         )

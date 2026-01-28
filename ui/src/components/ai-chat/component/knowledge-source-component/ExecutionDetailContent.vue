@@ -145,9 +145,4 @@ const AiResponse = computed(() => {
 })
 </script>
 <style lang="scss" scoped>
-.execution-details {
-  .arrow-icon {
-    transition: 0.2s;
-  }
-}
 </style>

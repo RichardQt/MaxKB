@@ -11,6 +11,7 @@ import applicationKeyWorkspaceApi from '@/api/application/application-key'
 import workflowVersionWorkspaceApi from '@/api/application/workflow-version'
 import chatLogWorkspaceApi from '@/api/application/chat-log'
 import resourceAuthorizationWorkspaceApi from '@/api/workspace/resource-authorization'
+import triggerApi from '@/api/trigger/trigger'
 import sharedWorkspaceApi from '@/api/shared-workspace'
 import toolSystemShareApi from '@/api/system-shared/tool'
 import modelSystemShareApi from '@/api/system-shared/model'
@@ -38,6 +39,8 @@ import resourceAuthorizationResourceApi
 import folderResourceApi from '@/api/system-resource-management/folder'
 import systemResourceMappingApi from '@/api/system-shared/resource-mapping'
 import resourceManageMappingApi from '@/api/system-resource-management/resource-mapping'
+import resourceTriggerApi from '@/api/system-resource-management/trigger'
+
 
 // 普通 API
 const workspaceApiMap = {
@@ -56,6 +59,7 @@ const workspaceApiMap = {
   resourceAuthorization: resourceAuthorizationWorkspaceApi,
   folder: folderWorkspaceApi,
   resourceMapping: resourceMappingApi,
+  trigger: triggerApi,
 } as any
 
 // 系统分享 API
@@ -87,6 +91,7 @@ const systemManageApiMap = {
   resourceAuthorization: resourceAuthorizationResourceApi,
   folder: folderResourceApi,
   resourceMapping: resourceManageMappingApi,
+  trigger: resourceTriggerApi,
 } as any
 
 const data = {

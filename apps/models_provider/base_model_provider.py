@@ -62,7 +62,22 @@ class IModelProvider(ABC):
 
     def get_model_credential(self, model_type, model_name):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
-        return model_info.model_credential
+        model_credential = model_info.model_credential
+
+        if model_type == 'TTI' and model_name.startswith(('qwen', 'wan2.6', 'wan')):
+            if hasattr(model_credential, 'api_base'):
+                api_base = model_credential.api_base
+                if hasattr(api_base, 'default_value'):
+                    default_value_map = {
+                        'qwen': "https://dashscope.aliyuncs.com/v1",
+                        'wan2.6': "https://dashscope.aliyuncs.com/api/v1",
+                        'wan': "https://dashscope.aliyuncs.com/compatible-mode/v1"
+                    }
+                    prefix = next((k for k in default_value_map if model_name.startswith(k)), None)
+                    if prefix:
+                        api_base.default_value = default_value_map[prefix]
+
+        return model_credential
 
     def get_model_params(self, model_type, model_name):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
@@ -147,13 +162,11 @@ class ModelTypeConst(Enum):
     IMAGE = {'code': 'IMAGE', 'message': _('Vision Model')}
     TTI = {'code': 'TTI', 'message': _('Image Generation')}
     RERANKER = {'code': 'RERANKER', 'message': _('Rerank')}
-    #文生视频 图生视频
+    # 文生视频 图生视频
     TTV = {'code': 'TTV', 'message': _('Text to Video')}
     ITV = {'code': 'ITV', 'message': _('Image to Video')}
     # OCR 图片识别
     OCR = {'code': 'OCR', 'message': _('OCR')}
-
-
 
 
 class ModelInfo:

@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 from application.flow.common import Answer
 from application.flow.i_step_node import NodeResult, INode
 from application.flow.step_node.application_node.i_application_node import IApplicationNode
-from application.models import Chat
+from application.models import Chat, ChatSourceChoices
 
 
 def string_to_uuid(input_str):
@@ -185,6 +185,8 @@ class BaseApplicationNode(IApplicationNode):
                 chat_user_type,
                 app_document_list=None, app_image_list=None, app_audio_list=None, app_video_list=None, child_node=None,
                 node_data=None,
+                ip_address=None,
+                source=None,
                 **kwargs) -> NodeResult:
         from chat.serializers.chat import ChatSerializers
         if application_id == self.workflow_manage.get_body().get('application_id'):
@@ -196,6 +198,8 @@ class BaseApplicationNode(IApplicationNode):
             'abstract': message[0:1024],
             'chat_user_id': chat_user_id,
             'chat_user_type': chat_user_type,
+            'ip_address': ip_address,
+            'source': source,
             'asker': self.get_chat_asker(kwargs)
         })
         if app_document_list is None:
@@ -220,6 +224,8 @@ class BaseApplicationNode(IApplicationNode):
             "chat_user_id": chat_user_id,
             'chat_user_type': chat_user_type,
             'application_id': application_id,
+            'ip_address': ip_address,
+            'source': source,
             'debug': False
         }).chat(instance=
                 {'message': message,

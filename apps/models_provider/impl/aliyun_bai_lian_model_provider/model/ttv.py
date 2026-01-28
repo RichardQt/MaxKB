@@ -44,8 +44,22 @@ class GenerationVideoModel(MaxKBBaseModel, BaseGenerationVideo):
         )
 
     def check_auth(self):
-        chat = ChatTongyi(api_key=self.api_key, model_name='qwen-max')
-        self._safe_call(chat.invoke, input=[HumanMessage([{"type": "text", "text": gettext('Hello')}])])
+        from openai import OpenAI
+
+        client = OpenAI(
+            # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
+            api_key=self.api_key,
+            base_url=self.api_base,
+        )
+        client.chat.completions.create(
+            # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+            model="qwen-max",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": gettext('Hello')},
+            ]
+
+        )
 
     def _safe_call(self, func, **kwargs):
         """带重试的请求封装"""

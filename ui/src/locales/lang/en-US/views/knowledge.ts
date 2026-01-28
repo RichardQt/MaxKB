@@ -110,4 +110,14 @@ export default {
     completeText: 'Delete all documents in the local knowledge and re-fetch web site documents',
     tip: 'Note: All syncs will delete existing data and re-fetch new data. Please proceed with caution.',
   },
+  transform: {
+    button: 'Convert',
+    Title: 'Convert to Workflow Knowledge Base',
+    message1:
+      "You can now convert your existing knowledge base into a workflow knowledge base—a more open and flexible type that allows you to autonomously orchestrate the entire process from various data sources to knowledge base writing through drag-and-drop node operations, meeting your enterprise's personalized knowledge management needs. You can utilize the data sources and tools available in our suite. ",
+    message2: 'The new processing method will be applied to all documents imported subsequently.',
+    Tip: 'Note: The conversion cannot be undone.',
+    Confirm:
+      'Are you sure you want to convert to the workflow knowledge base? This action cannot be undone. Please proceed with caution.',
+  },
 }

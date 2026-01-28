@@ -61,12 +61,11 @@
                   :max="10"
                   :step="1"
                   controls-position="right"
-                  @change="onMaxAttemptsChange"
                 />
-                <span style="margin-left: 8px; font-size: 13px">
+                <span class="ml-8" style="font-size: 13px">
                   {{ $t('views.system.loginFailedMessage') }}
                 </span>
-                <span style="margin-left: 8px; color: #909399; font-size: 12px">
+                <span class="ml-8 font-small" style="color: #909399">
                   ({{ $t('views.system.display_codeTip') }})
                 </span>
               </el-col>

@@ -193,6 +193,7 @@
           </template>
         </el-table-column>
       </el-table>
+
       <h4 class="title-decoration-1 mb-16">
         {{ $t('views.tool.form.param.code') }}
         <span class="color-danger" style="margin-left: -10px">*</span>
@@ -259,7 +260,6 @@ import { useRoute } from 'vue-router'
 import useStore from '@/stores'
 import permissionMap from '@/permission'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-
 const route = useRoute()
 
 const props = defineProps({
@@ -276,6 +276,7 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
+
 const permissionPrecise = computed(() => {
   return permissionMap['tool'][apiType.value]
 })
@@ -332,6 +333,7 @@ const rules = reactive({
     },
   ],
 })
+
 
 function submitCodemirrorEditor(val: string) {
   form.value.code = val

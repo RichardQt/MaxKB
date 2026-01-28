@@ -46,7 +46,7 @@ const props = defineProps<{
 const router = useRouter()
 const route = useRoute()
 const {
-  params: { id, type, from },
+  params: { id, type, from, folderId },
 } = route as any
 
 function showMenu() {
@@ -60,6 +60,8 @@ function showMenu() {
 function clickHandle(item?: any) {
   if (isWorkFlow(type) && item?.name === 'AppSetting') {
     router.push({ path: `/application/${from}/${id}/workflow` })
+  } else if (type === '4' && item?.name === 'knowledgeWorkflowSetting') {
+    router.push({ path: `/knowledge/${id}/${folderId}/workflow` })
   }
 }
 const menuIcon = computed(() => {

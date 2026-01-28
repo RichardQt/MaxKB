@@ -50,7 +50,7 @@
                 class="template-radio-card cursor text-center flex-center"
                 shadow="never"
                 @click="selectedType('blank')"
-                :class="appTemplate === 'blank' ? 'active' : ''"
+                :class="appTemplate === 'blank' ? 'border-active' : ''"
               >
                 <div class="flex-center p-24">
                   <AppIcon iconName="app-add-outlined" class="mr-12"></AppIcon>
@@ -64,7 +64,7 @@
                 :description="$t('views.application.form.appTemplate.assistantApp.description')"
                 shadow="never"
                 class="template-radio-card cursor"
-                :class="appTemplate === 'assistant' ? 'active' : ''"
+                :class="appTemplate === 'assistant' ? 'border-active' : ''"
                 @click="selectedType('assistant')"
               >
                 <template #icon>
@@ -270,4 +270,9 @@ function selectedType(type: string) {
 
 defineExpose({ open })
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.template-radio-card {
+  height: 120px !important;
+  min-height: 120px !important;
+}
+</style>

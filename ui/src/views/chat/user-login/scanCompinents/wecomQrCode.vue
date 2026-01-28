@@ -3,13 +3,11 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, defineProps, onBeforeUnmount } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { getBrowserLang } from '@/locales'
+import {nextTick, defineProps, onBeforeUnmount} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {getBrowserLang} from '@/locales'
 import useStore from '@/stores'
 
-const WE_COM_ORIGIN = 'https://login.work.weixin.qq.com'
-const LOGIN_STATE = 'fit2cloud-wecom-qr'
 const props = defineProps<{
   config: {
     app_secret: string
@@ -17,15 +15,16 @@ const props = defineProps<{
     corp_id?: string
     agent_id?: string
     callback_url: string
+    qr_url: string
   }
 }>()
 
 const router = useRouter()
 const route = useRoute()
-const { chatUser } = useStore()
+const {chatUser} = useStore()
 
 const {
-  params: { accessToken },
+  params: {accessToken},
 } = route as any
 
 let iframe: HTMLIFrameElement | null = null
@@ -67,7 +66,7 @@ const init = async () => {
   const redirectUri = encodeURIComponent(props.config.callback_url)
 
   iframe.src =
-    `${WE_COM_ORIGIN}/wwlogin/sso/login` +
+    `${props.config.qr_url}` +
     `?login_type=CorpApp` +
     `&appid=${props.config.corp_id}` +
     `&agentid=${props.config.agent_id}` +
@@ -86,7 +85,7 @@ const init = async () => {
       chatUser.setToken(event.data.value)
       router.push({
         name: 'chat',
-        params: { accessToken },
+        params: {accessToken},
         query: route.query,
       })
     }

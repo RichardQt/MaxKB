@@ -1,4 +1,4 @@
-// 复合搜索框
+// 复合框
 .complex-search {
   border: 1px solid var(--el-border-color);
   border-radius: var(--el-border-radius-base);
@@ -13,6 +13,17 @@
   &__left {
     border-right: 1px solid var(--el-border-color);
     .el-select__wrapper {
+      box-shadow: none !important;
+      border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
+    }
+  }
+}
+.complex-input {
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
+
+  &__left {
+    .el-input__wrapper {
       box-shadow: none !important;
       border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
     }
@@ -82,9 +93,6 @@
   .el-radio__input {
     position: absolute;
     top: 5px;
-  }
-  .active {
-    border: 1px solid var(--el-color-primary);
   }
   .el-card__body {
     padding: calc(var(--app-base-px) + 4px) calc(var(--app-base-px) * 2);
@@ -256,9 +264,6 @@
 }
 
 .card-checkbox {
-  &.active {
-    border: 1px solid var(--el-color-primary);
-  }
   input.checkbox[type='checkbox'] {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -322,15 +327,6 @@
         display: block;
       }
     }
-  }
-}
-
-.template-radio-card {
-  height: 120px !important;
-  min-height: 120px !important;
-
-  &.active {
-    border-color: var(--el-color-primary);
   }
 }
 

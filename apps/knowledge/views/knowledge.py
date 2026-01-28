@@ -391,6 +391,25 @@ class KnowledgeView(APIView):
                 }
             ).list(workspace_id, True))
 
+    class TransformWorkflow(APIView):
+        authentication_classes = [TokenAuth]
+
+        @has_permissions(
+            PermissionConstants.KNOWLEDGE_EDIT.get_workspace_knowledge_permission(),
+            PermissionConstants.KNOWLEDGE_EDIT.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.KNOWLEDGE.get_workspace_knowledge_permission()], CompareConstants.AND),
+        )
+        @log(
+            menu='Knowledge Base', operate="Modify knowledge base information",
+            get_operation_object=lambda r, keywords: get_knowledge_operation_object(keywords.get('knowledge_id')),
+        )
+        def post(self, request: Request, workspace_id: str, knowledge_id: str):
+            return result.success(KnowledgeSerializer.TransformWorkflow(
+                data={'user_id': request.user.id, 'workspace_id': workspace_id, 'knowledge_id': knowledge_id}
+            ).transform(request.data))
+
     class Tags(APIView):
         authentication_classes = [TokenAuth]
 

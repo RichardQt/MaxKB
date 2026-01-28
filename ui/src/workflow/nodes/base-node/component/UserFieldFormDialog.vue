@@ -101,7 +101,7 @@ const currentRow = computed(() => {
           field: row.field || row.variable,
           input_type: 'DatePicker',
           label: row.label || row.name,
-          default_value: row.default_value,
+          default_value: row.default_value || new Date(),
           required: row.required != undefined ? row.required : row.is_required,
           attrs: {
             format: 'YYYY-MM-DD HH:mm:ss',

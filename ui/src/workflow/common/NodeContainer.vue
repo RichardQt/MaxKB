@@ -453,9 +453,7 @@ onMounted(() => {
       border: 1px solid #f54a45 !important;
     }
   }
-  .arrow-icon {
-    transition: 0.2s;
-  }
+
 }
 :deep(.el-card) {
   overflow: visible;

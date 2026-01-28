@@ -28,7 +28,7 @@
           <el-row :gutter="16" class="lighter">
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('workflow.initiator') }}</p>
-              <p>{{ props.currentContent?.meta.user_name || '-' }}</p>
+              <p>{{ props.currentContent?.meta?.user_name || '-' }}</p>
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('common.status.label') }}</p>

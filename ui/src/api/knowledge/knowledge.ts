@@ -486,6 +486,15 @@ const getMcpTools: (
   return post(`${prefix.value}/${knowledge_id}/mcp_tools`, { mcp_servers }, {}, loading)
 }
 
+const postTransformWorkflow: (
+  knowledge_id: string,
+  data: any,
+  loading?: Ref<boolean>,
+) => Promise<Result<any>> = (knowledge_id, data, loading) => {
+  return post(`${prefix.value}/${knowledge_id}/transform_workflow`, data, undefined, loading)
+}
+
+
 export default {
   getKnowledgeList,
   getKnowledgeListPage,
@@ -524,4 +533,5 @@ export default {
   cancelWorkflowAction,
   exportKnowledgeWorkflow,
   importKnowledgeWorkflow,
+  postTransformWorkflow,
 }

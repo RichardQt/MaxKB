@@ -8,6 +8,8 @@ from application.flow.i_step_node import INode, NodeResult
 
 from django.utils.translation import gettext_lazy as _
 
+from application.models import ChatSourceChoices
+
 
 class ApplicationNodeSerializer(serializers.Serializer):
     application_id = serializers.CharField(required=True, label=_("Application ID"))
@@ -91,10 +93,14 @@ class IApplicationNode(INode):
                             app_document_list=app_document_list, app_image_list=app_image_list,
                             app_audio_list=app_audio_list,
                             app_video_list=app_video_list,
+                            ip_address=self.workflow_params.get('ip_address') or '-',
+                            source=self.workflow_params.get('source') or {"type": ChatSourceChoices.ONLINE.value},
                             message=str(question), **kwargs)
 
     def execute(self, application_id, message, chat_id, chat_record_id, stream, re_chat, client_id, client_type,
                 app_document_list=None, app_image_list=None, app_audio_list=None, app_video_list=None, child_node=None,
                 node_data=None,
+                ip_address=None,
+                source=None,
                 **kwargs) -> NodeResult:
         pass

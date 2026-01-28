@@ -3,7 +3,7 @@ import json
 import uuid_utils.compat as uuid
 from django.db.models import QuerySet
 
-from application.models import ApplicationApiKey, Application, ChatUserType
+from application.models import ApplicationApiKey, Application, ChatUserType, ChatSourceChoices
 from chat.serializers.chat import ChatSerializers
 
 
@@ -75,6 +75,8 @@ class MCPToolHandler:
             'chat_user_id': str(uuid.uuid7()),
             'chat_user_type': ChatUserType.ANONYMOUS_USER,
             'application_id': self.application.id,
+            'ip_address': '-',
+            'source': {"type": ChatSourceChoices.ONLINE.value},
             'debug': False,
         }).chat(payload)
         data = json.loads(str(resp.text))
