@@ -62,6 +62,7 @@ export default {
     replace: '取代',
     imageMessage: '建議尺寸 32*32，支援 JPG、PNG、GIF，大小不超過 10 MB',
     AIAvatar: 'AI 回覆頭像',
+    display: '顯示',
     floatIcon: '浮窗入口圖示',
     iconDefaultPosition: '圖示預設位置',
     iconPosition: {

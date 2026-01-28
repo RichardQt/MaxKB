@@ -54,6 +54,7 @@ export default {
   },
   variable: {
     global: '全局變量',
+    chat: '會話變量',
     Referencing: '引用變量',
     ReferencingRequired: '引用變量必填',
     ReferencingError: '引用變量錯誤',
@@ -161,6 +162,10 @@ export default {
       result: '檢索結果',
       directly_return: '滿足直接回答的分段內容',
       searchParam: '檢索參數',
+      showKnowledge: {
+        label: '結果顯示在知識來源',
+        requiredMessage: '請設定參數',
+      },
       searchQuestion: {
         label: '檢索問題',
         placeholder: '請選擇檢索問題',
@@ -182,10 +187,7 @@ export default {
       searchParam: '檢索參數',
       select_variable: '選擇變數',
       valueMessage: `值或變量`,
-      showKnowledge: {
-        label: '結果顯示在知識來源',
-        requiredMessage: '請設定參數',
-      },
+
       searchQuestion: {
         label: '檢索問題',
         placeholder: '請選擇檢索問題',

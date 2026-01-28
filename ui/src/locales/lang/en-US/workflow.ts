@@ -55,6 +55,7 @@ export default {
   },
   variable: {
     global: 'Global Variable',
+    chat: 'Chat Variable',
     Referencing: 'Referenced Variable',
     ReferencingRequired: 'Referenced variable is required',
     ReferencingError: 'Invalid referenced variable',
@@ -161,6 +162,10 @@ export default {
       result: 'Search Result',
       directly_return: 'Content of segments that meet direct response criteria',
       searchParam: 'Retrieval Parameters',
+      showKnowledge: {
+        label: 'Results are displayed in the knowledge source',
+        requiredMessage: 'Please set parameters',
+      },
       searchQuestion: {
         label: 'Question',
         placeholder: 'Please select a search question',
@@ -182,10 +187,7 @@ export default {
       searchParam: 'Search Parameters',
       select_variable: 'Select Variable',
       valueMessage: `Value or name `,
-      showKnowledge: {
-        label: 'Results are displayed in the knowledge source',
-        requiredMessage: 'Please set parameters',
-      },
+
       searchQuestion: {
         label: 'Search Question',
         placeholder: 'Please select a search question',
