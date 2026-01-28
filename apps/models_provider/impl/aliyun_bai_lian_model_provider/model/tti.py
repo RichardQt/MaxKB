@@ -44,22 +44,23 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
         return chat_tong_yi
 
     def check_auth(self):
-        from openai import OpenAI
-
-        client = OpenAI(
-            # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
-            api_key=self.api_key,
-            base_url=self.api_base,
-        )
-        client.chat.completions.create(
-            # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
-            model="qwen-max",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": gettext('Hello')},
-            ]
-
-        )
+        # from openai import OpenAI
+        #
+        # client = OpenAI(
+        #     # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
+        #     api_key=self.api_key,
+        #     base_url=self.api_base,
+        # )
+        # client.chat.completions.create(
+        #     # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+        #     model="qwen-max",
+        #     messages=[
+        #         {"role": "system", "content": "You are a helpful assistant."},
+        #         {"role": "user", "content": gettext('Hello')},
+        #     ]
+        #
+        # )
+        return True
 
     def generate_image(self, prompt: str, negative_prompt: str = None):
         if self.model_name.startswith("wan2.6") or self.model_name.startswith("z"):

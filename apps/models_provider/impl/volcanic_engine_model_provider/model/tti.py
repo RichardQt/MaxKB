@@ -60,5 +60,8 @@ class VolcanicEngineTextToImage(MaxKBBaseModel, BaseTextToImage):
             prompt=prompt,
             **self.params
         )
-        file_urls.append(imagesResponse.data[0].url)
+        if imagesResponse.data[0].url:
+            file_urls.append(imagesResponse.data[0].url)
+        elif imagesResponse.data[0].b64_json:
+            file_urls.append(imagesResponse.data[0].b64_json)
         return file_urls

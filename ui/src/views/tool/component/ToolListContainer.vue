@@ -295,7 +295,7 @@
 
                           <el-dropdown-item
                             @click.stop="openToolTriggerDrawer(item)"
-                            v-if="apiType === 'workspace'"
+                            v-if="apiType === 'workspace' && item.tool_type === 'CUSTOM'"
                           >
                             <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
                             {{ $t('views.trigger.title') }}
