@@ -595,6 +595,9 @@ function changeDayHandle(val: number | string) {
 }
 
 function saveCleanTime() {
+  if (file_days.value > days.value) {
+    file_days.value = days.value
+  }
   const obj = {
     clean_time: days.value,
     file_clean_time: file_days.value,

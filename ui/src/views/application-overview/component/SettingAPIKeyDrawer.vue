@@ -47,7 +47,7 @@
         <el-date-picker
           v-model="form.expire_time"
           type="datetime"
-          format="YYYY-MM-DD hh:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
           style="width: 100%"
           :placeholder="$t('common.selectPlaceholder')"
         />
