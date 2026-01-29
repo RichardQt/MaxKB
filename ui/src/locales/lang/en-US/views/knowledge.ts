@@ -92,7 +92,7 @@ export default {
     documentList: 'Document List',
     loading: 'Importing',
     buttons: {
-      toKnowledge: 'Return to Knowledge List',
+      toKnowledge: 'To Knowledge List',
       toDocument: 'Go to Document',
     },
   },
