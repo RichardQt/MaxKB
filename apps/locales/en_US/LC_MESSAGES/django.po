@@ -8959,3 +8959,6 @@ msgstr ""
 
 msgid "Slack"
 msgstr "Slack App"
+
+msgid "Root Directory"
+msgstr ""
