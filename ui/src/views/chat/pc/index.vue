@@ -167,7 +167,9 @@
         </div>
         <div class="execution-detail-panel" :resizable="false" collapsible>
           <div class="p-16 flex-between border-b">
-            <h4 class="medium ellipsis" :title="rightPanelTitle">{{ rightPanelTitle }}</h4>
+            <h4 class="medium ellipsis" style="max-width: 300px" :title="rightPanelTitle">
+              {{ rightPanelTitle }}
+            </h4>
 
             <div class="flex align-center">
               <span v-if="rightPanelType === 'paragraphDocument'" class="mr-4">

@@ -35,7 +35,7 @@ export default {
     },
   },
   source: {
-    label: 'User Source',
+    label: 'Source',
     local: 'System User',
     localCreate: 'Local Create',
     wecom: 'WeCom',
@@ -43,4 +43,5 @@ export default {
     dingtalk: 'DingTalk',
   },
   settingRole: 'Set Role',
+  defaultPassword: 'Default Password',
 }

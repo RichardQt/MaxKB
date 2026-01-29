@@ -49,9 +49,9 @@
             </p>
           </el-radio>
           <el-form-item class="ml-24" v-if="form.authentication_value.type === 'password'">
-            <div class="complex-search flex align-center">
+            <div class="complex-input flex align-center">
               <el-input
-                class="authentication-append-input"
+                class="complex-input__left"
                 v-model="form.authentication_value.password_value"
                 readonly
                 style="width: 268px"
@@ -69,9 +69,7 @@
                     text
                     style="margin: 0 4px 0 0 !important"
                   >
-                    <el-icon class="color-secondary">
-                      <RefreshRight />
-                    </el-icon>
+                    <AppIcon iconName="app-refresh" class="color-secondary"></AppIcon>
                   </el-button>
                 </el-tooltip>
               </div>
@@ -308,7 +306,4 @@ function firstGeneration() {
 
 defineExpose({ open })
 </script>
-<style lang="scss" scoped>
-.authentication-append-input {
-}
-</style>
+<style lang="scss" scoped></style>

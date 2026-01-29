@@ -97,7 +97,7 @@ export default {
     documentList: 'Document List',
     loading: 'Importing',
     buttons: {
-      toKnowledge: 'Return to Knowledge List',
+      toKnowledge: 'To Knowledge List',
       toDocument: 'Go to Document',
     },
   },
@@ -112,12 +112,12 @@ export default {
   },
   transform: {
     button: 'Convert',
-    Title: 'Convert to Workflow Knowledge Base',
+    title: 'Convert to Workflow Knowledge Base',
     message1:
       "You can now convert your existing knowledge base into a workflow knowledge base—a more open and flexible type that allows you to autonomously orchestrate the entire process from various data sources to knowledge base writing through drag-and-drop node operations, meeting your enterprise's personalized knowledge management needs. You can utilize the data sources and tools available in our suite. ",
     message2: 'The new processing method will be applied to all documents imported subsequently.',
-    Tip: 'Note: The conversion cannot be undone.',
-    Confirm:
+    tip: 'Note: The conversion cannot be undone.',
+    confirm:
       'Are you sure you want to convert to the workflow knowledge base? This action cannot be undone. Please proceed with caution.',
   },
 }

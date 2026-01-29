@@ -14,7 +14,7 @@
         :label="$t('workflow.nodes.startNode.question')"
         :prop="`${f.field}.value`"
         :rules="{
-          message: `${f.label.value}为必填参数`,
+          message: $t('common.inputPlaceholder'),
           trigger: 'blur',
           required: f.required,
         }"
@@ -27,12 +27,16 @@
             </div>
             <el-select
               :teleported="false"
-              v-if="modelValue[f.field]"
+              v-if="
+                modelValue[f.field] &&
+                trigger.trigger_type === 'EVENT' &&
+                trigger.trigger_setting.body.length
+              "
               v-model="modelValue[f.field].source"
               size="small"
               style="width: 85px"
             >
-              <el-option label="引用" value="reference" />
+              <el-option :label="$t('chat.quote')" value="reference" />
               <el-option :label="$t('common.custom')" value="custom" />
             </el-select>
           </div>
@@ -42,13 +46,14 @@
           v-if="modelValue[f.field].source === 'reference'"
           v-model="modelValue[f.field].value"
           :options="options"
-          :placeholder="$t('views.tool.form.param.selectPlaceholder')"
+          :placeholder="$t('common.selectPlaceholder')"
           :props="props"
+          style="width: 100%"
         />
         <el-input
           v-else
           v-model="modelValue[f.field].value"
-          :placeholder="$t('views.tool.form.param.inputPlaceholder')"
+          :placeholder="$t('common.inputPlaceholder')"
         />
       </el-form-item>
     </template>
@@ -58,7 +63,7 @@
         :label="$t('workflow.nodes.startNode.question')"
         :prop="`user_input_field_list.${f.field}.value`"
         :rules="{
-          message: `${f.label.value}为必填参数`,
+          message: $t('common.inputPlaceholder'),
           trigger: 'blur',
           required: f.required,
         }"
@@ -71,12 +76,16 @@
             </div>
             <el-select
               :teleported="false"
-              v-if="modelValue['user_input_field_list'][f.field]"
+              v-if="
+                modelValue['user_input_field_list'][f.field] &&
+                trigger.trigger_type === 'EVENT' &&
+                trigger.trigger_setting.body.length
+              "
               v-model="modelValue['user_input_field_list'][f.field].source"
               size="small"
               style="width: 85px"
             >
-              <el-option label="引用" value="reference" />
+              <el-option :label="$t('chat.quote')" value="reference" />
               <el-option :label="$t('common.custom')" value="custom" />
             </el-select>
           </div>
@@ -86,13 +95,14 @@
           v-if="modelValue['user_input_field_list'][f.field].source === 'reference'"
           v-model="modelValue[f.field].value"
           :options="options"
-          :placeholder="$t('views.tool.form.param.selectPlaceholder')"
+          :placeholder="$t('common.selectPlaceholder')"
           :props="props"
+          style="width: 100%"
         />
         <el-input
           v-else
           v-model="modelValue['user_input_field_list'][f.field].value"
-          :placeholder="$t('views.tool.form.param.inputPlaceholder')"
+          :placeholder="$t('common.inputPlaceholder')"
         />
       </el-form-item>
     </template>
@@ -102,7 +112,7 @@
         :label="$t('workflow.nodes.startNode.question')"
         :prop="`api_input_field_list.${f.field}.value`"
         :rules="{
-          message: `${f.label.value}为必填参数`,
+          message: $t('common.inputPlaceholder'),
           trigger: 'blur',
           required: f.required,
         }"
@@ -115,12 +125,16 @@
             </div>
             <el-select
               :teleported="false"
-              v-if="modelValue['api_input_field_list'][f.field]"
+              v-if="
+                modelValue['api_input_field_list'][f.field] &&
+                trigger.trigger_type === 'EVENT' &&
+                trigger.trigger_setting.body.length
+              "
               v-model="modelValue['api_input_field_list'][f.field].source"
               size="small"
               style="width: 85px"
             >
-              <el-option label="引用" value="reference" />
+              <el-option :label="$t('chat.quote')" value="reference" />
               <el-option :label="$t('common.custom')" value="custom" />
             </el-select>
           </div>
@@ -130,13 +144,14 @@
           v-if="modelValue['api_input_field_list'][f.field].source === 'reference'"
           v-model="modelValue[f.field].value"
           :options="options"
-          :placeholder="$t('views.tool.form.param.selectPlaceholder')"
+          :placeholder="$t('common.selectPlaceholder')"
           :props="props"
+          style="width: 100%"
         />
         <el-input
           v-else
           v-model="modelValue['api_input_field_list'][f.field].value"
-          :placeholder="$t('views.tool.form.param.inputPlaceholder')"
+          :placeholder="$t('common.inputPlaceholder')"
         />
       </el-form-item>
     </template>
@@ -145,6 +160,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { type FormInstance } from 'element-plus'
+import { t } from '@/locales'
 const applicationParameterFormRef = ref<FormInstance>()
 const props = defineProps<{ application?: any; modelValue: any; trigger: any }>()
 const emit = defineEmits(['update:modelValue'])
@@ -210,7 +226,7 @@ const base_field_list = computed<Array<any>>(() => {
           field: 'document',
           required: true,
           default_value: '[]',
-          label: { value: '文档' },
+          label: { value: t('common.fileUpload.document') },
         })
       }
       if (base_node.value.properties.node_data.file_upload_setting.image) {
@@ -218,7 +234,7 @@ const base_field_list = computed<Array<any>>(() => {
           field: 'image',
           required: true,
           default_value: '[]',
-          label: { value: '图片' },
+          label: { value: t('common.fileUpload.image') },
         })
       }
       if (base_node.value.properties.node_data.file_upload_setting.audio) {
@@ -226,7 +242,7 @@ const base_field_list = computed<Array<any>>(() => {
           field: 'audio',
           required: true,
           default_value: '[]',
-          label: { value: '音频' },
+          label: { value: t('common.fileUpload.audio') },
         })
       }
       if (base_node.value.properties.node_data.file_upload_setting.video) {
@@ -234,7 +250,7 @@ const base_field_list = computed<Array<any>>(() => {
           field: 'video',
           required: true,
           default_value: '[]',
-          label: { value: '视频' },
+          label: { value: t('common.fileUpload.video') },
         })
       }
 
@@ -243,7 +259,7 @@ const base_field_list = computed<Array<any>>(() => {
           field: 'other',
           required: true,
           default_value: '[]',
-          label: { value: '其他' },
+          label: { value: t('common.fileUpload.other') },
         })
       }
     }

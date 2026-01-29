@@ -4,6 +4,7 @@ export default {
   testSuccess: '測試連線成功',
   testFailed: '測試連線失敗',
   password: '密碼',
+  defaultPassword: '預設密碼',
   authentication: {
     title: '登錄認證',
     ldap: {

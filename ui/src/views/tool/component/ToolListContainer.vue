@@ -294,7 +294,7 @@
                           </el-dropdown-item>
 
                           <el-dropdown-item
-                            @click.stop="openToolTriggerDrawer(item)"
+                            @click.stop="openTriggerDrawer(item)"
                             v-if="apiType === 'workspace' && item.tool_type === 'CUSTOM'"
                           >
                             <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
@@ -382,7 +382,10 @@
   />
   <ToolStoreDescDrawer ref="toolStoreDescDrawerRef" />
   <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
-  <ToolTriggerDrawer ref="toolTriggerDrawerRef"></ToolTriggerDrawer>
+  <ResourceTriggerDrawer
+    ref="resourceTriggerDrawerRef"
+    :source="SourceTypeEnum.TOOL"
+  ></ResourceTriggerDrawer>
 </template>
 
 <script lang="ts" setup>
@@ -400,7 +403,7 @@ import AddInternalToolDialog from '@/views/tool/tool-store/AddInternalToolDialog
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import McpToolConfigDialog from '@/views/tool/component/McpToolConfigDialog.vue'
-import ToolTriggerDrawer from '@/views/tool/ToolTriggerDrawer.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import { resetUrl } from '@/utils/common'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import { SourceTypeEnum } from '@/enums/common'
@@ -455,9 +458,9 @@ const MoreFieldPermission = (id: any) => {
   )
 }
 
-const toolTriggerDrawerRef = ref<InstanceType<typeof ToolTriggerDrawer>>()
-const openToolTriggerDrawer = (tool: any) => {
-  toolTriggerDrawerRef.value?.open(tool)
+const resourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
+const openTriggerDrawer = (data: any) => {
+  resourceTriggerDrawerRef.value?.open(data)
 }
 
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()

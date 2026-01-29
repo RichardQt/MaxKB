@@ -1,5 +1,5 @@
 <template>
-  <el-drawer v-model="visible" size="600">
+  <el-drawer v-model="visible" size="600" :destroy-on-close="true">
     <template #header>
       <h4>{{ $t('views.trigger.title') }}</h4>
     </template>
@@ -16,9 +16,12 @@
     <div v-if="triggerList.length > 0" class="w-full" v-loading="loading">
       <template v-for="(item, index) in triggerList" :key="index">
         <div class="flex-between border border-r-6 white-bg mb-8" style="padding: 2px 8px">
-          <div class="flex align-center">
+          <div class="flex align-center w-180">
             <TriggerIcon :type="item.trigger_type" class="mr-8" :size="20" />
-            <span class="ellipsis-1"> {{ item.name }}</span>
+            <span class="ellipsis-1" :title="item.name"> {{ item.name }}</span>
+          </div>
+          <div class="w-180">
+            {{ getTriggerCycleLabel(item.trigger_setting) }}
           </div>
           <div>
             <span class="mr-4">
@@ -41,7 +44,7 @@
       ref="triggerDrawerRef"
       :create-trigger="createTrigger"
       :edit-trigger="editTrigger"
-      resourceType="TOOL"
+      :resourceType="props.source"
     ></TriggerDrawer>
   </el-drawer>
 </template>
@@ -49,12 +52,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import permissionMap from '@/permission'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import TriggerDrawer from '@/views/trigger/component/TriggerDrawer.vue'
+import TriggerDrawer from '@/views/trigger/TriggerDrawer.vue'
 import triggerAPI from '@/api/trigger/trigger'
+import { getTriggerCycleLabel } from '@/utils/trigger'
 const route = useRoute()
 
+const props = defineProps<{
+  source: string
+}>()
 const apiType = computed(() => {
   if (route.path.includes('shared')) {
     return 'systemShare'
@@ -65,10 +71,6 @@ const apiType = computed(() => {
   }
 })
 
-const permissionPrecise = computed(() => {
-  return permissionMap['tool'][apiType.value]
-})
-
 const toolId = ref<string>('')
 const visible = ref<boolean>(false)
 const loading = ref<boolean>(false)
@@ -77,13 +79,13 @@ const emit = defineEmits(['refresh'])
 
 const createTrigger = (trigger: any) => {
   if (toolId.value) {
-    return triggerAPI.postResourceTrigger('TOOL', toolId.value, trigger)
+    return triggerAPI.postResourceTrigger(props.source, toolId.value, trigger)
   }
   return Promise.resolve<any>({})
 }
 const editTrigger = (trigger_id: string, trigger: any) => {
   if (toolId.value) {
-    return triggerAPI.putResourceTrigger('TOOL', toolId.value, trigger_id, trigger)
+    return triggerAPI.putResourceTrigger(props.source, toolId.value, trigger_id, trigger)
   }
   return Promise.resolve<any>({})
 }
@@ -92,7 +94,7 @@ const triggerList = ref<Array<any>>([])
 const triggerDrawerRef = ref<InstanceType<typeof TriggerDrawer>>()
 
 const openCreateTriggerDrawer = () => {
-  triggerDrawerRef.value?.open(undefined, 'TOOL', toolId.value)
+  triggerDrawerRef.value?.open(undefined, props.source, toolId.value)
 }
 const openEditTriggerDrawer = (trigger: any) => {
   triggerDrawerRef.value?.open(trigger.id)
@@ -100,7 +102,7 @@ const openEditTriggerDrawer = (trigger: any) => {
 
 function getTriggerList() {
   loadSharedApi({ type: 'trigger', systemType: apiType.value })
-    .getResourceTriggerList('TOOL', toolId.value, loading)
+    .getResourceTriggerList(props.source, toolId.value, loading)
     .then((res: any) => {
       triggerList.value = res.data
     })
@@ -112,7 +114,7 @@ function refreshTrigger() {
 
 function removeTrigger(trigger: any) {
   loadSharedApi({ type: 'trigger', systemType: apiType.value })
-    .deleteResourceTrigger('TOOL', toolId.value, trigger.id, loading)
+    .deleteResourceTrigger(props.source, toolId.value, trigger.id, loading)
     .then((res: any) => {
       getTriggerList()
     })

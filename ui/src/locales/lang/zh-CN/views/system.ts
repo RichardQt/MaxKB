@@ -7,6 +7,7 @@ export default {
   testSuccess: '测试连接成功',
   testFailed: '测试连接失败',
   password: '密码',
+  defaultPassword: '默认密码',
   authentication: {
     title: '登录认证',
     ldap: {

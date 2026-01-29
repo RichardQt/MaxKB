@@ -11,7 +11,7 @@
             <div class="title flex align-center">
               <div class="edit-avatar mr-12">
                 <el-avatar shape="square" :size="32" style="background: none">
-                  <img :src="resetUrl(detail?.icon, resetUrl('./favicon.ico'))" alt="" />
+                  <img :src="resetUrl(detail?.icon, resetUrl('./favicon.ico'))" alt=""  />
                 </el-avatar>
               </div>
 
@@ -22,7 +22,7 @@
               <el-col :span="12" class="mt-16">
                 <div class="flex">
                   <el-text type="info"
-                    >{{ $t('views.applicationOverview.appInfo.publicAccessLink') }}
+                      >{{ $t('views.applicationOverview.appInfo.publicAccessLink') }}
                   </el-text>
                   <el-switch
                     v-model="accessToken.is_active"
@@ -51,9 +51,7 @@
                       text
                       style="margin-left: 1px"
                     >
-                      <el-icon>
-                        <RefreshRight />
-                      </el-icon>
+                      <AppIcon iconName="app-refresh"></AppIcon>
                     </el-button>
                   </el-tooltip>
                 </div>
@@ -98,7 +96,7 @@
               <el-col :span="12" class="mt-16">
                 <div class="flex">
                   <el-text type="info"
-                    >{{ $t('views.applicationOverview.appInfo.apiAccessCredentials') }}
+                      >{{ $t('views.applicationOverview.appInfo.apiAccessCredentials') }}
                   </el-text>
                 </div>
                 <div class="mt-4 mb-16 url-height">
@@ -134,7 +132,7 @@
                     v-if="permissionPrecise.overview_api_key(id)"
                   >
                     <el-icon class="mr-4">
-                      <Key />
+                      <Key  />
                     </el-icon>
                     {{ $t('views.applicationOverview.appInfo.apiKey') }}
                   </el-button>

@@ -9080,4 +9080,7 @@ msgstr "触发器"
 msgid "Slack"
 msgstr "Slack 应用"
 
+msgid "Root Directory"
+msgstr "根目录"
+
 

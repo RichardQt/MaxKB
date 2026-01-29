@@ -51,7 +51,7 @@
         >
         </el-input>
       </el-form-item>
-      <el-form-item label="默认密码" v-if="!isEdit">
+      <el-form-item :label="$t('views.userManage.defaultPassword')" v-if="!isEdit">
         <span>{{ userForm.password }}</span>
       </el-form-item>
     </el-form>

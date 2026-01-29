@@ -96,7 +96,7 @@ class AppNode extends HtmlResize.view {
     const children = [...(this.props.model.properties?.config?.fields || [])]
     if (this.props.model.properties.enableException) {
       children.push({
-        label: '异常信息',
+        label: t('workflow.abnormalInformation'),
         value: 'exception_message',
         globeLabel: `{{${this.props.model.properties.stepName}.exception_message}}`,
         globeValue: `{{context['${this.props.model.id}'].exception_message}}`,

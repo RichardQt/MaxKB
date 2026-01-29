@@ -14,7 +14,7 @@
         :label="$t('workflow.nodes.startNode.question')"
         :prop="`${f.field}.value`"
         :rules="{
-          message: `${f.label.value}为必填参数`,
+          message: $t('common.inputPlaceholder'),
           trigger: 'blur',
           required: f.required,
         }"
@@ -27,12 +27,16 @@
             </div>
             <el-select
               :teleported="false"
-              v-if="modelValue[f.field]"
+              v-if="
+                modelValue[f.field] &&
+                trigger.trigger_type === 'EVENT' &&
+                trigger.trigger_setting.body.length
+              "
               v-model="modelValue[f.field].source"
               size="small"
               style="width: 85px"
             >
-              <el-option label="引用" value="reference" />
+              <el-option :label="$t('chat.quote')" value="reference" />
               <el-option :label="$t('common.custom')" value="custom" />
             </el-select>
           </div>
@@ -42,13 +46,14 @@
           v-if="modelValue[f.field].source === 'reference'"
           v-model="modelValue[f.field].value"
           :options="options"
-          :placeholder="$t('views.tool.form.param.selectPlaceholder')"
+          :placeholder="$t('common.selectPlaceholder')"
           :props="props"
+          style="width: 100%"
         />
         <el-input
           v-else
           v-model="modelValue[f.field].value"
-          :placeholder="$t('views.tool.form.param.inputPlaceholder')"
+          :placeholder="$t('common.inputPlaceholder')"
         />
       </el-form-item>
     </template>

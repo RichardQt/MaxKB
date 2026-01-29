@@ -2,7 +2,7 @@ export default {
   title: 'Workspace',
   list: 'Workspace list',
   name: 'Workspace name',
-  toWorkspace: 'Return to workspace',
+  toWorkspace: 'To workspace',
   delete: {
     confirmTitle: 'Confirm to delete workspace:',
     confirmContent:

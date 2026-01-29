@@ -1525,7 +1525,6 @@ class DocumentSerializers(serializers.Serializer):
             )
             workbook = DocumentSerializers.Operate.get_workbook(data_dict, document_dict)
             response = HttpResponse(content_type='application/vnd.ms-excel')
-            response['Content-Disposition'] = 'attachment; filename="knowledge.xlsx"'
             workbook.save(response)
             return response
 
@@ -1533,6 +1532,7 @@ class DocumentSerializers(serializers.Serializer):
             if with_valid:
                 BatchSerializer(data=instance).is_valid(model=Document, raise_exception=True)
                 self.is_valid(raise_exception=True)
+            knowledge = QuerySet(Knowledge).filter(id=self.data.get('knowledge_id')).first()
             document_ids = instance.get("id_list")
             document_list = QuerySet(Document).filter(id__in=document_ids)
             paragraph_list = native_search(
@@ -1553,10 +1553,9 @@ class DocumentSerializers(serializers.Serializer):
 
             workbook = DocumentSerializers.Operate.get_workbook(data_dict, document_dict)
             response = HttpResponse(content_type='application/zip')
-            response['Content-Disposition'] = f'attachment; filename="knowledge.zip"'
             zip_buffer = io.BytesIO()
             with TemporaryDirectory() as tempdir:
-                knowledge_file = os.path.join(tempdir, 'knowledge.xlsx')
+                knowledge_file = os.path.join(tempdir, f'{knowledge.name}.xlsx')
                 workbook.save(knowledge_file)
                 for r in res:
                     write_image(tempdir, r)

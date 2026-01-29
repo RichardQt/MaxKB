@@ -184,7 +184,7 @@
             </el-popover>
           </template>
         </el-table-column>
-        <el-table-column prop="source" width="100" :label="$t('views.userManage.source.label')">
+        <el-table-column prop="source" width="120" :label="$t('views.userManage.source.label')">
           <template #default="{ row }">
             {{
               row.source === 'LOCAL'

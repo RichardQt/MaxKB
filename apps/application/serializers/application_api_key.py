@@ -65,8 +65,9 @@ class ApplicationKeySerializer(serializers.Serializer):
             self.is_valid(raise_exception=True)
         application_id = self.data.get("application_id")
         query_set = QuerySet(ApplicationApiKey).filter(application_id=application_id)
-        if self.data.get('order_by'):
-            query_set = query_set.order_by(self.data.get('order_by'))
+        order_by = '-create_time' if self.data.get('order_by') is None or self.data.get(
+            'order_by') == '' else self.data.get('order_by')
+        query_set = query_set.order_by(order_by)
         return page_search(current_page, page_size,
                            query_set,
                            post_records_handler=lambda u: ApplicationKeySerializerModel(u).data)

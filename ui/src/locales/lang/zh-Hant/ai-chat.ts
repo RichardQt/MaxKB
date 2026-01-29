@@ -37,9 +37,10 @@ export default {
     continue: '繼續',
     stopChat: '停止回答',
     startChat: '開始回答',
-    likeTitle: '你覺得什麼讓你滿意？',
-    opposeTitle: '請告訴我們不滿意的原因',
+
     vote: {
+      likeTitle: '你覺得什麼讓你滿意？',
+      opposeTitle: '請告訴我們不滿意的原因',
       accurate: '內容準確',
       inaccurate: '回答不準確',
       complete: '內容完善',

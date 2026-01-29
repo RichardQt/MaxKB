@@ -37,9 +37,10 @@ export default {
     continue: 'Continue',
     stopChat: 'Stop Response',
     startChat: 'Start Response',
-    likeTitle: 'What do you think makes you satisfied?',
-    opposeTitle: 'Please tell us the reason for your dissatisfaction.',
+
     vote: {
+      likeTitle: 'What do you think makes you satisfied?',
+      opposeTitle: 'Please tell us the reason for your dissatisfaction.',
       accurate: 'Content is accurate',
       inaccurate: 'Answer is inaccurate',
       complete: 'Content is complete',

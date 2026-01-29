@@ -6,6 +6,7 @@
     @date：2026/1/14 19:14
     @desc:
 """
+import json
 import time
 import traceback
 
@@ -13,6 +14,7 @@ import uuid_utils.compat as uuid
 from django.db.models import QuerySet
 
 from common.utils.logger import maxkb_logger
+from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models.knowledge_action import State
 from tools.models import Tool
@@ -103,6 +105,16 @@ def get_workflow_state(details):
         return State.FAILURE
     return State.SUCCESS
 
+def _get_result_detail(result):
+    if isinstance(result, dict):
+        result_dict = {k: (str(v)[:500] if len(str(v)) > 500 else v) for k, v in result.items()}
+    elif isinstance(result, list):
+        result_dict = [str(item)[:500] if len(str(item)) > 500 else item for item in result]
+    elif isinstance(result, str):
+        result_dict = result[:500] if len(result) > 500 else result
+    else:
+        result_dict = result
+    return result_dict
 
 class ToolTask(BaseTriggerTask):
     def support(self, trigger_task, **kwargs):
@@ -120,7 +132,7 @@ class ToolTask(BaseTriggerTask):
             source_type="TOOL",
             source_id=tool_id,
             task_record_id=task_record_id,
-            meta={},
+            meta={'input': parameter_setting, 'output': {}},
             state=State.STARTED
         ).save()
 
@@ -128,14 +140,23 @@ class ToolTask(BaseTriggerTask):
         try:
             tool = QuerySet(Tool).filter(id=tool_id).first()
             parameters = get_tool_execute_parameters(tool.input_field_list, parameter_setting, kwargs)
+            init_params_default_value = {i["field"]: i.get('default_value') for i in tool.init_field_list}
 
+            if tool.init_params is not None:
+                all_params = init_params_default_value | json.loads(rsa_long_decrypt(tool.init_params)) | parameters
+            else:
+                all_params = init_params_default_value | parameters
             executor = ToolExecutor()
-            result = executor.exec_code(tool.code, parameters)
-            maxkb_logger.info(f"Tool execution result: {result}")
+            result = executor.exec_code(tool.code, all_params)
+
+            result_dict = _get_result_detail(result)
+
+            maxkb_logger.debug(f"Tool execution result: {result}")
 
             QuerySet(TaskRecord).filter(id=task_record_id).update(
                 state=State.SUCCESS,
-                run_time=time.time() - start_time
+                run_time=time.time() - start_time,
+                meta={'input': parameter_setting, 'output': result_dict}
             )
         except Exception as e:
             maxkb_logger.error(f"Tool execution error: {traceback.format_exc()}")
@@ -143,3 +164,4 @@ class ToolTask(BaseTriggerTask):
                 state=State.FAILURE,
                 run_time=time.time() - start_time
             )
+

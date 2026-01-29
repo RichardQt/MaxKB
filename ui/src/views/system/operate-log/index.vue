@@ -242,7 +242,7 @@
               {{ datetimeFormat(row.create_time) }}
             </template>
           </el-table-column>
-          <el-table-column :label="$t('common.operation')" width="60" align="left" fixed="right">
+          <el-table-column :label="$t('common.operation')" width="70" align="left" fixed="right">
             <template #default="{ row }">
               <!-- <span class="mr-4"> -->
               <el-tooltip effect="dark" :content="$t('views.operateLog.table.opt')" placement="top">

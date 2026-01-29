@@ -36,10 +36,11 @@ export default {
   source: {
     label: '用戶來源',
     local: '系統用戶',
-     localCreate: '本地建立',
+    localCreate: '本地建立',
     wecom: '企業微信',
     lark: '飛書',
     dingtalk: '釘釘',
   },
   settingRole: '設定角色',
+  defaultPassword: '預設密碼',
 }

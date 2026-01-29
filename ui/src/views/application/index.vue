@@ -246,6 +246,13 @@
                               {{ $t('views.system.resourceAuthorization.title') }}
                             </el-dropdown-item>
                             <el-dropdown-item
+                              @click.stop="openTriggerDrawer(item)"
+                              v-if="apiType === 'workspace'"
+                            >
+                              <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
+                              {{ $t('views.trigger.title') }}
+                            </el-dropdown-item>
+                            <el-dropdown-item
                               @click.stop="openMoveToDialog(item)"
                               v-if="permissionPrecise.edit(item.id) && apiType === 'workspace'"
                             >
@@ -302,6 +309,10 @@
       ref="ResourceAuthorizationDrawerRef"
     />
     <TemplateStoreDialog ref="templateStoreDialogRef" :api-type="apiType" @refresh="getList" />
+    <ResourceTriggerDrawer
+      ref="resourceTriggerDrawerRef"
+      :source="SourceTypeEnum.APPLICATION"
+    ></ResourceTriggerDrawer>
   </LayoutContainer>
 </template>
 
@@ -312,6 +323,7 @@ import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
 import CopyApplicationDialog from '@/views/application/component/CopyApplicationDialog.vue'
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import ApplicationApi from '@/api/application/application'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import useStore from '@/stores'
@@ -360,6 +372,11 @@ const paginationConfig = reactive({
 const folderList = ref<any[]>([])
 const applicationList = ref<any[]>([])
 const CopyApplicationDialogRef = ref()
+
+const resourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
+const openTriggerDrawer = (data: any) => {
+  resourceTriggerDrawerRef.value?.open(data)
+}
 
 const ResourceAuthorizationDrawerRef = ref()
 

@@ -4,6 +4,10 @@
     :title="is_edit ? $t('views.trigger.editTrigger') : $t('views.trigger.createTrigger')"
     size="600"
     append-to-body
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    :destroy-on-close="true"
+    :before-close="close"
   >
     <el-form
       :model="form"
@@ -30,15 +34,7 @@
           @blur="form.name = form.name?.trim()"
         />
       </el-form-item>
-      <el-form-item
-        :label="$t('common.desc')"
-        prop="desc"
-        :rules="{
-          message: $t('common.inputPlaceholder'),
-          trigger: 'blur',
-          required: true,
-        }"
-      >
+      <el-form-item :label="$t('common.desc')" prop="desc">
         <el-input
           v-model="form.desc"
           type="textarea"
@@ -79,18 +75,15 @@
             v-if="form.trigger_type === 'SCHEDULED'"
             shadow="never"
             class="card-never mt-16 w-full"
-            ><div>
-              <el-row style="font-size: 14px" class="mb-8 w-full" :gutter="10">
-                <el-col :span="24" class="w-full">
-                  <span class="w-full">{{ $t('views.trigger.triggerCycle.title') }}</span>
-                </el-col>
-              </el-row>
-              <el-row style="width: 100%" :gutter="10" class="mb-8">
-                <el-col :span="24">
-                  <el-cascader v-model="scheduled" :options="options" @change="handleChange" />
-                </el-col>
-              </el-row>
-            </div>
+          >
+            <p style="margin-top: -8px">{{ $t('views.trigger.triggerCycle.title') }}</p>
+
+            <el-cascader
+              v-model="scheduled"
+              :options="triggerCycleOptions"
+              @change="handleChange"
+              style="width: 100%"
+            />
           </el-card>
         </el-card>
         <el-card
@@ -113,7 +106,11 @@
           <el-card v-if="form.trigger_type === 'EVENT'" shadow="never" class="card-never mt-16">
             <el-form-item :label="$t('views.trigger.from.event_url.label')">
               <div class="complex-input flex align-center w-full" style="background-color: #ffffff">
-                <el-input class="complex-input__left" v-bind:modelValue="event_url"></el-input>
+                <el-input
+                  class="complex-input__left"
+                  v-bind:modelValue="event_url"
+                  readonly
+                ></el-input>
 
                 <el-tooltip :content="$t('common.copy')" placement="top">
                   <el-button text @click="copy">
@@ -128,6 +125,7 @@
                 :placeholder="$t('common.inputPlaceholder')"
                 v-model="form.trigger_setting.token"
                 show-password
+                readonly
               >
               </el-input>
             </el-form-item>
@@ -204,12 +202,21 @@
           </el-card>
         </el-card>
       </el-form-item>
-      <el-form-item :label="$t('views.trigger.taskExecution')">
+      <el-form-item
+        :label="$t('views.trigger.taskExecution')"
+        prop="trigger_task"
+        :rules="{
+          type: 'array',
+          message: $t('common.selectPlaceholder'),
+          trigger: 'change',
+          required: true,
+        }"
+      >
         <template v-if="['APPLICATION', 'TOOL'].includes(resourceType)">
           <!-- 资源端智能体 -->
           <div class="w-full" v-if="resourceType === 'APPLICATION'">
             <template v-for="(item, index) in applicationTask" :key="index">
-              <div class="border border-r-6 white-bg" style="padding: 2px 8px">
+              <div class="border border-r-6 white-bg mb-8" style="padding: 2px 8px">
                 <div class="flex-between">
                   <div class="flex align-center" style="line-height: 20px">
                     <el-avatar
@@ -246,7 +253,7 @@
                 <ApplicationParameter
                   class="mt-8 mb-8"
                   ref="applicationParameterRef"
-                  v-if="showTast === 'agent' + index && applicationDetailsDict[item.source_id]"
+                  v-if="applicationDetailsDict[item.source_id]"
                   :application="applicationDetailsDict[item.source_id]"
                   :trigger="form"
                   v-model="item.parameter"
@@ -291,15 +298,15 @@
                     </span>
                   </div>
                 </div>
+                <ToolParameter
+                  class="mt-8 mb-8"
+                  ref="toolParameterRef"
+                  v-if="showTast === 'tool' + index && toolDetailsDict[item.source_id]"
+                  :tool="toolDetailsDict[item.source_id]"
+                  :trigger="form"
+                  v-model="item.parameter"
+                ></ToolParameter>
               </div>
-              <ToolParameter
-                class="mt-8 mb-8"
-                ref="toolParameterRef"
-                v-if="showTast === 'tool' + index && toolDetailsDict[item.source_id]"
-                :tool="toolDetailsDict[item.source_id]"
-                :trigger="form"
-                v-model="item.parameter"
-              ></ToolParameter>
             </template>
           </div>
         </template>
@@ -435,15 +442,15 @@
                     </span>
                   </div>
                 </div>
+                <ToolParameter
+                  class="mt-8 mb-8"
+                  ref="toolParameterRef"
+                  v-if="showTast === 'tool' + index && toolDetailsDict[item.source_id]"
+                  :tool="toolDetailsDict[item.source_id]"
+                  :trigger="form"
+                  v-model="item.parameter"
+                ></ToolParameter>
               </div>
-              <ToolParameter
-                class="mt-8 mb-8"
-                ref="toolParameterRef"
-                v-if="showTast === 'tool' + index && toolDetailsDict[item.source_id]"
-                :tool="toolDetailsDict[item.source_id]"
-                :trigger="form"
-                v-model="item.parameter"
-              ></ToolParameter>
             </template>
           </div>
         </el-card>
@@ -453,7 +460,7 @@
     <ToolDialog @refresh="toolRefresh" ref="toolDialogRef"></ToolDialog>
     <template #footer>
       <el-button @click="close">{{ $t('common.cancel') }}</el-button>
-      <el-button type="primary" @click="submit">{{
+      <el-button v-if="submitPermission" type="primary" @click="submit">{{
         is_edit ? $t('common.save') : $t('common.create')
       }}</el-button>
     </template>
@@ -468,12 +475,15 @@ import ToolDialog from '@/views/application/component/ToolDialog.vue'
 import applicationAPI from '@/api/application/application'
 import triggerAPI from '@/api/trigger/trigger'
 import toolAPI from '@/api/tool/tool'
-import ToolParameter from './ToolParameter.vue'
-import ApplicationParameter from './ApplicationParameter.vue'
+import ToolParameter from '@/views/trigger/component/ToolParameter.vue'
+import ApplicationParameter from '@/views/trigger/component/ApplicationParameter.vue'
 import { resetUrl } from '@/utils/common.ts'
+import { triggerCycleOptions } from '@/utils/trigger.ts'
 import { t } from '@/locales'
 import { type FormInstance } from 'element-plus'
 import Result from '@/request/Result'
+import { hasPermission } from '@/utils/permission'
+import { PermissionConst, RoleConst } from '@/utils/permission/data'
 
 const emit = defineEmits(['refresh'])
 const props = withDefaults(
@@ -494,6 +504,29 @@ const collapseData = reactive({
   agent: true,
 })
 const showTast = ref<string>('')
+
+const submitPermission = computed(() => {
+  return is_edit.value ? triggerPermissionMap.edit() : triggerPermissionMap.create()
+})
+
+const triggerPermissionMap = {
+  edit: () =>
+    hasPermission(
+      [
+        RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
+        PermissionConst.TRIGGER_EDIT.getWorkspacePermissionWorkspaceManageRole,
+      ],
+      'OR',
+    ),
+  create: () =>
+    hasPermission(
+      [
+        RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
+        PermissionConst.TRIGGER_CREATE.getWorkspacePermissionWorkspaceManageRole,
+      ],
+      'OR',
+    ),
+}
 
 const triggerFormRef = ref<FormInstance>()
 const copy = () => {
@@ -534,6 +567,7 @@ const applicationRefresh = (application_selected: any) => {
         parameter: {},
       })
     })
+  showTast.value = 'agent0'
 }
 const applicationTask = computed(() => {
   return form.value.trigger_task.filter((task: any) => task.source_type === 'APPLICATION')
@@ -572,6 +606,7 @@ const toolRefresh = (tool_selected: any) => {
         parameter: {},
       })
     })
+  showTast.value = 'tool0'
 }
 
 const applicationDialogRef = ref<InstanceType<typeof ApplicationDialog>>()
@@ -589,56 +624,7 @@ const openToolDialog = () => {
   toolDialogRef.value?.open(tool_id_list)
 }
 const drawer = ref<boolean>(false)
-const times = Array.from({ length: 24 }, (_, i) => {
-  const time = i.toString().padStart(2, '0') + ':00'
-  return { label: time, value: time }
-})
-const days = Array.from({ length: 31 }, (_, i) => {
-  i = i + 1
-  const day = i.toString() + t('views.trigger.triggerCycle.days')
-  return { label: day, value: i.toString(), children: times }
-})
-const hours = Array.from({ length: 24 }, (_, i) => {
-  i = i + 1
-  const time = i.toString().padStart(2, '0')
-  return { label: time, value: i }
-})
-const minutes = Array.from({ length: 60 }, (_, i) => {
-  i = i + 1
-  const time = i.toString().padStart(2, '0')
-  return { label: time, value: i }
-})
 
-const options = [
-  {
-    value: 'daily',
-    label: t('views.trigger.triggerCycle.daily'),
-    multiple: true,
-    children: times,
-  },
-  {
-    value: 'weekly',
-    label: t('views.trigger.triggerCycle.weekly'),
-    children: [
-      { label: t('views.trigger.triggerCycle.sunday'), value: 7, children: times },
-      { label: t('views.trigger.triggerCycle.monday'), value: 1, children: times },
-      { label: t('views.trigger.triggerCycle.tuesday'), value: 2, children: times },
-      { label: t('views.trigger.triggerCycle.wednesday'), value: 3, children: times },
-      { label: t('views.trigger.triggerCycle.thursday'), value: 4, children: times },
-      { label: t('views.trigger.triggerCycle.friday'), value: 5, children: times },
-      { label: t('views.trigger.triggerCycle.saturday'), value: 6, children: times },
-    ],
-  },
-  { value: 'monthly', label: t('views.trigger.triggerCycle.monthly'), children: days },
-  {
-    value: 'interval',
-    label: t('views.trigger.triggerCycle.interval'),
-    children: [
-      { label: t('views.trigger.triggerCycle.hours'), value: 'hours', children: hours },
-      { label: t('views.trigger.triggerCycle.minutes'), value: 'minutes', children: minutes },
-    ],
-  },
-]
 const scheduled = computed({
   get: () => {
     const schedule_type = form.value.trigger_setting.schedule_type
@@ -686,7 +672,7 @@ const getDefaultValue = () => {
     trigger_task: [],
     trigger_type: 'SCHEDULED',
     trigger_setting: {
-      token: '',
+      token: uuidv4().replace('-', ''),
       body: [],
     },
   }

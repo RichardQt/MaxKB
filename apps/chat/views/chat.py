@@ -79,8 +79,10 @@ class OpenAIView(APIView):
         tags=[_('Chat')]  # type: ignore
     )
     def post(self, request: Request, application_id: str):
+        ip_address = _get_ip_address(request)
         return OpenAIChatSerializer(data={'application_id': application_id, 'chat_user_id': request.auth.chat_user_id,
-                                          'chat_user_type': request.auth.chat_user_type}).chat(request.data)
+                                          'chat_user_type': request.auth.chat_user_type,
+                                          'ip_address': ip_address, }).chat(request.data)
 
 
 class AnonymousAuthentication(APIView):
