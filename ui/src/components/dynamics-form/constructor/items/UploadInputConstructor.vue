@@ -45,13 +45,15 @@
       },
     ]"
   >
-    <div class="gap-2" style="display: flex">
+    <el-space wrap :size="6" class="mt-4">
       <el-tag
         v-for="tag in formValue.accept"
         :key="tag"
         closable
         :disable-transitions="false"
         @close="handleClose(tag)"
+        type="info"
+        effect="plain"
       >
         {{ tag }}
       </el-tag>
@@ -59,15 +61,18 @@
         v-if="inputVisible"
         ref="InputRef"
         v-model="inputValue"
-        class="w-20"
         size="small"
         @keyup.enter="handleInputConfirm"
         @blur="handleInputConfirm"
+        :style="{
+          '--el-input-border-radius': '4px',
+        }"
       />
       <el-button v-else class="button-new-tag" size="small" @click="showInput">
-        + {{ $t('common.fileUpload.addExtensions') }}
+        <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon
+        >{{ $t('common.fileUpload.addExtensions') }}
       </el-button>
-    </div>
+    </el-space>
   </el-form-item>
 </template>
 <script setup lang="ts">
@@ -146,8 +151,4 @@ onMounted(() => {
   }
 })
 </script>
-<style lang="scss" scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-</style>
+<style lang="scss" scoped></style>

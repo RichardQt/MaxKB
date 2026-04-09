@@ -79,10 +79,10 @@ class AppNode extends HtmlResize.view {
     }
     if (this.props.model.type === 'knowledge-base-node') {
       let globalFields = []
-      if (this.props.model.properties.user_input_field_list) {
-        globalFields = this.props.model.properties.user_input_field_list.map((item: any) => ({
+      if (this.props.model.properties.config?.globalFields) {
+        globalFields = this.props.model.properties.config.globalFields.map((item: any) => ({
           label: typeof item.label == 'string' ? item.label : item.label.label,
-          value: item.field,
+          value: item.value,
         }))
       }
 
@@ -450,9 +450,19 @@ class AppNodeModel extends HtmlResize.model {
     const { id, x, y, width } = this
     const showNode = this.properties.showNode === undefined ? true : this.properties.showNode
     const anchors: any = []
-    if (![WorkflowType.Base as string, WorkflowType.KnowledgeBase as string].includes(this.type)) {
+    if (
+      ![
+        WorkflowType.Base as string,
+        WorkflowType.KnowledgeBase as string,
+        WorkflowType.ToolBaseNode as string,
+      ].includes(this.type)
+    ) {
       if (
-        ![WorkflowType.Start, WorkflowType.LoopStartNode.toString()].includes(this.type) &&
+        ![
+          WorkflowType.Start,
+          WorkflowType.LoopStartNode.toString(),
+          WorkflowType.ToolStartNode,
+        ].includes(this.type) &&
         this.properties.kind != WorkflowKind.DataSource
       ) {
         anchors.push({

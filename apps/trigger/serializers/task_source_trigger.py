@@ -6,26 +6,16 @@
     @date：2026/1/22 16:18
     @desc:
 """
-import os.path
-import re
 from typing import Dict
 
-import uuid_utils.compat as uuid
-from django.core import validators
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from application.models import Application
-from common.db.search import page_search, get_dynamics_model, native_page_search, native_search
 from common.exception.app_exception import AppApiException
-from common.field.common import ObjectField
-from common.utils.common import get_file_content
-from knowledge.serializers.common import BatchSerializer
-from maxkb.conf import PROJECT_DIR
 from tools.models import Tool
-from tools.serializers.tool import ToolModelSerializer
 from trigger.models import TriggerTypeChoices, Trigger, TriggerTaskTypeChoices, TriggerTask
 from trigger.serializers.trigger import TriggerModelSerializer, TriggerSerializer, ApplicationTriggerTaskSerializer, \
     ToolTriggerTaskSerializer, TriggerTaskModelSerializer
@@ -107,7 +97,7 @@ class TaskSourceTriggerOperateSerializer(serializers.Serializer):
             return {
                 **TriggerModelSerializer(trigger).data,
                 'trigger_task': trigger_task,
-                'application_task': tool_task,
+                'tool_task': tool_task,
             }
 
     @transaction.atomic
@@ -121,6 +111,8 @@ class TaskSourceTriggerOperateSerializer(serializers.Serializer):
         valid_data = serializer.validated_data
         trigger_id = self.data.get('trigger_id')
         workspace_id = self.data.get('workspace_id')
+        source_id = self.data.get('source_id')
+        source_type = self.data.get('source_type')
 
         trigger = Trigger.objects.filter(workspace_id=workspace_id, id=trigger_id).first()
         if not trigger:
@@ -135,9 +127,25 @@ class TaskSourceTriggerOperateSerializer(serializers.Serializer):
                 setattr(trigger, field, valid_data.get(field))
         trigger.save()
 
+        trigger_task = valid_data.get('trigger_task')
+        if trigger_task is not None:
+            # 检查是否为空列表
+            if not trigger_task:
+                raise serializers.ValidationError(_('Trigger must have at least one task'))
+
+            TriggerTask.objects.filter(
+                source_id=source_id,
+                source_type=source_type,
+                trigger_id=trigger_id
+            ).update(parameter=trigger_task[0].get("parameter"), meta=trigger_task[0].get("meta"))
+        else:
+            # 用户没提交 trigger_task 字段，确保数据库中有 task
+            if not TriggerTask.objects.filter(trigger_id=trigger_id).exists():
+                raise serializers.ValidationError(_('Trigger must have at least one task'))
+
         if need_redeploy:
-            if trigger.is_active:
-                deploy(ToolModelSerializer(trigger).data, **{})
+            if trigger.is_active and trigger.trigger_type == 'SCHEDULED':
+                deploy(TriggerModelSerializer(trigger).data, **{})
             else:
                 undeploy(TriggerModelSerializer(trigger).data, **{})
 

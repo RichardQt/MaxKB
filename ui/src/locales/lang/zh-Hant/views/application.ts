@@ -11,13 +11,13 @@ export default {
   simplePlaceholder: '通過表單設置方式，快速搭建基礎功能的智能體',
   advancedPlaceholder: '使用低代碼拖拉拽方式，靈活編排複雜邏輯、功能豐富的智能體',
   appTest: '調試預覽',
-  skill: '技能',
   operation: {
     toChat: '去對話',
     addModel: '新增模型',
   },
   delete: {
     confirmTitle: '是否刪除智能體：',
+    confirmTitle2: '個智能體?',
     confirmMessage: '刪除後該智能體將不再提供服務，請謹慎操作。',
     resourceCountMessage: '此智能體關聯 {count} 個資源，刪除後無法使用，請謹慎操作。',
   },

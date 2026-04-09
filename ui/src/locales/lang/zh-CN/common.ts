@@ -39,6 +39,7 @@ export default {
   paramSetting: '参数设置',
   name: '名称',
   creator: '创建者',
+  createdIn: '创建于',
   author: '作者',
   debug: '调试',
   required: '必填',
@@ -113,6 +114,7 @@ export default {
   username: '用户名',
   importCreate: '导入创建',
   detail: '详情',
+  total: '共',
   selected: '已选',
   notFound: {
     title: '404',
@@ -144,4 +146,10 @@ export default {
     next: '下一步',
   },
   use: '使用',
+  ExecutionRecord: {
+    title: '执行记录',
+    subTitle: '查看执行记录',
+  },
+  sourceType: '资源类型',
+  knowledgeImportTip: '导入创建知识库成功，文档数据未向量化，请先设置知识库的向量模型，并对文档进行向量化操作'
 }

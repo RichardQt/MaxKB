@@ -2,8 +2,10 @@ export default {
   title: '触发器',
   tip: '触发时系统将会根据入参设置自动调用任务执行',
   task: '任务',
+  nextTime: '下次执行时间',
   triggerTask: '触发任务',
   taskExecution: '任务执行',
+  triggerSource: '触发来源',
   delete: {
     confirmTitle: '是否删除触发器：',
     confirmTitle2: '个触发器？',
@@ -24,6 +26,10 @@ export default {
     sunday: '周日',
     hours: '小时',
     minutes: '分钟',
+    cronExpression: 'Cron 表达式',
+    switchCycle: '切换为触发周期',
+    switchCron: '切换为Cron表达式',
+    placeholder: '请输入Cron表达式（如：0 0 1 * *）'
   },
   type: {
     scheduled: '定时触发',
@@ -44,5 +50,6 @@ export default {
     },
   },
   requestParameter: '请求参数',
-  xecutionRecord: '执行记录',
+  triggerParam: '触发器入参',
+  errorMsg: '错误信息',
 }

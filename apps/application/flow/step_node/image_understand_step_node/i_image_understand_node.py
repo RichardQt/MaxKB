@@ -11,7 +11,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ImageUnderstandNodeSerializer(serializers.Serializer):
-    model_id = serializers.CharField(required=True, label=_("Model id"))
+    model_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, label=_("Model id"))
+    model_id_type = serializers.CharField(required=False, default='custom', label=_("Model id type"))
+    model_id_reference = serializers.ListField(required=False, child=serializers.CharField(), allow_empty=True,
+                                               label=_("Reference Field"))
     system = serializers.CharField(required=False, allow_blank=True, allow_null=True,
                                    label=_("Role Setting"))
     prompt = serializers.CharField(required=True, label=_("Prompt word"))
@@ -27,12 +30,14 @@ class ImageUnderstandNodeSerializer(serializers.Serializer):
 
     model_params_setting = serializers.JSONField(required=False, default=dict,
                                                  label=_("Model parameter settings"))
+    model_setting = serializers.DictField(required=False,
+                                          label='Model settings')
 
 
 class IImageUnderstandNode(INode):
     type = 'image-understand-node'
     support = [WorkflowMode.APPLICATION, WorkflowMode.APPLICATION_LOOP, WorkflowMode.KNOWLEDGE,
-               WorkflowMode.KNOWLEDGE_LOOP]
+               WorkflowMode.KNOWLEDGE_LOOP, WorkflowMode.TOOL, WorkflowMode.TOOL_LOOP]
 
     def get_node_params_serializer_class(self) -> Type[serializers.Serializer]:
         return ImageUnderstandNodeSerializer
@@ -40,10 +45,11 @@ class IImageUnderstandNode(INode):
     def _run(self):
         res = self.workflow_manage.get_reference_field(self.node_params_serializer.data.get('image_list')[0],
                                                        self.node_params_serializer.data.get('image_list')[1:])
-        if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP].__contains__(
-                self.workflow_manage.flow.workflow_mode):
+        if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP, WorkflowMode.TOOL,
+            WorkflowMode.TOOL_LOOP].__contains__(
+            self.workflow_manage.flow.workflow_mode):
             return self.execute(image=res, **self.node_params_serializer.data, **self.flow_params_serializer.data,
-                                **{'history_chat_record': [], 'stream': True,  'chat_record_id': None})
+                                **{'history_chat_record': [], 'stream': True, 'chat_record_id': None})
         else:
             return self.execute(image=res, **self.node_params_serializer.data, **self.flow_params_serializer.data)
 
@@ -51,5 +57,7 @@ class IImageUnderstandNode(INode):
                 model_params_setting,
                 chat_record_id,
                 image,
+                model_id_type=None, model_id_reference=None,
+                model_setting=None,
                 **kwargs) -> NodeResult:
         pass

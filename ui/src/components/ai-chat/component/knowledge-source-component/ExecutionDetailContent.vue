@@ -62,7 +62,18 @@
         </h5>
         <div class="p-8-12 border-t-dashed lighter">
           <div v-for="(msg, index) in AiResponse" :key="index">
-            <span>{{ msg.content }}</span>
+            <MdRenderer v-if="msg.content" :source="msg.content" noImgZoomIn></MdRenderer>
+            <template v-else> -</template>
+          </div>
+        </div>
+      </div>
+      <div v-if="errStepMsg" class="card-never border-r-6 mb-12">
+        <h5 class="p-8-12">
+          {{ $t('chat.executionDetails.errLog') }}
+        </h5>
+        <div class="p-8-12 border-t-dashed lighter">
+          <div>
+            <span>{{ errStepMsg }}</span>
           </div>
         </div>
       </div>
@@ -74,11 +85,20 @@ import { ref, computed } from 'vue'
 import ExecutionDetailCard from '@/components/execution-detail-card/index.vue'
 import { arraySort } from '@/utils/array'
 import { isWorkFlow } from '@/utils/application'
+import MdRenderer from '@/components/markdown/MdRenderer.vue'
 
 const props = defineProps<{
   detail?: any[]
   appType?: string
 }>()
+
+const errStepMsg = computed(() => {
+  const err_step = props.detail?.find((item) => item.status === 500)
+  if (err_step) {
+    return `${err_step.step_type}: ${err_step.err_message}`
+  }
+  return undefined
+})
 
 const messageList = computed(() => {
   const chat_step = props.detail?.find((item) => item.step_type == 'chat_step')
@@ -145,4 +165,9 @@ const AiResponse = computed(() => {
 })
 </script>
 <style lang="scss" scoped>
+.execution-details {
+  :deep(.md-editor-previewOnly) {
+    background: none !important;
+  }
+}
 </style>

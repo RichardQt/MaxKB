@@ -50,7 +50,7 @@
         <template #default="{ row }">
           <div v-if="row.is_active" class="flex align-center">
             <el-icon class="color-success mr-8" style="font-size: 16px">
-              <SuccessFilled />
+              <SuccessFilled/>
             </el-icon>
             <span class="color-text-primary">
               {{ $t('common.status.enabled') }}
@@ -66,10 +66,10 @@
       </el-table-column>
       <el-table-column :label="$t('layout.crossSettings')" width="100" prop="allow_cross_domain">
         <template #default="{ row }">
-          <el-tag type="info" class="info-tag" v-if="row.allow_cross_domain">
+          <el-tag size="small" type="info" class="info-tag" v-if="row.allow_cross_domain">
             {{ $t('views.system.authentication.scanTheQRCode.alreadyTurnedOn') }}
           </el-tag>
-          <el-tag class="blue-tag" v-else>
+          <el-tag size="small" class="blue-tag" v-else>
             {{ $t('views.system.authentication.scanTheQRCode.notEnabled') }}
           </el-tag>
         </template>
@@ -100,9 +100,9 @@
       <el-table-column :label="$t('common.operation')" align="left" width="130">
         <template #default="{ row }">
           <span @click.stop>
-            <el-switch size="small" v-model="row.is_active" @change="changeState($event, row)" />
+            <el-switch size="small" v-model="row.is_active" @change="changeState($event, row)"/>
           </span>
-          <el-divider direction="vertical" />
+          <el-divider direction="vertical"/>
           <span class="mr-4">
             <el-tooltip effect="dark" :content="$t('common.setting')" placement="top">
               <el-button type="primary" text @click.stop="settingApiKey(row)">
@@ -118,23 +118,23 @@
         </template>
       </el-table-column>
     </app-table>
-    <SettingAPIKeyDialog ref="SettingAPIKeyDialogRef" @refresh="refresh" />
+    <SettingAPIKeyDialog ref="SettingAPIKeyDialogRef" @refresh="refresh"/>
   </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, watch, reactive } from 'vue'
-import { useRoute } from 'vue-router'
-import { copyClick } from '@/utils/clipboard'
+import {ref, watch, reactive} from 'vue'
+import {useRoute} from 'vue-router'
+import {copyClick} from '@/utils/clipboard'
 import systemKeyApi from '@/api/system/api-key'
-import { datetimeFormat } from '@/utils/time'
-import { MsgSuccess, MsgConfirm } from '@/utils/message'
-import { t } from '@/locales'
+import {datetimeFormat} from '@/utils/time'
+import {MsgSuccess, MsgConfirm} from '@/utils/message'
+import {t} from '@/locales'
 import SettingAPIKeyDialog from '@/views/application-overview/component/SettingAPIKeyDrawer.vue'
-import { fromNowDate } from '@/utils/time'
+import {fromNowDate} from '@/utils/time'
 
 const route = useRoute()
 const {
-  params: { id },
+  params: {id},
 } = route
 
 const props = defineProps({
@@ -189,7 +189,8 @@ function deleteApiKey(row: any) {
         getApiKeyList()
       })
     })
-    .catch(() => {})
+    .catch(() => {
+    })
 }
 
 function changeState(bool: boolean, row: any) {
@@ -205,6 +206,7 @@ function changeState(bool: boolean, row: any) {
 
 function createApiKey() {
   systemKeyApi.postAPIKey(loading).then((res) => {
+    MsgSuccess(t('common.createSuccess'))
     getApiKeyList()
   })
 }
@@ -235,7 +237,7 @@ function getExpiryClass(expireTime: any) {
   }
 }
 
-function handleSortChange({ prop, order }: { prop: string; order: string }) {
+function handleSortChange({prop, order}: { prop: string; order: string }) {
   orderBy.value = order === 'ascending' ? prop : `-${prop}`
   getApiKeyList()
 }
@@ -244,7 +246,7 @@ function refresh() {
   getApiKeyList()
 }
 
-defineExpose({ open })
+defineExpose({open})
 </script>
 <style lang="scss" scoped>
 .api-key-container {

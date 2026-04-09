@@ -26,10 +26,25 @@ class BaseTextToVideoNode(ITextToVideoNode):
     def execute(self, model_id, prompt, negative_prompt, dialogue_number, dialogue_type, history_chat_record,
                 model_params_setting,
                 chat_record_id,
+                model_id_type=None, model_id_reference=None,
                 **kwargs) -> NodeResult:
+        # 处理引用类型
+        if model_id_type == 'reference' and model_id_reference:
+            reference_data = self.workflow_manage.get_reference_field(
+                model_id_reference[0],
+                model_id_reference[1:],
+            )
+            if reference_data and isinstance(reference_data, dict):
+                model_id = reference_data.get('model_id', model_id)
+                model_params_setting = reference_data.get('model_params_setting')
+
+        from django.utils.translation import gettext_lazy as _
+
+        if model_id is None or model_id == '':
+            raise Exception(_('Model is not allowed to be empty'))
         workspace_id = self.workflow_manage.get_body().get('workspace_id')
         ttv_model = get_model_instance_by_model_workspace_id(model_id, workspace_id,
-                                                             **model_params_setting)
+                                                             **(model_params_setting or {}))
         history_message = self.get_history_message(history_chat_record, dialogue_number)
         self.context['history_message'] = history_message
         question = self.generate_prompt_question(prompt)
@@ -57,6 +72,8 @@ class BaseTextToVideoNode(ITextToVideoNode):
         if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP].__contains__(
                 self.workflow_manage.flow.workflow_mode):
             return self.upload_knowledge_file(file)
+        if [WorkflowMode.TOOL, WorkflowMode.TOOL_LOOP].__contains__(self.workflow_manage.flow.workflow_mode):
+            return self.upload_tool_file(file)
         return self.upload_application_file(file)
 
     def upload_knowledge_file(self, file):
@@ -70,6 +87,20 @@ class BaseTextToVideoNode(ITextToVideoNode):
             'meta': meta,
             'source_id': knowledge_id,
             'source_type': FileSourceType.KNOWLEDGE.value
+        }).upload()
+        return file_url
+
+    def upload_tool_file(self, file):
+        tool_id = self.workflow_params.get('tool_id')
+        meta = {
+            'debug': False,
+            'tool_id': tool_id,
+        }
+        file_url = FileSerializer(data={
+            'file': file,
+            'meta': meta,
+            'source_id': tool_id,
+            'source_type': FileSourceType.TOOL.value
         }).upload()
         return file_url
 

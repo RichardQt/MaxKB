@@ -13,6 +13,8 @@ export default {
     UploadInput: '文件上传',
     TextareaInput: '多行文本框',
     MultiRow: '单行多选卡',
+    Model: '模型',
+    Knowledge: '知识库',
   },
   default: {
     label: '默认值',
@@ -48,6 +50,10 @@ export default {
       label: '组件类型',
       placeholder: '请选择组件类型',
       requiredMessage: '组建类型 为必填属性',
+    },
+    desc: {
+      label: '描述',
+      placeholder: '请输入描述',
     },
   },
   DatePicker: {
@@ -122,5 +128,15 @@ export default {
       popover_value: '值',
       popover_default: '是否为默认值',
     },
+  },
+  ModelConstructor: {
+    optionalModel: '可选模型',
+    defaultModel: '默认模型',
+    modelPlaceholder: '请选择模型',
+  },
+  KnowledgeConstructor: {
+    optionalKnowledge: '可选知识库',
+    optionalKnowledgePlaceholder: '请选择可选知识库',
+    defaultKnowledge: '默认知识库',
   },
 }

@@ -6,6 +6,7 @@
     @date：2024/11/4 14:52
     @desc:
 """
+import copy
 import json
 import time
 from typing import Dict, List
@@ -76,6 +77,7 @@ class BaseFormNode(IFormNode):
                 self.context[key] = form_data[key]
 
     def reset_field(self, field):
+        field = copy.copy(field)
         reset_field = ['field', 'label', 'default_value']
         for f in reset_field:
             _value = field[f]
@@ -144,8 +146,9 @@ class BaseFormNode(IFormNode):
         value = prompt_template.format(form=form, context=context, runtime_node_id=self.runtime_node_id,
                                        chat_record_id=self.flow_params_serializer.data.get("chat_record_id"),
                                        form_field_list=form_field_list)
-        return [Answer(value, self.view_type, self.runtime_node_id, self.workflow_params['chat_record_id'], None,
-                       self.runtime_node_id, '')]
+        return [
+            Answer(value, self.view_type, self.runtime_node_id, self.workflow_params.get('chat_record_id') or '', None,
+                   self.runtime_node_id, '')]
 
     def get_details(self, index: int, **kwargs):
         form_content_format = self.context.get('form_content_format')

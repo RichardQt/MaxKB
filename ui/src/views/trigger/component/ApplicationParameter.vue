@@ -93,7 +93,7 @@
 
         <el-cascader
           v-if="modelValue['user_input_field_list'][f.field].source === 'reference'"
-          v-model="modelValue[f.field].value"
+          v-model="modelValue['user_input_field_list'][f.field].value"
           :options="options"
           :placeholder="$t('common.selectPlaceholder')"
           :props="props"
@@ -125,11 +125,7 @@
             </div>
             <el-select
               :teleported="false"
-              v-if="
-                modelValue['api_input_field_list'][f.field] &&
-                trigger.trigger_type === 'EVENT' &&
-                trigger.trigger_setting.body.length
-              "
+              v-if="modelValue['api_input_field_list'][f.field] && showSource"
               v-model="modelValue['api_input_field_list'][f.field].source"
               size="small"
               style="width: 85px"
@@ -142,7 +138,7 @@
 
         <el-cascader
           v-if="modelValue['api_input_field_list'][f.field].source === 'reference'"
-          v-model="modelValue[f.field].value"
+          v-model="modelValue['api_input_field_list'][f.field].value"
           :options="options"
           :placeholder="$t('common.selectPlaceholder')"
           :props="props"
@@ -158,13 +154,63 @@
   </el-form>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { type FormInstance } from 'element-plus'
 import { t } from '@/locales'
 const applicationParameterFormRef = ref<FormInstance>()
 const props = defineProps<{ application?: any; modelValue: any; trigger: any }>()
 const emit = defineEmits(['update:modelValue'])
-
+const showSource = computed(() => {
+  return props.trigger.trigger_type === 'EVENT' && props.trigger.trigger_setting.body.length > 0
+})
+watch(
+  () => showSource.value,
+  () => {
+    if (!showSource.value) {
+      const parameter: any = { ...props.modelValue }
+      base_field_list.value.forEach((f) => {
+        if (!parameter[f.field]) {
+          parameter[f.field] = { source: 'custom', value: f.default_value }
+        } else {
+          parameter[f.field] = { ...parameter[f.field], source: 'custom' }
+        }
+      })
+      api_input_field_list.value.forEach((f) => {
+        if (!parameter.api_input_field_list) {
+          parameter['api_input_field_list'] = {}
+        }
+        if (!parameter['api_input_field_list'][f.field]) {
+          parameter['api_input_field_list'][f.field] = {
+            source: 'custom',
+            value: f.default_value ? f.default_value : '',
+          }
+        } else {
+          parameter['api_input_field_list'][f.field] = {
+            ...parameter['api_input_field_list'][f.field],
+            source: 'custom',
+          }
+        }
+      })
+      user_input_field_list.value.forEach((f) => {
+        if (!parameter['user_input_field_list']) {
+          parameter['user_input_field_list'] = {}
+        }
+        if (!parameter['user_input_field_list'][f.field]) {
+          parameter['user_input_field_list'][f.field] = {
+            source: 'custom',
+            value: f.default_value ? f.default_value : '',
+          }
+        } else {
+          parameter['user_input_field_list'][f.field] = {
+            ...parameter['user_input_field_list'][f.field],
+            source: 'custom',
+          }
+        }
+      })
+      emit('update:modelValue', { ...parameter })
+    }
+  },
+)
 const options = computed(() => {
   if (props.trigger.trigger_type === 'EVENT') {
     const body = props.trigger.trigger_setting.body
@@ -223,7 +269,7 @@ const base_field_list = computed<Array<any>>(() => {
     if (base_node.value.properties.node_data.file_upload_enable) {
       if (base_node.value.properties.node_data.file_upload_setting.document) {
         result.push({
-          field: 'document',
+          field: 'document_list',
           required: true,
           default_value: '[]',
           label: { value: t('common.fileUpload.document') },
@@ -231,7 +277,7 @@ const base_field_list = computed<Array<any>>(() => {
       }
       if (base_node.value.properties.node_data.file_upload_setting.image) {
         result.push({
-          field: 'image',
+          field: 'image_list',
           required: true,
           default_value: '[]',
           label: { value: t('common.fileUpload.image') },
@@ -239,7 +285,7 @@ const base_field_list = computed<Array<any>>(() => {
       }
       if (base_node.value.properties.node_data.file_upload_setting.audio) {
         result.push({
-          field: 'audio',
+          field: 'audio_list',
           required: true,
           default_value: '[]',
           label: { value: t('common.fileUpload.audio') },
@@ -247,7 +293,7 @@ const base_field_list = computed<Array<any>>(() => {
       }
       if (base_node.value.properties.node_data.file_upload_setting.video) {
         result.push({
-          field: 'video',
+          field: 'video_list',
           required: true,
           default_value: '[]',
           label: { value: t('common.fileUpload.video') },
@@ -256,7 +302,7 @@ const base_field_list = computed<Array<any>>(() => {
 
       if (base_node.value.properties.node_data.file_upload_setting.other) {
         result.push({
-          field: 'other',
+          field: 'other_list',
           required: true,
           default_value: '[]',
           label: { value: t('common.fileUpload.other') },
@@ -267,29 +313,36 @@ const base_field_list = computed<Array<any>>(() => {
   return result
 })
 const init_parameters = () => {
-  const parameter: any = {}
+  const parameter: any = { ...props.modelValue }
   base_field_list.value.forEach((f) => {
-    parameter[f.field] = { source: 'custom', value: f.default_value }
+    if (!parameter[f.field]) {
+      parameter[f.field] = { source: 'custom', value: f.default_value }
+    }
   })
   api_input_field_list.value.forEach((f) => {
     if (!parameter.api_input_field_list) {
       parameter['api_input_field_list'] = {}
     }
-    parameter['api_input_field_list'][f.field] = {
-      source: 'custom',
-      value: f.default_value ? f.default_value : '',
+    if (!parameter['api_input_field_list'][f.field]) {
+      parameter['api_input_field_list'][f.field] = {
+        source: 'custom',
+        value: f.default_value ? f.default_value : '',
+      }
     }
   })
   user_input_field_list.value.forEach((f) => {
     if (!parameter['user_input_field_list']) {
       parameter['user_input_field_list'] = {}
     }
-    parameter['user_input_field_list'][f.field] = {
-      source: 'custom',
-      value: f.default_value ? f.default_value : '',
+    if (!parameter['user_input_field_list'][f.field]) {
+      parameter['user_input_field_list'][f.field] = {
+        source: 'custom',
+        value: f.default_value ? f.default_value : '',
+      }
     }
   })
-  emit('update:modelValue', { ...parameter, ...props.modelValue })
+
+  emit('update:modelValue', { ...parameter })
 }
 
 init_parameters()

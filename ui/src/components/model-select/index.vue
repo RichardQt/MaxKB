@@ -1,6 +1,12 @@
 <template>
   <div class="w-full">
-    <el-select v-model="modelValue" popper-class="select-model" :clearable="true" v-bind="$attrs">
+    <el-select
+      v-model="modelValue"
+      popper-class="select-model"
+      :clearable="true"
+      filterable
+      v-bind="$attrs"
+    >
       <el-option-group
         v-for="(value, label) in options"
         :key="value"
@@ -13,17 +19,18 @@
           :value="item.id"
           class="flex-between"
         >
-          <div class="flex">
+          <el-space :size="8">
             <span
-              v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-              class="model-icon mr-8"
+              :innerHTML="relatedObject(providerOptions, label, 'provider')?.icon"
+              class="select-model-icon"
+              style="margin-top: -7px"
             ></span>
             <span>{{ item.name }}</span>
-
-            <el-tag v-if="item.type === 'share'" type="info" class="info-tag ml-8" style="margin-top: 7px;">
+            <el-tag v-if="item.type === 'share'" type="info" class="info-tag">
               {{ t('views.shared.title') }}
             </el-tag>
-          </div>
+          </el-space>
+
           <el-icon class="check-icon" v-if="item.id === modelValue">
             <Check />
           </el-icon>
@@ -37,19 +44,38 @@
           class="flex-between"
           disabled
         >
-          <div class="flex">
+          <el-space :size="8">
             <span
-              v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-              class="model-icon mr-8"
+              :innerHTML="relatedObject(providerOptions, label, 'provider')?.icon"
+              class="select-model-icon"
+              style="margin-top: -7px"
             ></span>
             <span>{{ item.name }}</span>
             <span class="color-danger">{{ $t('common.unavailable') }}</span>
-          </div>
+          </el-space>
           <el-icon class="check-icon" v-if="item.id === modelValue">
             <Check />
           </el-icon>
         </el-option>
       </el-option-group>
+
+      <template #label="{ label, value }">
+        <el-space :size="8">
+          <span
+            class="select-model-icon"
+            :innerHTML="relatedObject(providerOptions, getModelProvider(value), 'provider')?.icon"
+          >
+          </span>
+          <span>
+            <span>{{
+              relatedObject(providerOptions, getModelProvider(value), 'provider')?.name
+            }}</span>
+            <span>/</span>
+            <span>{{ label }}</span>
+          </span>
+        </el-space>
+      </template>
+
       <template #footer v-if="showFooter">
         <slot name="footer">
           <div class="w-full text-left cursor" @click="openCreateModel(undefined, props.modelType)">
@@ -81,7 +107,7 @@ import type { Provider } from '@/api/type/model'
 import { relatedObject } from '@/utils/array'
 import CreateModelDialog from '@/views/model/component/CreateModelDialog.vue'
 import SelectProviderDialog from '@/views/model/component/SelectProviderDialog.vue'
-
+import { flatMap } from 'lodash'
 import { t } from '@/locales'
 import useStore from '@/stores'
 import permissionMap from '@/permission'
@@ -135,6 +161,12 @@ const openCreateModel = (provider?: Provider, model_type?: string) => {
     selectProviderRef.value?.open(model_type)
   }
 }
+const getModelProvider = computed(() => {
+  return (id: string) => {
+    const item = flatMap(props.options)?.find((item: any) => item.id === id)
+    return (item as any)?.provider || ''
+  }
+})
 
 function submitModel() {
   emit('submitModel')
@@ -151,10 +183,6 @@ onMounted(() => {
     &:hover {
       background-color: var(--el-fill-color-light);
     }
-  }
-
-  .model-icon {
-    width: 18px;
   }
 
   .check-icon {

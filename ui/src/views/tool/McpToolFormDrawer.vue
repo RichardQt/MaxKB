@@ -67,7 +67,7 @@
           <el-input
             v-model="form.desc"
             type="textarea"
-            :placeholder="$t('views.tool.form.mcpDescription.placeholder')"
+            :placeholder="$t('common.descPlaceholder')"
             maxlength="128"
             show-word-limit
             :autosize="{ minRows: 3 }"
@@ -75,15 +75,15 @@
           />
         </el-form-item>
         <h4 class="title-decoration-1 mb-16">
-          {{ $t('views.tool.form.mcp.title') }}
+          {{ $t('views.tool.mcp.title') }}
         </h4>
 
         <el-form-item prop="code">
           <template #label>
-            {{ $t('views.tool.form.mcp.label') }}
+            {{ $t('views.tool.mcp.label') }}
             <span class="color-danger">*</span>
             <el-text type="info" class="color-secondary">
-              （{{ $t('views.tool.form.mcp.tip') }}）
+              （{{ $t('views.tool.mcp.tip') }}）
             </el-text>
           </template>
           <el-input
@@ -207,7 +207,7 @@ const rules = reactive({
   code: [
     {
       required: true,
-      message: t('views.tool.form.mcp.requiredMessage'),
+      message: t('views.tool.mcp.requiredMessage'),
       trigger: 'blur',
     },
   ],
@@ -263,10 +263,9 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.editSuccess'))
             emit('refresh', res.data)
-            return user.profile()
-          })
-          .then(() => {
-            visible.value = false
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
           .finally(() => {
             loading.value = false
@@ -281,11 +280,11 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.createSuccess'))
             emit('refresh')
-            return user.profile()
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
-          .then(() => {
-            visible.value = false
-          })
+
           .finally(() => {
             loading.value = false
           })

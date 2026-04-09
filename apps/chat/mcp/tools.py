@@ -33,7 +33,7 @@ class MCPToolHandler:
         return {
             "tools": [
                 {
-                    "name": 'ai_chat',
+                    "name": f'agent_{str(self.application.id)[:8]}',
                     "description": f'{self.application.name} {self.application.desc}',
                     "inputSchema": {
                         "type": "object",
@@ -57,6 +57,8 @@ class MCPToolHandler:
             'application_id': self.application.id,
             'chat_user_id': str(uuid.uuid7()),
             'chat_user_type': ChatUserType.ANONYMOUS_USER,
+            'ip_address': '-',
+            'source': {"type": ChatSourceChoices.ONLINE.value},
             'debug': False
         }).open()
 

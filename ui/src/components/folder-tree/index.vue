@@ -8,11 +8,11 @@
         clearable
       />
       <el-dropdown trigger="click" :teleported="false" @command="switchSortMethod">
-        <el-button class="ml-4">
+        <el-button class="ml-8" style="width: 32px">
           <AppIcon :iconName="sortIconName"></AppIcon>
         </el-button>
         <template #dropdown>
-          <el-dropdown-menu class="w-180">
+          <el-dropdown-menu style="width: 220px">
             <template v-for="(group, index) in SORT_MENU_CONFIG" :key="index">
               <el-dropdown-item
                 v-for="obj in group.items"
@@ -460,7 +460,7 @@ const handleDrop = (draggingNode: any, dropNode: any, dropType: string, ev: Drag
     folderApi
       .putFolder(dragData.id, props.source, obj, loading)
       .then(() => {
-        sortAfterDrop(dragData, dropData, dropType, newParentId)
+        emit('refreshTree')
 
         MsgSuccess(t('common.saveSuccess'))
       })
@@ -580,6 +580,8 @@ function rebalanceAndInsert(
 }
 
 onBeforeRouteLeave((to, from) => {
+  if (from?.name === 'ToolWorkflow') return
+  if (from?.name === 'AppSetting') return
   folder.setCurrentFolder({})
 })
 
@@ -727,7 +729,7 @@ onUnmounted(() => {
     }
     &:hover {
       border-radius: var(--app-border-radius-small);
-      background: var(--app-text-color-light-1);
+      background: rgba(var(--el-text-color-primary-rgb), 0.1);
     }
     &.is-active {
       &:hover {

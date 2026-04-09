@@ -40,6 +40,7 @@ export default {
     copyError: 'Node already copied',
     paramErrorMessage: 'Parameter already exists: ',
     saveMessage: 'Current changes have not been saved. Save before exiting?',
+    searchPlaceholder: 'Please enter node name',
   },
   delete: {
     confirmTitle: 'Confirm to delete this node?',
@@ -60,6 +61,7 @@ export default {
     ReferencingRequired: 'Referenced variable is required',
     ReferencingError: 'Invalid referenced variable',
     NoReferencing: 'Referenced variable does not exist',
+    placeholder_key: 'Enter key',
     placeholder: 'Please select a variable',
     inputPlaceholder: 'Please enter variable',
     loop: 'Loop Variable',
@@ -322,7 +324,8 @@ You are a master of problem optimization, adept at accurately inferring user int
       text: 'Aggregate variables of each group according to the aggregation strategy',
       Strategy: 'Aggregation Strategy',
       placeholder: 'Return the first non-null value of each group',
-      placeholder1: 'Return the set of variables for each group',
+      placeholder1: 'Return the array of variables for each group',
+      placeholder2: 'Return the dict of variables for each group',
       group: {
         noneError: 'Name cannot be empty',
         dupError: 'Name cannot be duplicated',
@@ -504,7 +507,7 @@ You are a master of problem optimization, adept at accurately inferring user int
       expression: {
         label: 'Expression',
         placeholder: 'Please enter expression',
-        tooltip: 'Please use JSON Path expressions to split variables, e.g.: $.store.book',
+        tooltip: 'Please use JSON Path expressions to split variables, e.g.: $.store.book <a href="https://pypi.org/project/jsonpath-ng/1.8.0/" target="_blank" class="expression_tip">Click for details ➜ pypi.org</a>',
       },
     },
     parameterExtractionNode: {
@@ -523,6 +526,7 @@ You are a master of problem optimization, adept at accurately inferring user int
     contain: 'Contains',
     not_contain: 'Does not contain',
     eq: 'Equal to',
+    not_eq: 'Not equal to',
     ge: 'Greater than or equal to',
     gt: 'Greater than',
     le: 'Less than or equal to',
@@ -537,7 +541,6 @@ You are a master of problem optimization, adept at accurately inferring user int
   },
   SystemPromptPlaceholder: 'System Prompt, can reference variables in the system, such as',
   UserPromptPlaceholder: 'User Prompt, can reference variables in the system, such as',
-  ExecutionRecord: 'Execution Record',
   initiator: 'Iniiator',
   abnormalInformation: 'Abnormal Information',
 }

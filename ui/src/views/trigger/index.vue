@@ -71,8 +71,8 @@
                 clearable
                 style="width: 220px"
               >
-                <el-option :label="$t('common.status.enable')" value="true" />
-                <el-option :label="$t('common.status.disable')" value="false" />
+                <el-option :label="$t('common.status.enabled')" value="true" />
+                <el-option :label="$t('common.status.disabled')" value="false" />
               </el-select>
               <el-select
                 v-else-if="search_type === 'create_user'"
@@ -110,25 +110,29 @@
             v-loading="loading"
             :row-key="(row: any) => row.id"
             :maxTableHeight="300"
-            :tooltip-options="{
-              popperClass: 'max-w-350',
-            }"
           >
             <el-table-column type="selection" width="55" :reserve-selection="true" />
-            <el-table-column prop="name" :label="$t('common.name')" show-overflow-tooltip>
+            <el-table-column
+              prop="name"
+              :label="multipleSelection.length === 0 ? $t('common.name') : `${$t('common.selected')} ${multipleSelection.length} ${$t('views.document.items') }`"
+              show-overflow-tooltip
+              width="220"
+            >
               <template #default="{ row }">
                 <div class="flex align-center">
                   <TriggerIcon :type="row.trigger_type" class="mr-8" :size="24" />
-                  {{ row.name }}
+                  <span class="ellipsis" style="max-width: 160px">
+                    {{ row.name }}
+                  </span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="trigger_type" :label="$t('common.type')" min-width="80">
+            <el-table-column prop="trigger_type" :label="$t('common.type')" width="120">
               <template #default="{ row }">
                 {{ $t(TriggerType[row.trigger_type as keyof typeof TriggerType]) }}
               </template>
             </el-table-column>
-            <el-table-column prop="is_active" :label="$t('common.status.label')" min-width="90">
+            <el-table-column prop="is_active" :label="$t('common.status.label')" width="120">
               <template #default="{ row }">
                 <div v-if="row.is_active" class="flex align-center">
                   <el-icon class="color-success mr-8" style="font-size: 16px">
@@ -146,20 +150,29 @@
                 </div>
               </template>
             </el-table-column>
+
             <el-table-column
               prop="desc"
               :label="$t('common.desc')"
-              min-width="160"
               show-overflow-tooltip
+              min-width="170"
             >
             </el-table-column>
-
-            <el-table-column prop="trigger_task" :label="$t('views.trigger.task')" width="180">
+            <el-table-column prop="next_run_time" :label="$t('views.trigger.nextTime')" width="175">
               <template #default="{ row }">
-                <el-popover popper-class="max-w-200">
+                {{ datetimeFormat(row.next_run_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="trigger_task" :label="$t('views.trigger.task')" width="150">
+              <template #default="{ row }">
+                <el-popover
+                  placement="top-start"
+                  :popper-style="{ width: 'auto', maxWidth: '300px' }"
+                  :persistent="false"
+                >
                   <template #reference>
                     <div class="flex">
-                      <el-tag
+                      <el-tag size="small"
                         class="info-tag mr-8 cursor"
                         v-if="
                           row.trigger_task.filter((item: any) => item.type === 'APPLICATION').length
@@ -170,7 +183,7 @@
                           row.trigger_task.filter((item: any) => item.type === 'APPLICATION').length
                         }}
                       </el-tag>
-                      <el-tag
+                      <el-tag size="small"
                         class="info-tag cursor"
                         v-if="row.trigger_task.filter((item: any) => item.type === 'TOOL').length"
                       >
@@ -203,7 +216,7 @@
                         <el-avatar shape="square" :size="20" style="background: none" class="mr-8">
                           <img :src="resetUrl(item?.icon, resetUrl('./favicon.ico'))" alt="" />
                         </el-avatar>
-                        <span class="ellipsis" :title="item.name">{{ item.name }}</span>
+                        <span class="ellipsis-1" :title="item.name">{{ item.name }}</span>
                       </div>
                     </div>
                     <el-divider
@@ -236,12 +249,14 @@
                           <img :src="resetUrl(item?.icon)" alt="" />
                         </el-avatar>
                         <ToolIcon v-else :size="20" :type="item?.tool_type" class="mr-8" />
-                        <span class="ellipsis" :title="item.name">{{ item.name }}</span>
+                        <span class="ellipsis-1" :title="item.name">{{ item.name }}</span>
                       </div>
                     </div>
                   </div>
                 </el-popover>
               </template>
+            </el-table-column>
+            <el-table-column prop="create_user" :label="$t('common.creator')" width="130">
             </el-table-column>
             <el-table-column
               prop="create_time"
@@ -274,7 +289,7 @@
                 <el-tooltip
                   v-if="triggerPermissionMap.record()"
                   effect="dark"
-                  :content="$t('workflow.ExecutionRecord')"
+                  :content="$t('common.ExecutionRecord.title')"
                   placement="top"
                 >
                   <span class="mr-4">

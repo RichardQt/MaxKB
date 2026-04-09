@@ -3,7 +3,7 @@ RUN python3 -m venv /opt/py3
 
 FROM ghcr.io/1panel-dev/maxkb-vector-model:v2.0.3 AS vector-model
 
-FROM postgres:17.6-trixie
+FROM postgres:17.9-trixie
 COPY --from=python-stage /usr/local /usr/local
 COPY --from=python-stage /opt/py3 /opt/py3
 COPY --chmod=500 installer/*.sh /usr/bin/
@@ -26,9 +26,11 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     find /etc/ -type f ! -path '/etc/resolv.conf' ! -path '/etc/hosts' | xargs chmod g-rx && \
     curl -L --connect-timeout 120 -m 1800 https://resource.fit2cloud.com/maxkb/ffmpeg/get-ffmpeg-linux | sh && \
     mkdir -p /opt/maxkb-app/sandbox/lib && chmod -R 550 /opt/maxkb-app/sandbox && \
-    useradd --no-create-home --home /opt/maxkb-app/sandbox sandbox -g root && \
+    useradd --no-create-home --home /opt/maxkb-app/sandbox -s /usr/sbin/nologin sandbox -g root && \
     chmod g-rwx /usr/local/bin/* /usr/bin/* /bin/* /usr/sbin/* /sbin/* /usr/lib/postgresql/17/bin/* && \
+    chmod g+xr /usr/bin/ld.so /usr/local/bin/python* && \
     chmod -R g-rwx /tmp /var/tmp /var/lock && \
+    chmod g+rx /tmp && \
     apt-get clean all && \
     rm -rf /var/lib/postgresql /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /usr/share/info/* /usr/share/locale/* /usr/share/lintian/* /usr/share/linda/* /var/cache/* /var/log/* /var/tmp/* /tmp/*
 COPY --from=vector-model --chmod=700 /opt/maxkb-app/model /opt/maxkb-app/model

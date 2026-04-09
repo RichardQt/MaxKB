@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.tool.mcpConfig')"
+    :title="$t('views.tool.mcp.mcpConfig')"
     width="600"
     v-model="dialogVisible"
     :close-on-click-modal="false"
@@ -52,7 +52,7 @@ defineExpose({ open })
     position: absolute;
     top: 12px;
     right: 12px;
-    box-shadow: 0px 4px 8px 0px var(--app-text-color-light-1);
+    box-shadow: 0px 4px 8px 0px rgba(var(--el-text-color-primary-rgb), 0.1);
     z-index: 2;
   }
   .config-textarea {

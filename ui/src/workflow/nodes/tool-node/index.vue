@@ -52,7 +52,7 @@
 
                     <span class="color-danger" v-if="item.is_required">*</span>
 
-                    <el-tag type="info" class="info-tag ml-4">{{ item.type }}</el-tag>
+                    <el-tag size="small" type="info" class="info-tag ml-4">{{ item.type }}</el-tag>
                   </div>
                   <div>
                     <el-button text @click.stop="openAddDialog(item, index)">
@@ -101,7 +101,14 @@
       <el-form-item
         :label="$t('workflow.nodes.aiChatNode.returnContent.label')"
         @click.prevent
-        v-if="[WorkflowMode.Application, WorkflowMode.ApplicationLoop].includes(workflowMode)"
+        v-if="
+          [
+            WorkflowMode.Application,
+            WorkflowMode.ApplicationLoop,
+            WorkflowMode.Tool,
+            WorkflowMode.ToolLoop,
+          ].includes(workflowMode)
+        "
       >
         <template #label>
           <div class="flex align-center">

@@ -60,12 +60,12 @@
         <!-- <el-table-column type="selection" width="55" /> -->
         <el-table-column width="220" :label="$t('common.name')" show-overflow-tooltip>
           <template #default="{ row }">
-            <div class="flex align-center">
+            <el-space :size="8">
               <KnowledgeIcon :type="row.type" :size="24" />
-              <span class="ml-8">
+              <span class="ellipsis" style="max-width: 160px">
                 {{ row.name }}
               </span>
-            </div>
+            </el-space>
           </template>
         </el-table-column>
 
@@ -93,7 +93,12 @@
           <template #header>
             <div>
               <span>{{ $t('views.workspace.title') }}</span>
-              <el-popover :width="200" trigger="click" :visible="workspaceVisible">
+              <el-popover
+                :width="200"
+                trigger="click"
+                :visible="workspaceVisible"
+                :persistent="false"
+              >
                 <template #reference>
                   <el-button
                     style="margin-top: -2px"
@@ -237,20 +242,6 @@
                     {{ $t('views.system.resourceAuthorization.title') }}
                   </el-dropdown-item>
                   <el-dropdown-item
-                    @click.stop="exportKnowledge(row)"
-                    v-if="permissionPrecise.export()"
-                  >
-                    <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
-                    {{ $t('views.document.setting.export') }} Excel
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    @click.stop="exportZipKnowledge(row)"
-                    v-if="permissionPrecise.export()"
-                  >
-                    <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
-                    {{ $t('views.document.setting.export') }} ZIP
-                  </el-dropdown-item>
-                  <el-dropdown-item
                     text
                     @click.stop="openResourceMappingDrawer(row)"
                     v-if="permissionPrecise.relate_map()"
@@ -259,6 +250,30 @@
                     {{ $t('views.system.resourceMapping.title') }}
                   </el-dropdown-item>
                   <el-dropdown-item
+                    divided
+                    @click.stop="exportKnowledge(row)"
+                    v-if="permissionPrecise.export()"
+                  >
+                    <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                    {{ $t('views.document.setting.exportDocument') }} Excel
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    @click.stop="exportZipKnowledge(row)"
+                    v-if="permissionPrecise.export()"
+                  >
+                    <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                    {{ $t('views.document.setting.exportDocument') }} ZIP
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    @click.stop="exportKnowledgeBundle(row)"
+                    v-if="permissionPrecise.export()"
+                  >
+                    <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                    {{ $t('views.document.setting.exportKnowledge') }}
+                  </el-dropdown-item>
+
+                  <el-dropdown-item
+                    divided
                     type="danger"
                     @click.stop="deleteKnowledge(row)"
                     v-if="permissionPrecise.delete()"
@@ -372,6 +387,12 @@ const exportKnowledge = (item: any) => {
 }
 const exportZipKnowledge = (item: any) => {
   KnowledgeResourceApi.exportZipKnowledge(item.name, item.id, loading).then(() => {
+    MsgSuccess(t('common.exportSuccess'))
+  })
+}
+
+const exportKnowledgeBundle = (item: any) => {
+  KnowledgeResourceApi.exportKnowledgeBundle(item.name, item.id, loading).then(() => {
     MsgSuccess(t('common.exportSuccess'))
   })
 }

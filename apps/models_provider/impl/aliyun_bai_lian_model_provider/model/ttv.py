@@ -1,15 +1,13 @@
 import time
 from http import HTTPStatus
-from typing import Dict, Optional
+from typing import Dict
+
 import requests
 from dashscope import VideoSynthesis
-from langchain_core.messages import HumanMessage
-from django.utils.translation import gettext
 
-from langchain_community.chat_models import ChatTongyi
+from common.utils.logger import maxkb_logger
 from models_provider.base_model_provider import MaxKBBaseModel
 from models_provider.base_ttv import BaseGenerationVideo
-from common.utils.logger import maxkb_logger
 
 
 class GenerationVideoModel(MaxKBBaseModel, BaseGenerationVideo):
@@ -44,22 +42,7 @@ class GenerationVideoModel(MaxKBBaseModel, BaseGenerationVideo):
         )
 
     def check_auth(self):
-        from openai import OpenAI
-
-        client = OpenAI(
-            # 若没有配置环境变量，请用百炼API Key将下行替换为：api_key="sk-xxx"
-            api_key=self.api_key,
-            base_url=self.api_base,
-        )
-        client.chat.completions.create(
-            # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
-            model="qwen-max",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": gettext('Hello')},
-            ]
-
-        )
+        return True
 
     def _safe_call(self, func, **kwargs):
         """带重试的请求封装"""

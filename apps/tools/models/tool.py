@@ -3,7 +3,9 @@ from django.db import models
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
+from common.encoder.encoder import SystemEncoder
 from common.mixins.app_model_mixin import AppModelMixin
+from knowledge.models.knowledge_action import State
 from users.models import User
 
 
@@ -31,8 +33,17 @@ class ToolScope(models.TextChoices):
 class ToolType(models.TextChoices):
     INTERNAL = "INTERNAL", '内置'
     CUSTOM = "CUSTOM", "自定义"
+    SKILL = "SKILL", "技能"
     MCP = "MCP", "MCP工具"
     DATA_SOURCE = "DATA_SOURCE", "数据源"
+    WORKFLOW = "WORKFLOW", "工作流"
+
+
+class ToolTaskTypeChoices(models.TextChoices):
+    APPLICATION = 'APPLICATION'
+    KNOWLEDGE = 'KNOWLEDGE'
+    TOOL = 'TOOL'
+    TRIGGER = 'TRIGGER'
 
 
 class Tool(AppModelMixin):
@@ -58,3 +69,18 @@ class Tool(AppModelMixin):
 
     class Meta:
         db_table = "tool"
+
+
+class ToolRecord(AppModelMixin):
+    id = models.UUIDField(primary_key=True, max_length=128, default=uuid.uuid7, editable=False, verbose_name="主键id")
+    tool = models.ForeignKey(Tool, on_delete=models.SET_NULL, null=True)
+    workspace_id = models.CharField(max_length=64, verbose_name="工作空间id", default="default", db_index=True)
+    source_type = models.CharField(verbose_name="触发器任务类型", choices=ToolTaskTypeChoices.choices,
+                                   default=ToolTaskTypeChoices.APPLICATION, max_length=256)
+    source_id = models.UUIDField(verbose_name="资源id")
+    meta = models.JSONField(default=dict, encoder=SystemEncoder)
+    state = models.CharField(verbose_name='状态', max_length=20, choices=State.choices, default=State.STARTED)
+    run_time = models.FloatField(verbose_name="运行时长", default=0)
+
+    class Meta:
+        db_table = "tool_record"

@@ -21,6 +21,8 @@ const share = {
       ],
       'OR',
     ),
+  batchDelete: () => false,
+  batchMove: () => false,
   import: () =>
     hasPermission(
       [
@@ -37,6 +39,10 @@ const share = {
       ],
       'OR',
     ),
+  trigger_read: ()=> false,
+  trigger_create: ()=> false,
+  trigger_edit: ()=> false,
+  trigger_delete: ()=> false,
   switch: () =>
     hasPermission(
       [
@@ -87,7 +93,14 @@ const share = {
       ],
       'OR',
     ),
-
+  record: () =>
+    hasPermission(
+      [
+        RoleConst.ADMIN,
+        PermissionConst.SHARED_TOOL_EXECUTE_RECORD,
+      ],
+      'OR',
+    ),
   folderRead: () => false,
   folderManage: () => false,
   folderCreate: () => false,

@@ -57,7 +57,7 @@
           shadow="never"
           class="mb-16 w-full cursor"
           :class="form.trigger_type === 'SCHEDULED' ? 'border-active' : ''"
-          @click="form.trigger_type = 'SCHEDULED'"
+          @click="changeTriggerType('SCHEDULED')"
         >
           <div class="flex align-center line-height-22">
             <el-avatar shape="square" :size="32">
@@ -76,21 +76,52 @@
             shadow="never"
             class="card-never mt-16 w-full"
           >
-            <p style="margin-top: -8px">{{ $t('views.trigger.triggerCycle.title') }}</p>
+            <div class="flex-between">
+              <p style="margin-top: -8px">
+                {{
+                  form.trigger_setting.schedule_type === 'cron'
+                    ? $t('views.trigger.triggerCycle.cronExpression')
+                    : $t('views.trigger.triggerCycle.title')
+                }}
+              </p>
+              <el-tooltip
+                :content="
+                  form.trigger_setting.schedule_type === 'cron'
+                    ? $t('views.trigger.triggerCycle.switchCycle')
+                    : $t('views.trigger.triggerCycle.switchCron')
+                "
+                placement="top"
+                effect="light"
+              >
+                <el-button text @click.stop="switchScheduleType">
+                  <el-icon><Switch /></el-icon>
+                </el-button>
+              </el-tooltip>
+            </div>
 
             <el-cascader
+              v-if="form.trigger_setting.schedule_type !== 'cron'"
               v-model="scheduled"
               :options="triggerCycleOptions"
-              @change="handleChange"
+              @change="handleChangeScheduled"
               style="width: 100%"
             />
+            <el-input
+              v-else
+              v-model="form.trigger_setting.cron_expression"
+              :placeholder="t('views.trigger.triggerCycle.placeholder')"
+              clearable
+              @blur="validateCron"
+              @input="validateCron"
+            />
+            <div v-if="cronError" class="el-form-item__error">{{ cronError }}</div>
           </el-card>
         </el-card>
         <el-card
           shadow="never"
           class="w-full cursor"
           :class="form.trigger_type === 'EVENT' ? 'border-active' : ''"
-          @click="form.trigger_type = 'EVENT'"
+          @click="changeTriggerType('EVENT')"
         >
           <div class="flex align-center line-height-22">
             <el-avatar shape="square" class="avatar-orange" :size="32">
@@ -105,7 +136,10 @@
           </div>
           <el-card v-if="form.trigger_type === 'EVENT'" shadow="never" class="card-never mt-16">
             <el-form-item :label="$t('views.trigger.from.event_url.label')">
-              <div class="complex-input flex align-center w-full" style="background-color: #ffffff">
+              <div
+                class="complex-input flex-between align-center w-full"
+                style="background-color: #ffffff"
+              >
                 <el-input
                   class="complex-input__left"
                   v-bind:modelValue="event_url"
@@ -113,21 +147,35 @@
                 ></el-input>
 
                 <el-tooltip :content="$t('common.copy')" placement="top">
-                  <el-button text @click="copy">
+                  <el-button text @click="copyClick(event_url)" class="mr-4">
                     <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
                   </el-button>
                 </el-tooltip>
               </div>
             </el-form-item>
             <el-form-item label="Bearer Token">
-              <el-input
-                type="password"
-                :placeholder="$t('common.inputPlaceholder')"
-                v-model="form.trigger_setting.token"
-                show-password
-                readonly
-              >
-              </el-input>
+              <div class="complex-input flex-between w-full" style="background-color: #ffffff">
+                <el-input
+                  class="complex-input__left"
+                  :placeholder="$t('common.inputPlaceholder')"
+                  v-model="form.trigger_setting.token"
+                  readonly
+                  style="width: 80%"
+                >
+                </el-input>
+                <div>
+                  <el-tooltip :content="$t('common.copy')" placement="top">
+                    <el-button text @click="copyClick(form.trigger_setting.token)">
+                      <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip :content="$t('common.refresh')" placement="top">
+                    <el-button @click="refreshToken" text style="margin: 0 4px 0 0 !important">
+                      <AppIcon iconName="app-refresh" class="color-secondary"></AppIcon>
+                    </el-button>
+                  </el-tooltip>
+                </div>
+              </div>
             </el-form-item>
             <el-form-item>
               <template #label>
@@ -253,7 +301,7 @@
                 <ApplicationParameter
                   class="mt-8 mb-8"
                   ref="applicationParameterRef"
-                  v-if="applicationDetailsDict[item.source_id]"
+                  v-if="showTast === 'agent' + index && applicationDetailsDict[item.source_id]"
                   :application="applicationDetailsDict[item.source_id]"
                   :trigger="form"
                   v-model="item.parameter"
@@ -336,7 +384,7 @@
           </div>
           <div class="w-full" v-if="collapseData.agent">
             <template v-for="(item, index) in applicationTask" :key="index">
-              <div class="border border-r-6 white-bg" style="padding: 2px 8px">
+              <div class="border border-r-6 white-bg mb-4" style="padding: 2px 8px">
                 <div class="flex-between">
                   <div class="flex align-center" style="line-height: 20px">
                     <el-avatar
@@ -457,10 +505,10 @@
       </el-form-item>
     </el-form>
     <ApplicationDialog @refresh="applicationRefresh" ref="applicationDialogRef"></ApplicationDialog>
-    <ToolDialog @refresh="toolRefresh" ref="toolDialogRef"></ToolDialog>
+    <ToolDialog @refresh="toolRefresh" ref="toolDialogRef" tool_type="CUSTOM,WORKFLOW"></ToolDialog>
     <template #footer>
       <el-button @click="close">{{ $t('common.cancel') }}</el-button>
-      <el-button v-if="submitPermission" type="primary" @click="submit">{{
+      <el-button v-if="!is_edit || editPermission" type="primary" @click="submit">{{
         is_edit ? $t('common.save') : $t('common.create')
       }}</el-button>
     </template>
@@ -472,18 +520,22 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { copyClick } from '@/utils/clipboard'
 import ApplicationDialog from '@/views/application/component/ApplicationDialog.vue'
 import ToolDialog from '@/views/application/component/ToolDialog.vue'
-import applicationAPI from '@/api/application/application'
 import triggerAPI from '@/api/trigger/trigger'
-import toolAPI from '@/api/tool/tool'
+import systemManageTriggerAPI from '@/api/system-resource-management/trigger'
 import ToolParameter from '@/views/trigger/component/ToolParameter.vue'
 import ApplicationParameter from '@/views/trigger/component/ApplicationParameter.vue'
 import { resetUrl } from '@/utils/common.ts'
 import { triggerCycleOptions } from '@/utils/trigger.ts'
 import { t } from '@/locales'
 import { type FormInstance } from 'element-plus'
+import { useRoute } from 'vue-router'
+import { cloneDeep } from 'lodash'
+import { isValidCron } from 'cron-validator'
 import Result from '@/request/Result'
 import { hasPermission } from '@/utils/permission'
+import permissionMap from '@/permission'
 import { PermissionConst, RoleConst } from '@/utils/permission/data'
+import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 
 const emit = defineEmits(['refresh'])
 const props = withDefaults(
@@ -505,41 +557,115 @@ const collapseData = reactive({
 })
 const showTast = ref<string>('')
 
-const submitPermission = computed(() => {
-  return is_edit.value ? triggerPermissionMap.edit() : triggerPermissionMap.create()
+const route = useRoute()
+const apiType = computed(() => {
+  if (route.path.includes('resource-management')) {
+    return 'systemManage'
+  } else {
+    return 'workspace'
+  }
 })
 
-const triggerPermissionMap = {
-  edit: () =>
-    hasPermission(
+const permissionPrecise = computed(() => {
+  return permissionMap[current_source_type.value?.toLocaleLowerCase() as 'application' | 'tool'][
+    apiType.value as 'workspace' | 'systemManage'
+  ]
+})
+
+const editPermission = computed(() => {
+  if (current_source_id.value && current_source_type.value) {
+    return permissionPrecise.value.trigger_edit(current_source_id.value)
+  } else {
+    return hasPermission(
       [
         RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
         PermissionConst.TRIGGER_EDIT.getWorkspacePermissionWorkspaceManageRole,
       ],
       'OR',
-    ),
-  create: () =>
-    hasPermission(
-      [
-        RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
-        PermissionConst.TRIGGER_CREATE.getWorkspacePermissionWorkspaceManageRole,
-      ],
-      'OR',
-    ),
-}
+    )
+  }
+})
 
 const triggerFormRef = ref<FormInstance>()
-const copy = () => {
-  copyClick(event_url.value)
+
+const getDefaultValue = () => {
+  return {
+    id: uuidv4(),
+    name: '',
+    desc: '',
+    trigger_task: [],
+    trigger_type: 'SCHEDULED',
+    trigger_setting: {
+      token: uuidv4().replace(/-/g, ''),
+      body: [],
+    },
+  }
 }
+
+const form = ref<any>(getDefaultValue())
+const is_edit = ref<boolean>(false)
+const event_url = computed(() => {
+  return `${window.origin}${window.MaxKB.prefix}/api/trigger/v1/webhook/${form.value.id}`
+})
+
+const lastPresetSetting = ref<any>(null)
+const cronError = ref('')
+
+const validateCron = () => {
+  const cron = form.value.trigger_setting.cron_expression?.trim()
+  if (!cron) {
+    cronError.value = ''
+    return
+  }
+  const fields = cron.split(/\s+/)
+  if (fields.length !== 5 || !isValidCron(cron)) {
+    cronError.value = 'Cron表达式不合法'
+  } else {
+    cronError.value = ''
+  }
+}
+
+function switchScheduleType() {
+  const currentType = form.value.trigger_setting.schedule_type || 'daily'
+  const isCron = currentType === 'cron'
+
+  if (!isCron) {
+    lastPresetSetting.value = cloneDeep({
+      schedule_type: form.value.trigger_setting.schedule_type,
+      interval_unit: form.value.trigger_setting.interval_unit,
+      interval_value: form.value.trigger_setting.interval_value,
+      days: form.value.trigger_setting.days,
+      time: form.value.trigger_setting.time,
+    })
+
+    form.value.trigger_setting.schedule_type = 'cron'
+    form.value.trigger_setting.interval_unit = undefined
+    form.value.trigger_setting.interval_value = undefined
+    form.value.trigger_setting.days = undefined
+    form.value.trigger_setting.time = undefined
+    return
+  }
+  cronError.value = ''
+  const backup = lastPresetSetting.value
+  form.value.trigger_setting.schedule_type = backup?.schedule_type || 'daily'
+  form.value.trigger_setting.interval_unit = backup?.interval_unit
+  form.value.trigger_setting.interval_value = backup?.interval_value
+  form.value.trigger_setting.days = backup?.days
+  form.value.trigger_setting.time = backup?.time
+}
+
 const addParameter = () => {
   form.value.trigger_setting.body.push({ field: '', type: '' })
 }
 const delParameter = (index: number | string) => {
   form.value.trigger_setting.body.splice(index, 1)
 }
-const handleChange = (v: Array<any>) => {
+const handleChangeScheduled = (v: Array<any>) => {
   scheduled.value = v
+}
+
+const changeTriggerType = (type: string) => {
+  form.value.trigger_type = type
 }
 const applicationDetailsDict = ref<any>({})
 const toolDetailsDict = ref<any>({})
@@ -549,9 +675,11 @@ const applicationRefresh = (application_selected: any) => {
   application_list
     .filter((id) => !existApplicationIds.includes(id))
     .map((id) => {
-      return applicationAPI.getApplicationDetail(id).then((ok) => {
-        applicationDetailsDict.value[ok.data.id] = ok.data
-      })
+      return loadSharedApi({ type: 'application', systemType: apiType.value })
+        .getApplicationDetail(id)
+        .then((ok: any) => {
+          applicationDetailsDict.value[ok.data.id] = ok.data
+        })
     })
   const task_source_id_list = form.value.trigger_task
     .filter((task: any) => task.source_type === 'APPLICATION')
@@ -589,9 +717,11 @@ const toolRefresh = (tool_selected: any) => {
   tool_ids
     .filter((id) => !existToolIds.includes(id))
     .map((id) => {
-      toolAPI.getToolById(id).then((ok) => {
-        toolDetailsDict.value[ok.data.id] = ok.data
-      })
+      loadSharedApi({ type: 'tool', systemType: apiType.value })
+        .getToolById(id)
+        .then((ok: any) => {
+          toolDetailsDict.value[ok.data.id] = ok.data
+        })
     })
   const task_source_id_list = form.value.trigger_task
     .filter((task: any) => task.source_type === 'TOOL')
@@ -664,47 +794,55 @@ const scheduled = computed({
     }
   },
 })
-const getDefaultValue = () => {
-  return {
-    id: uuidv4(),
-    name: '',
-    desc: '',
-    trigger_task: [],
-    trigger_type: 'SCHEDULED',
-    trigger_setting: {
-      token: uuidv4().replace('-', ''),
-      body: [],
-    },
+
+const init = (trigger_id: string) => {
+  if (current_source_id.value && current_source_type.value) {
+    let api
+    if (apiType.value === 'workspace') {
+      api = triggerAPI.getResourceTriggerDetail(
+        current_source_type.value,
+        current_source_id.value,
+        trigger_id,
+      )
+    } else {
+      api = systemManageTriggerAPI.getResourceTriggerDetail(
+        current_source_type.value,
+        current_source_id.value,
+        trigger_id,
+      )
+    }
+    api.then((ok) => {
+      form.value = { ...ok.data, trigger_task: [ok.data.trigger_task] }
+      applicationDetailsDict.value = { [ok.data.application_task.id]: ok.data.application_task }
+      toolDetailsDict.value = { [ok.data.tool_task.id]: ok.data.tool_task }
+    })
+  } else {
+    triggerAPI.getTriggerDetail(trigger_id).then((ok) => {
+      form.value = ok.data
+      applicationDetailsDict.value = (ok.data.application_task_list || [])
+        .map((item: any) => ({ [item.id]: item }))
+        .reduce((x: any, y: any) => ({ ...x, ...y }), {})
+      toolDetailsDict.value = (ok.data.tool_task_list || [])
+        .map((item: any) => ({ [item.id]: item }))
+        .reduce((x: any, y: any) => ({ ...x, ...y }), {})
+    })
   }
 }
 
-const form = ref<any>(getDefaultValue())
-const is_edit = ref<boolean>(false)
-const event_url = computed(() => {
-  return `${window.origin}${window.MaxKB.prefix}/api/trigger/v1/webhook/${form.value.id}`
-})
-
-const init = (trigger_id: string) => {
-  triggerAPI.getTriggerDetail(trigger_id).then((ok) => {
-    form.value = ok.data
-
-    applicationDetailsDict.value = ok.data.application_task_list
-      .map((item: any) => ({ [item.id]: item }))
-      .reduce((x: any, y: any) => ({ ...x, ...y }), {})
-    toolDetailsDict.value = ok.data.tool_task_list
-      .map((item: any) => ({ [item.id]: item }))
-      .reduce((x: any, y: any) => ({ ...x, ...y }), {})
-  })
+function refreshToken() {
+  form.value.trigger_setting.token = uuidv4().replace(/-/g, '')
 }
 const current_trigger_id = ref<string>()
+const current_source_id = ref<string>()
+const current_source_type = ref<string>()
+
 const open = (trigger_id?: string, source_type?: string, source_id?: string) => {
   is_edit.value = trigger_id ? true : false
   current_trigger_id.value = trigger_id
   drawer.value = true
-  if (trigger_id) {
-    init(trigger_id)
-  }
   if (source_type && source_id) {
+    current_source_type.value = source_type
+    current_source_id.value = source_id
     if (source_type == 'APPLICATION') {
       applicationRefresh({ application_ids: [source_id] })
     }
@@ -712,13 +850,27 @@ const open = (trigger_id?: string, source_type?: string, source_id?: string) => 
       toolRefresh({ tool_ids: [source_id] })
     }
   }
+  if (trigger_id) {
+    init(trigger_id)
+  }
 }
 
 const close = () => {
+  cronError.value = ''
+  current_source_id.value = undefined
+  current_source_type.value = undefined
   drawer.value = false
   form.value = getDefaultValue()
 }
 const submit = () => {
+  if (
+    form.value.trigger_type === 'SCHEDULED' &&
+    form.value.trigger_setting.schedule_type === 'cron'
+  ) {
+    validateCron()
+    if (cronError.value) return
+  }
+
   Promise.all([
     ...(toolParameterRef.value ? toolParameterRef.value.map((item) => item.validate()) : []),
     ...(applicationParameterRef.value

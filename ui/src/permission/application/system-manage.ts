@@ -2,7 +2,9 @@ import {hasPermission} from '@/utils/permission/index'
 import {PermissionConst, RoleConst} from '@/utils/permission/data'
 
 const systemManage = {
-    create: () => false,
+  create: () => false,
+  batchDelete: () => false,
+  batchMove: () => false,
     folderCreate: () => false,
     edit: () =>
         hasPermission(
@@ -29,6 +31,38 @@ const systemManage = {
             [
               RoleConst.ADMIN,
               PermissionConst.RESOURCE_APPLICATION_DELETE
+            ],
+            'OR'
+    ),
+    trigger_read: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_APPLICATION_TRIGGER_READ
+            ],
+            'OR'
+    ),
+    trigger_create: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_APPLICATION_TRIGGER_CREATE
+            ],
+            'OR'
+    ),
+    trigger_edit: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_APPLICATION_TRIGGER_EDIT
+            ],
+            'OR'
+    ),
+    trigger_delete: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_APPLICATION_TRIGGER_DELETE
             ],
             'OR'
     ),

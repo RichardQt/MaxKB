@@ -17,8 +17,10 @@ from application.models import ChatRecord
 from common.db.search import native_page_search, get_dynamics_model
 from common.exception.app_exception import AppApiException
 from common.utils.common import get_file_content
+from knowledge.models.knowledge_action import State
 from maxkb.conf import PROJECT_DIR
-from trigger.models import TriggerTask, TaskRecord
+from tools.models import ToolRecord
+from trigger.models import TriggerTask, TaskRecord, Trigger
 
 
 class ChatRecordSerializerModel(serializers.ModelSerializer):
@@ -38,7 +40,16 @@ class TriggerTaskResponse(serializers.ModelSerializer):
 
 class TriggerTaskQuerySerializer(serializers.Serializer):
     trigger_id = serializers.CharField(required=True, label=_("Trigger ID"))
-    workspace_id = serializers.CharField(required=True, label=_('workspace id'))
+    workspace_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_("Workspace ID"))
+
+    def is_valid(self, *, raise_exception=False):
+        super().is_valid(raise_exception=True)
+        workspace_id = self.data.get('workspace_id')
+        query_set = QuerySet(Trigger).filter(id=self.data.get('trigger_id'))
+        if workspace_id:
+            query_set = query_set.filter(workspace_id=workspace_id)
+        if not query_set.exists():
+            raise AppApiException(500, _('Trigger id does not exist'))
 
     def get_query_set(self):
         query_set = QuerySet(TriggerTask).filter(workspace_id=self.data.get("workspace_id")).filter(
@@ -53,9 +64,18 @@ class TriggerTaskQuerySerializer(serializers.Serializer):
 
 class TriggerTaskRecordOperateSerializer(serializers.Serializer):
     trigger_id = serializers.CharField(required=True, label=_("Trigger ID"))
-    workspace_id = serializers.CharField(required=True, label=_('workspace id'))
+    workspace_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_("Workspace ID"))
     trigger_task_id = serializers.CharField(required=True, label=_("Trigger task ID"))
     trigger_task_record_id = serializers.CharField(required=True, label=_("Trigger task record ID"))
+
+    def is_valid(self, *, raise_exception=False):
+        super().is_valid(raise_exception=True)
+        workspace_id = self.data.get('workspace_id')
+        query_set = QuerySet(Trigger).filter(id=self.data.get('trigger_id'))
+        if workspace_id:
+            query_set = query_set.filter(workspace_id=workspace_id)
+        if not query_set.exists():
+            raise AppApiException(500, _('Trigger id does not exist'))
 
     def get_execution_details(self, is_valid=True):
         if is_valid:
@@ -67,18 +87,57 @@ class TriggerTaskRecordOperateSerializer(serializers.Serializer):
             raise AppApiException(500, _('Trigger task record id does not exist'))
         if task_record.source_type == 'APPLICATION':
             chat_record = QuerySet(ChatRecord).filter(id=task_record.task_record_id).first()
-            return ChatRecordSerializerModel(chat_record).data
+            if chat_record:
+                return ChatRecordSerializerModel(chat_record).data
+            return {
+                'state': 'TRIGGER_ERROR',
+                'meta': task_record.meta
+            }
         if task_record.source_type == 'TOOL':
-            pass
-        return None
+            tool_record = QuerySet(ToolRecord).filter(id=task_record.task_record_id).first()
+            if tool_record:
+                return {
+                    'id': tool_record.id,
+                    'tool_id': tool_record.tool_id,
+                    'workspace_id': tool_record.workspace_id,
+                    'source_type': tool_record.source_type,
+                    'source_id': tool_record.source_id,
+                    'meta': tool_record.meta,
+                    'state': tool_record.state,
+                    'run_time': tool_record.run_time,
+                    'details': {
+                        'tool_call': {
+                            'index': 1,
+                            'result': tool_record.meta.get('output'),
+                            'params': tool_record.meta.get('input'),
+                            'status': 500 if tool_record.state == State.FAILURE else 200 if tool_record.state == State.SUCCESS else 201,
+                            'type': 'tool-node',
+                            'err_message': tool_record.meta.get('err_message')
+                        }
+                    }
+                }
+            return {
+                'state': 'TRIGGER_ERROR',
+                'meta': task_record.meta
+            }
 
 
 class TriggerTaskRecordQuerySerializer(serializers.Serializer):
     trigger_id = serializers.CharField(required=True, label=_("Trigger ID"))
-    workspace_id = serializers.CharField(required=True, label=_('workspace id'))
+    workspace_id = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_("Workspace ID"))
     state = serializers.CharField(required=False, allow_blank=True, allow_null=True, label=_('Trigger state'))
     name = serializers.CharField(required=False, allow_blank=True, allow_null=True, label=_('Trigger name'))
+    source_type = serializers.CharField(required=False, allow_blank=True, allow_null=True, label=_('Source type'))
     order = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('Order field'))
+
+    def is_valid(self, *, raise_exception=False):
+        super().is_valid(raise_exception=True)
+        workspace_id = self.data.get('workspace_id')
+        query_set = QuerySet(Trigger).filter(id=self.data.get('trigger_id'))
+        if workspace_id:
+            query_set = query_set.filter(workspace_id=workspace_id)
+        if not query_set.exists():
+            raise AppApiException(500, _('Trigger id does not exist'))
 
     def get_query_set(self):
         trigger_query_set = QuerySet(
@@ -88,6 +147,7 @@ class TriggerTaskRecordQuerySerializer(serializers.Serializer):
                 'sdc.name': models.CharField(),
                 'ett.workspace_id': models.CharField(),
                 'ett.trigger_id': models.UUIDField(),
+                'sdc.source_type': models.CharField()
             }))
         trigger_query_set = trigger_query_set.filter(
             **{'ett.trigger_id': self.data.get("trigger_id")})
@@ -99,6 +159,8 @@ class TriggerTaskRecordQuerySerializer(serializers.Serializer):
             trigger_query_set = trigger_query_set.filter(**{'ett.state': self.data.get('state')})
         if self.data.get("name"):
             trigger_query_set = trigger_query_set.filter(**{'sdc.name__contains': self.data.get('name')})
+        if self.data.get('source_type'):
+            trigger_query_set = trigger_query_set.filter(**{'sdc.source_type': self.data.get('source_type')})
         return trigger_query_set
 
     def list(self, with_valid=True):

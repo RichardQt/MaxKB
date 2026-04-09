@@ -9,8 +9,11 @@ urlpatterns = [
     path('workspace/<str:workspace_id>/application', views.ApplicationAPI.as_view(), name='application'),
     path('workspace/<str:workspace_id>/application/folder/<str:folder_id>/import', views.ApplicationAPI.Import.as_view()),
     path('workspace/<str:workspace_id>/application/<int:current_page>/<int:page_size>', views.ApplicationAPI.Page.as_view(), name='application_page'),
+    path('workspace/<str:workspace_id>/application/batch_delete', views.ApplicationAPI.BatchDelete.as_view()),
+    path('workspace/<str:workspace_id>/application/batch_move', views.ApplicationAPI.BatchMove.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>', views.ApplicationAPI.Operate.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/publish', views.ApplicationAPI.Publish.as_view()),
+    path('workspace/<str:workspace_id>/application/<str:application_id>/move/<str:folder_id>', views.ApplicationAPI.Move.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_key', views.ApplicationKey.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_stats', views.ApplicationStats.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_token_usage', views.ApplicationStats.TokenUsageStatistics.as_view()),
@@ -39,5 +42,4 @@ urlpatterns = [
     path('workspace/<str:workspace_id>/application/<str:application_id>/mcp_tools', views.McpServers.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/model/<str:model_id>/prompt_generate', views.PromptGenerateView.as_view()),
     path('chat_message/<str:chat_id>', views.ChatView.as_view()),
-
 ]

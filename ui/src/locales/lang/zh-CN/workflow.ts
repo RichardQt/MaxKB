@@ -39,6 +39,7 @@ export default {
     copyError: '已复制节点',
     paramErrorMessage: '参数已存在: ',
     saveMessage: '当前的更改尚未保存，是否保存后退出?',
+    searchPlaceholder: '请输入节点名称'
   },
   delete: {
     confirmTitle: '确定删除该节点？',
@@ -59,6 +60,7 @@ export default {
     ReferencingRequired: '引用变量必填',
     ReferencingError: '引用变量错误',
     NoReferencing: '不存在的引用变量',
+    placeholder_key: '请输入键名',
     placeholder: '请选择变量',
     inputPlaceholder: '请输入变量',
     loop: '循环变量',
@@ -303,7 +305,8 @@ export default {
       text: '按聚合策略聚合每组的变量',
       Strategy: '聚合策略',
       placeholder: '返回每组的第一个非空值',
-      placeholder1: '返回每组变量的集合',
+      placeholder1: '返回每组变量的数组（Array）',
+      placeholder2: '返回每组变量的字典（Dict）',
       group: {
         noneError: '名称不能为空',
         dupError: '名称不能重复',
@@ -495,7 +498,7 @@ export default {
       expression: {
         label: '表达式',
         placeholder: '请输入表达式',
-        tooltip: '请使用JSON Path 表达式拆分变量，例如：$.store.book',
+        tooltip: '请使用 JSON Path 表达式拆分变量，例如：$.store.book <a href="https://pypi.org/project/jsonpath-ng/1.8.0/" target="_blank" class="expression_tip">点击查看详情 ➜ pypi.org</a>',
       },
     },
     parameterExtractionNode: {
@@ -514,6 +517,7 @@ export default {
     contain: '包含',
     not_contain: '不包含',
     eq: '等于',
+    not_eq: '不等于',
     ge: '大于等于',
     gt: '大于',
     le: '小于等于',
@@ -528,7 +532,6 @@ export default {
   },
   SystemPromptPlaceholder: '系统提示词，可以引用系统中的变量：如',
   UserPromptPlaceholder: '用户提示词，可以引用系统中的变量：如',
-  ExecutionRecord: '执行记录',
   initiator: '发起人',
   abnormalInformation: '异常信息'
 

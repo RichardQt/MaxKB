@@ -48,7 +48,7 @@
               </el-Avatar>
             </div>
             <el-avatar v-else class="avatar-purple mr-12" shape="square" :size="32">
-                <img src="@/assets/tool/icon_datasource.svg" style="width: 58%" alt="" />
+              <img src="@/assets/tool/icon_datasource.svg" style="width: 58%" alt="" />
             </el-avatar>
             <el-input
               v-model="form.name"
@@ -64,7 +64,7 @@
           <el-input
             v-model="form.desc"
             type="textarea"
-            :placeholder="$t('views.tool.form.toolDescription.placeholder')"
+            :placeholder="$t('common.descPlaceholder')"
             maxlength="128"
             show-word-limit
             :autosize="{ minRows: 3 }"
@@ -89,30 +89,9 @@
         </el-table-column>
         <el-table-column :label="$t('dynamicsForm.paramForm.input_type.label')">
           <template #default="{ row }">
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'TextInput'"
-              >{{ $t('dynamicsForm.input_type_list.TextInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'PasswordInput'"
-              >{{ $t('dynamicsForm.input_type_list.PasswordInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'Slider'"
-              >{{ $t('dynamicsForm.input_type_list.Slider') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'SwitchInput'"
-              >{{ $t('dynamicsForm.input_type_list.SwitchInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'SingleSelect'"
-              >{{ $t('dynamicsForm.input_type_list.SingleSelect') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'MultiSelect'"
-              >{{ $t('dynamicsForm.input_type_list.MultiSelect') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'RadioCard'"
-              >{{ $t('dynamicsForm.input_type_list.RadioCard') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'DatePicker'"
-              >{{ $t('dynamicsForm.input_type_list.DatePicker') }}
-            </el-tag>
+            <el-tag size="small" type="info" class="info-tag">{{
+              input_type_list.find((item) => item.value === row.input_type)?.label
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="$t('common.required')">
@@ -142,7 +121,7 @@
       <div class="flex-between">
         <h4 class="title-decoration-1 mb-16">
           {{ $t('common.param.inputParam') }}
-          <el-text type="info" class="color-secondary">
+          <el-text type="info" class="color-secondary lighter">
             {{ $t('views.tool.form.param.paramInfo1') }}
           </el-text>
         </h4>
@@ -232,6 +211,7 @@ import { ref, reactive, watch, nextTick, computed } from 'vue'
 import FieldFormDialog from '@/views/tool/component/FieldFormDialog.vue'
 import UserFieldFormDialog from '@/views/tool/component/UserFieldFormDialog.vue'
 import EditAvatarDialog from '@/views/tool/component/EditAvatarDialog.vue'
+import { input_type_list } from '@/components/dynamics-form/constructor/data'
 import type { toolData } from '@/api/type/tool'
 import type { FormInstance } from 'element-plus'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
@@ -421,7 +401,6 @@ function areAllValuesNonEmpty(obj: any) {
   })
 }
 
-
 function deleteField(index: any) {
   form.value.input_field_list?.splice(index, 1)
 }
@@ -484,10 +463,9 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.editSuccess'))
             emit('refresh', res.data)
-            return user.profile()
-          })
-          .then(() => {
-            visible.value = false
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
           .finally(() => {
             loading.value = false
@@ -502,11 +480,11 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.createSuccess'))
             emit('refresh')
-            return user.profile()
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
-          .then(() => {
-            visible.value = false
-          })
+
           .finally(() => {
             loading.value = false
           })

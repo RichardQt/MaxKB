@@ -21,9 +21,24 @@ class BaseSpeechToTextNode(ISpeechToTextNode):
             self.answer_text = details.get('answer')
         self.context['exception_message'] = details.get('err_message')
 
-    def execute(self, stt_model_id, audio, model_params_setting=None, **kwargs) -> NodeResult:
+    def execute(self, stt_model_id, audio, model_params_setting=None, stt_model_id_type=None, stt_model_id_reference=None,**kwargs) -> NodeResult:
+
+        # 处理引用类型
+        if stt_model_id_type == 'reference' and stt_model_id_reference:
+            reference_data = self.workflow_manage.get_reference_field(
+                stt_model_id_reference[0],
+                stt_model_id_reference[1:],
+            )
+            if reference_data and isinstance(reference_data, dict):
+                stt_model_id = reference_data.get('stt_model_id', reference_data.get('model_id', stt_model_id))
+                model_params_setting = reference_data.get('model_params_setting')
+
+        from django.utils.translation import gettext_lazy as _
+
+        if stt_model_id is None or stt_model_id == '':
+            raise Exception(_('Model is not allowed to be empty'))
         workspace_id = self.workflow_manage.get_body().get('workspace_id')
-        stt_model = get_model_instance_by_model_workspace_id(stt_model_id, workspace_id, **model_params_setting)
+        stt_model = get_model_instance_by_model_workspace_id(stt_model_id, workspace_id, **(model_params_setting or {}))
         audio_list = audio
         self.context['audio_list'] = audio
 

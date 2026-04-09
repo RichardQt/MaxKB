@@ -22,6 +22,7 @@ from application.models import ApplicationChatUserStats
 from application.models import ChatRecord, ChatUserType
 from common.field.common import InstanceField
 from knowledge.models.knowledge_action import KnowledgeAction, State
+from tools.models import ToolRecord
 
 chat_cache = cache
 
@@ -115,6 +116,55 @@ class KnowledgeWorkflowPostHandler(WorkFlowPostHandler):
                 'start_time') is not None else 0)
 
 
+def get_tool_workflow_state(workflow):
+    if workflow.is_the_task_interrupted():
+        return State.REVOKED
+    details = workflow.get_runtime_details()
+    node_list = details.values()
+    all_node = [*node_list, *get_loop_workflow_node(node_list)]
+    err = any([True for value in all_node if value.get('status') == 500 and not value.get('enableException')])
+    if err:
+        return State.FAILURE
+    return State.SUCCESS
+
+
+class ToolWorkflowCallPostHandler(WorkFlowPostHandler):
+    def __init__(self, chat_info, tool_id):
+        super().__init__(chat_info)
+        self.tool_id = tool_id
+
+    def handler(self, workflow):
+        self.chat_info = None
+        self.tool_id = None
+
+
+class ToolWorkflowPostHandler(WorkFlowPostHandler):
+    def __init__(self, chat_info, tool_id):
+        super().__init__(chat_info)
+        self.tool_id = tool_id
+
+    def handler(self, workflow):
+        state = get_tool_workflow_state(workflow)
+        record = ToolRecord(id=self.chat_info.tool_record_id, tool_id=self.tool_id,
+                            workspace_id=self.chat_info.workspace_id,
+                            source_type=self.chat_info.source_type,
+                            source_id=self.chat_info.source_id,
+                            state=state,
+                            run_time=time.time() - workflow.context.get('start_time') if workflow.context.get(
+                                'start_time') is not None else 0,
+                            meta={
+                                'input_field_list': workflow.get_input_field_list(),
+                                'output_field_list': workflow.get_output_field_list(),
+                                'input': workflow.get_input(),
+                                'output': workflow.out_context,
+                                'details': workflow.get_runtime_details(),
+                                'answer_text_list': workflow.get_answer_text_list()
+                            })
+        self.chat_info.set_record(record)
+        self.chat_info = None
+        self.tool_id = None
+
+
 def get_loop_workflow_node(node_list):
     result = []
     for item in node_list:
@@ -204,6 +254,11 @@ class KnowledgeFlowParamsSerializer(serializers.Serializer):
     knowledge_base = serializers.DictField(required=False, label="知识库设置")
 
 
+class ToolFlowParamsSerializer(serializers.Serializer):
+    tool_id = serializers.UUIDField(required=True, label="工具id")
+    workspace_id = serializers.CharField(required=True, label="工作空间id")
+
+
 class INode:
     view_type = 'many_view'
 
@@ -243,6 +298,7 @@ class INode:
                                                                                              node.id]))),
                                                                      "utf-8")).hexdigest() + (
                                    "__" + str(salt) if salt is not None else '')
+        self.extra = {}
 
     def valid_args(self, node_params, flow_params):
         flow_params_serializer_class = self.get_flow_params_serializer_class()

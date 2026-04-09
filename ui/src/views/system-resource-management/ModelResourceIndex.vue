@@ -15,9 +15,9 @@
             style="width: 120px"
             @change="search_type_change"
           >
-            <el-option :label="$t('common.creator')" value="create_user"/>
-            <el-option :label="$t('views.model.modelForm.model_type.label')" value="model_type"/>
-            <el-option :label="$t('views.model.modelForm.modeName.label')" value="name"/>
+            <el-option :label="$t('common.creator')" value="create_user" />
+            <el-option :label="$t('views.model.modelForm.model_type.label')" value="model_type" />
+            <el-option :label="$t('views.model.modelForm.modeName.label')" value="name" />
           </el-select>
           <el-input
             v-if="search_type === 'name'"
@@ -35,7 +35,7 @@
             clearable
             style="width: 220px"
           >
-            <el-option v-for="u in user_options" :key="u.id" :value="u.id" :label="u.nick_name"/>
+            <el-option v-for="u in user_options" :key="u.id" :value="u.id" :label="u.nick_name" />
           </el-select>
           <el-select
             v-else-if="search_type === 'model_type'"
@@ -45,7 +45,7 @@
             style="width: 220px"
           >
             <template v-for="item in modelTypeList" :key="item.value">
-              <el-option :label="item.text" :value="item.value"/>
+              <el-option :label="item.text" :value="item.value" />
             </template>
           </el-select>
         </div>
@@ -67,7 +67,7 @@
                 :innerHTML="getRowProvider(row)?.icon"
               >
               </span>
-              <span> {{ row.name }}</span>
+              <span class="ellipsis" style="max-width: 160px"> {{ row.name }}</span>
             </el-space>
           </template>
         </el-table-column>
@@ -75,7 +75,7 @@
           prop="provider"
           :label="$t('views.model.provider')"
           show-overflow-tooltip
-          width="150"
+          width="160"
         >
           <template #default="{ row }">
             <el-space :size="8">
@@ -113,7 +113,12 @@
           <template #header>
             <div>
               <span>{{ $t('views.workspace.title') }}</span>
-              <el-popover :width="200" trigger="click" :visible="workspaceVisible">
+              <el-popover
+                :width="200"
+                trigger="click"
+                :visible="workspaceVisible"
+                :persistent="false"
+              >
                 <template #reference>
                   <el-button
                     style="margin-top: -2px"
@@ -122,7 +127,7 @@
                     @click="workspaceVisible = !workspaceVisible"
                   >
                     <el-icon>
-                      <Filter/>
+                      <Filter />
                     </el-icon>
                   </el-button>
                 </template>
@@ -148,23 +153,23 @@
                           />
                         </el-checkbox-group>
                       </el-scrollbar>
-                      <el-empty v-else :description="$t('common.noData')"/>
+                      <el-empty v-else :description="$t('common.noData')" />
                     </div>
                   </div>
                 </div>
                 <div class="text-right">
                   <el-button size="small" @click="filterWorkspaceChange('clear')"
-                  >{{ $t('common.clear') }}
+                    >{{ $t('common.clear') }}
                   </el-button>
                   <el-button type="primary" @click="filterWorkspaceChange" size="small"
-                  >{{ $t('common.confirm') }}
+                    >{{ $t('common.confirm') }}
                   </el-button>
                 </div>
               </el-popover>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="nick_name" :label="$t('common.creator')" show-overflow-tooltip/>
+        <el-table-column prop="nick_name" :label="$t('common.creator')" show-overflow-tooltip />
         <el-table-column :label="$t('views.document.table.updateTime')" width="180">
           <template #default="{ row }">
             {{ datetimeFormat(row.update_time) }}
@@ -221,7 +226,7 @@
                   <el-dropdown-item
                     @click.stop="openParamSetting(row)"
                     v-if="
-                      ['TTS','LLM','IMAGE','TTI','STT','EMBEDDING'].includes(row.model_type) &&
+                      ['TTS', 'LLM', 'IMAGE', 'TTI', 'STT', 'EMBEDDING'].includes(row.model_type) &&
                       permissionPrecise.paramSetting()
                     "
                   >
@@ -251,7 +256,7 @@
       </app-table>
     </el-card>
     <EditModel ref="editModelRef" @submit="getList"></EditModel>
-    <ParamSettingDialog ref="paramSettingRef"/>
+    <ParamSettingDialog ref="paramSettingRef" />
     <ResourceAuthorizationDrawer
       :type="SourceTypeEnum.MODEL"
       ref="ResourceAuthorizationDrawerRef"
@@ -261,25 +266,25 @@
 </template>
 
 <script lang="ts" setup>
-import {onBeforeMount, onMounted, ref, reactive, watch, computed} from 'vue'
-import type {Provider, Model} from '@/api/type/model'
+import { onBeforeMount, onMounted, ref, reactive, watch, computed } from 'vue'
+import type { Provider, Model } from '@/api/type/model'
 import EditModel from '@/views/model/component/EditModel.vue'
 import ParamSettingDialog from '@/views/model/component/ParamSettingDialog.vue'
 import ModelResourceApi from '@/api/system-resource-management/model'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
-import {SourceTypeEnum} from '@/enums/common'
-import {modelTypeList} from '@/views/model/component/data'
-import {modelType} from '@/enums/model'
-import {t} from '@/locales'
+import { SourceTypeEnum } from '@/enums/common'
+import { modelTypeList } from '@/views/model/component/data'
+import { modelType } from '@/enums/model'
+import { t } from '@/locales'
 import useStore from '@/stores'
-import {datetimeFormat} from '@/utils/time'
-import {loadPermissionApi} from '@/utils/dynamics-api/permission-api.ts'
+import { datetimeFormat } from '@/utils/time'
+import { loadPermissionApi } from '@/utils/dynamics-api/permission-api.ts'
 import UserApi from '@/api/user/user.ts'
 import permissionMap from '@/permission'
-import {MsgConfirm, MsgSuccess} from '@/utils/message'
-import ResourceMappingDrawer from "@/components/resource_mapping/index.vue";
+import { MsgConfirm, MsgSuccess } from '@/utils/message'
+import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 
-const {user, model} = useStore()
+const { user, model } = useStore()
 
 const search_type = ref('name')
 const model_search_form = ref<{
@@ -304,7 +309,11 @@ const paginationConfig = reactive({
 })
 
 const MoreFilledPermission = () => {
-  return permissionPrecise.value.delete() || permissionPrecise.value.modify() || permissionPrecise.value.relate_map()
+  return (
+    permissionPrecise.value.delete() ||
+    permissionPrecise.value.modify() ||
+    permissionPrecise.value.relate_map()
+  )
 }
 
 const ResourceAuthorizationDrawerRef = ref()
@@ -316,7 +325,9 @@ function openAuthorization(item: any) {
 const deleteModel = (row: any) => {
   MsgConfirm(
     `${t('views.model.delete.confirmTitle')}${row.name} ?`,
-    row.resource_count > 0 ? t('views.model.delete.resourceCountMessage', {count: row.resource_count}) : '',
+    row.resource_count > 0
+      ? t('views.model.delete.resourceCountMessage', { count: row.resource_count })
+      : '',
     {
       confirmButtonText: t('common.confirm'),
       confirmButtonClass: 'danger',
@@ -328,8 +339,7 @@ const deleteModel = (row: any) => {
         MsgSuccess(t('common.deleteSuccess'))
       })
     })
-    .catch(() => {
-    })
+    .catch(() => {})
 }
 
 const paramSettingRef = ref<InstanceType<typeof ParamSettingDialog>>()
@@ -372,7 +382,7 @@ watch(
       v.label.toLowerCase().includes(filterText.value.toLowerCase()),
     )
   },
-  {immediate: true},
+  { immediate: true },
 )
 
 function filterWorkspaceChange(val: string) {
@@ -394,7 +404,7 @@ async function getWorkspaceList() {
 }
 
 const search_type_change = () => {
-  model_search_form.value = {name: '', create_user: '', model_type: ''}
+  model_search_form.value = { name: '', create_user: '', model_type: '' }
 }
 
 function getRequestParams() {

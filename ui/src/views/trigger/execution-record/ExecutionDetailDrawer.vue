@@ -22,27 +22,27 @@
     <div>
       <el-scrollbar>
         <h4 class="title-decoration-1 mb-16 mt-4">
-          {{ $t('workflow.ExecutionRecord') }}
+          {{ $t('common.ExecutionRecord.title') }}
         </h4>
         <el-card class="mb-24" shadow="never" style="--el-card-padding: 12px 16px">
           <el-row :gutter="16" class="lighter">
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('views.trigger.triggerTask') }}</p>
               <p class="flex align-center">
-                <el-avatar shape="square" :size="22" style="background: none" class="mr-8">
+                <ToolIcon
+                  v-if="
+                    props.currentContent?.source_type === 'TOOL' &&
+                    !props.currentContent?.source_icon
+                  "
+                  :size="22"
+                />
+                <el-avatar v-else shape="square" :size="22" style="background: none">
                   <img
-                    v-if="props.currentContent?.source_type === 'TOOL'"
-                    :src="resetUrl(props.currentContent?.source_icon, resetUrl('./favicon.ico'))"
-                    alt=""
-                  />
-                  <img
-                    v-if="props.currentContent?.source_type === 'APPLICATION'"
                     :src="resetUrl(props.currentContent?.source_icon, resetUrl('./favicon.ico'))"
                     alt=""
                   />
                 </el-avatar>
-
-                <span class="ellipsis-1" :title="props.currentContent?.source_name">{{
+                <span class="ellipsis-1 ml-8" :title="props.currentContent?.source_name">{{
                   props.currentContent?.source_name || '-'
                 }}</span>
               </p>
@@ -103,7 +103,112 @@
         <h4 class="title-decoration-1 mb-16 mt-4">
           {{ $t('chat.executionDetails.title') }}
         </h4>
-        <template v-for="(item, index) in arraySort(detail ?? [], 'index')" :key="index">
+        <template v-if="taskRecordDetails && taskRecordDetails.state === 'TRIGGER_ERROR'">
+          <div class="card-never border-r-6 mb-12">
+            <h5 class="p-8-12">{{ $t('views.trigger.triggerParam') }}</h5>
+            <div class="p-8-12 border-t-dashed lighter">
+              {{ taskRecordDetails.meta.input }}
+            </div>
+          </div>
+          <div class="card-never border-r-6 mb-12">
+            <h5 class="p-8-12">{{ $t('views.trigger.errorMsg') }}</h5>
+            <div class="p-8-12 border-t-dashed lighter">
+              {{ taskRecordDetails.meta.err_message }}
+            </div>
+          </div>
+        </template>
+        <ExecutionDetailContent
+          v-else-if="props.currentContent?.source_type === 'APPLICATION'"
+          :detail="detail"
+          :appType="props.currentContent.type"
+        ></ExecutionDetailContent>
+        <el-card
+          v-else-if="props.currentContent?.type === 'WORKFLOW'"
+          class="mb-8"
+          shadow="never"
+          style="--el-card-padding: 12px 16px"
+        >
+          <div class="flex-between cursor" @click="showDetail = !showDetail">
+            <div class="flex align-center">
+              <el-icon class="mr-8 arrow-icon" :class="showDetail ? 'rotate-90' : ''">
+                <CaretRight />
+              </el-icon>
+              <el-avatar
+                v-if="taskRecordDetails?.tool_icon"
+                shape="square"
+                :size="24"
+                style="background: none"
+              >
+                <img :src="resetUrl(taskRecordDetails?.tool_icon)" alt="" />
+              </el-avatar>
+              <ToolIcon v-else :size="24" type="WORKFLOW" />
+              <h4 class="ml-8">{{ taskRecordDetails?.tool_name }}</h4>
+            </div>
+            <div class="flex align-center">
+              <span class="mr-16 color-secondary" v-if="taskRecordDetails?.state !== 'STARTED'"
+                >{{ taskRecordDetails?.run_time?.toFixed(2) || 0.0 }} s</span
+              >
+              <el-icon
+                class="color-success"
+                :size="16"
+                v-if="taskRecordDetails?.state === 'SUCCESS'"
+              >
+                <CircleCheck />
+              </el-icon>
+              <el-icon
+                class="is-loading"
+                :size="16"
+                v-else-if="taskRecordDetails?.state === 'STARTED'"
+              >
+                <Loading />
+              </el-icon>
+              <el-icon class="color-danger" :size="16" v-else>
+                <CircleClose />
+              </el-icon>
+            </div>
+          </div>
+          <el-collapse-transition>
+            <div class="mt-12" v-if="showDetail">
+              <div class="card-never border-r-6">
+                <h5 class="p-8-12">
+                  {{ $t('common.param.inputParam') }}
+                </h5>
+                <div class="p-8-12 border-t-dashed lighter pre-wrap">
+                  <div v-for="(f, i) in taskRecordDetails?.meta?.input" :key="i" class="mb-8">
+                    <span class="color-secondary">{{ i }}:</span> {{ f }}
+                  </div>
+                </div>
+              </div>
+              <div class="card-never border-r-6 mt-8">
+                <h5 class="p-8-12">
+                  {{ $t('common.param.outputParam') }}
+                </h5>
+                <div class="p-8-12 border-t-dashed lighter">
+                  <div v-for="(f, i) in taskRecordDetails?.meta?.output" :key="i" class="mb-8">
+                    <span class="color-secondary">{{ i }}:</span> {{ f }}
+                  </div>
+                </div>
+              </div>
+              <div class="card-never border-r-6 mt-8">
+                <h5 class="p-8-12">
+                  {{ $t('chat.executionDetails.title') }}
+                </h5>
+                <div class="p-8-12 border-t-dashed lighter">
+                  <template
+                    v-for="(cLoop, cIndex) in arraySort(
+                      Object.values(taskRecordDetails?.meta?.details ?? {}) ?? [],
+                      'index',
+                    )"
+                    :key="cIndex"
+                  >
+                    <ExecutionDetailCard :data="cLoop"></ExecutionDetailCard>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </el-collapse-transition>
+        </el-card>
+        <template v-else v-for="(item, index) in arraySort(detail ?? [], 'index')" :key="index">
           <ExecutionDetailCard :data="item"> </ExecutionDetailCard>
         </template>
       </el-scrollbar>
@@ -127,6 +232,7 @@ import { useRoute } from 'vue-router'
 import { arraySort } from '@/utils/array'
 import { isAppIcon, resetUrl } from '@/utils/common'
 import ExecutionDetailCard from '@/components/execution-detail-card/index.vue'
+import ExecutionDetailContent from '@/components/ai-chat/component/knowledge-source-component/ExecutionDetailContent.vue'
 import { datetimeFormat } from '@/utils/time'
 import triggerAPI from '@/api/trigger/trigger'
 const props = withDefaults(
@@ -165,8 +271,9 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
-
+const taskRecordDetails = ref<any>()
 const detail = ref<any>(null)
+const showDetail = ref<boolean>(true)
 
 const loading = ref(false)
 const visible = ref(false)
@@ -176,7 +283,9 @@ function closeHandle() {}
 watch(
   () => props.currentId,
   () => {
-     getDetail()
+    if (props.currentId) {
+      getDetail()
+    }
   },
 )
 
@@ -195,7 +304,10 @@ function getDetail() {
       props.currentContent?.id,
     )
     .then((ok) => {
-      detail.value = Object.values(ok.data.details)
+      if (ok.data.details) {
+        detail.value = Object.values(ok.data.details)
+      }
+      taskRecordDetails.value = ok.data
     })
 }
 

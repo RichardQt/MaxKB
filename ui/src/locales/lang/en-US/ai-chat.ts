@@ -37,17 +37,16 @@ export default {
     continue: 'Continue',
     stopChat: 'Stop Response',
     startChat: 'Start Response',
-
-    vote: {
-      likeTitle: 'What do you think makes you satisfied?',
-      opposeTitle: 'Please tell us the reason for your dissatisfaction.',
-      accurate: 'Content is accurate',
-      inaccurate: 'Answer is inaccurate',
-      complete: 'Content is complete',
-      irrelevantAnswer: 'Answer is irrelevant',
-      other: 'Other',
-      placeholder: 'Tell us more about your relevant experiences',
-    },
+  },
+  vote: {
+    likeTitle: 'What do you think makes you satisfied?',
+    opposeTitle: 'Please tell us the reason for your dissatisfaction.',
+    accurate: 'Content is accurate',
+    inaccurate: 'Answer is inaccurate',
+    complete: 'Content is complete',
+    irrelevantAnswer: 'Answer is irrelevant',
+    other: 'Other',
+    placeholder: 'Tell us more about your relevant experiences',
   },
   tip: {
     error500Message: 'Sorry, the service is currently under maintenance. Please try again later!',
@@ -127,6 +126,7 @@ export default {
     paragraphRules: 'Segmentation Rules',
     writeContent: 'Content Written',
     cancel: 'Cancel Execution',
+    errLog: 'Error Log',
     cancelExecutionTip: 'Are you sure you want to cancel the selected task? ',
   },
   KnowledgeSource: {
@@ -143,4 +143,6 @@ export default {
     questionPadded: 'Padded Question',
   },
   editTitle: 'Edit Title',
+  share: 'Share',
+  copyLinkText: 'Copy Link',
 }

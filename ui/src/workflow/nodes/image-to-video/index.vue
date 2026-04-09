@@ -13,10 +13,13 @@
       >
         <el-form-item
           :label="$t('workflow.nodes.imageToVideoGenerate.model.label')"
-          prop="model_id"
+          :prop="form_data.model_id_type === 'reference' ? 'model_id_reference' : 'model_id'"
           :rules="{
             required: true,
-            message: $t('workflow.nodes.imageToVideoGenerate.model.requiredMessage'),
+            message:
+              form_data.model_id_type === 'reference'
+                ? $t('workflow.variable.placeholder')
+                : $t('workflow.nodes.imageToVideoGenerate.model.requiredMessage'),
             trigger: 'change',
           }"
         >
@@ -28,31 +31,51 @@
                   }}<span class="color-danger">*</span></span
                 >
               </div>
+              <el-select
+                v-model="form_data.model_id_type"
+                :teleported="false"
+                size="small"
+                style="width: 85px"
+                @change="form_data.model_id_reference = []"
+              >
+                <el-option :label="$t('workflow.variable.Referencing')" value="reference" />
+                <el-option :label="$t('common.custom')" value="custom" />
+              </el-select>
+            </div>
+          </template>
+          <div class="flex-between w-full" v-if="form_data.model_id_type !== 'reference'">
+            <ModelSelect
+              @change="model_change"
+              @wheel="wheel"
+              :teleported="false"
+              v-model="form_data.model_id"
+              @focus="getSelectModel"
+              :placeholder="$t('workflow.nodes.imageToVideoGenerate.model.requiredMessage')"
+              :options="modelOptions"
+              showFooter
+              :model-type="'ITV'"
+            ></ModelSelect>
+            <div class="ml-8">
               <el-button
                 :disabled="!form_data.model_id"
-                type="primary"
-                link
                 @click="openAIParamSettingDialog(form_data.model_id)"
                 @refreshForm="refreshParam"
               >
-                <AppIcon iconName="app-setting"></AppIcon>
+                <el-icon>
+                  <Operation />
+                </el-icon>
               </el-button>
             </div>
-          </template>
-
-          <ModelSelect
-            @change="model_change"
-            @wheel="wheel"
-            :teleported="false"
-            v-model="form_data.model_id"
-            @focus="getSelectModel"
-            :placeholder="$t('workflow.nodes.imageToVideoGenerate.model.requiredMessage')"
-            :options="modelOptions"
-            showFooter
-            :model-type="'ITV'"
-          ></ModelSelect>
+          </div>
+          <NodeCascader
+            v-else
+            ref="modelReferenceCascaderRef"
+            :nodeModel="nodeModel"
+            class="w-full"
+            :placeholder="$t('workflow.variable.placeholder')"
+            v-model="form_data.model_id_reference"
+          />
         </el-form-item>
-
         <el-form-item
           :label="$t('workflow.nodes.imageToVideoGenerate.prompt.label')"
           prop="prompt"
@@ -131,7 +154,7 @@
             }}<span class="color-danger">*</span></template
           >
           <NodeCascader
-            ref="nodeCascaderRef"
+            ref="firstFrameCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
             :placeholder="$t('workflow.nodes.imageToVideoGenerate.first_frame.requiredMessage')"
@@ -151,7 +174,7 @@
             >{{ $t('workflow.nodes.imageToVideoGenerate.last_frame.label') }}
           </template>
           <NodeCascader
-            ref="nodeCascaderRef"
+            ref="lastFrameCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
             :placeholder="$t('workflow.nodes.imageToVideoGenerate.last_frame.requiredMessage')"
@@ -162,7 +185,14 @@
         <el-form-item
           :label="$t('workflow.nodes.aiChatNode.returnContent.label')"
           @click.prevent
-          v-if="[WorkflowMode.Application, WorkflowMode.ApplicationLoop].includes(workflowMode)"
+          v-if="
+            [
+              WorkflowMode.Application,
+              WorkflowMode.ApplicationLoop,
+              WorkflowMode.Tool,
+              WorkflowMode.ToolLoop,
+            ].includes(workflowMode)
+          "
         >
           <template #label>
             <div class="flex align-center">
@@ -196,6 +226,7 @@ import { useRoute } from 'vue-router'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import NodeCascader from '@/workflow/common/NodeCascader.vue'
 import { WorkflowMode } from '@/enums/application'
+
 const workflowMode = (inject('workflowMode') as WorkflowMode) || WorkflowMode.Application
 const getResourceDetail = inject('getResourceDetail') as any
 const route = useRoute()
@@ -219,8 +250,16 @@ const modelOptions = ref<any>(null)
 const AIModeParamSettingDialogRef = ref<InstanceType<typeof AIModeParamSettingDialog>>()
 
 const aiChatNodeFormRef = ref<FormInstance>()
+const firstFrameCascaderRef = ref()
+const lastFrameCascaderRef = ref()
+const modelReferenceCascaderRef = ref()
+
 const validate = () => {
-  return aiChatNodeFormRef.value?.validate().catch((err) => {
+  return Promise.all([
+    firstFrameCascaderRef.value?.validate() ?? Promise.resolve(''),
+    modelReferenceCascaderRef.value?.validate() ?? Promise.resolve(''),
+    aiChatNodeFormRef.value?.validate(),
+  ]).catch((err: any) => {
     return Promise.reject({ node: props.nodeModel, errMessage: err })
   })
 }
@@ -239,6 +278,8 @@ const defaultPrompt = `{{${t('workflow.nodes.startNode.label')}.question}}`
 
 const form = {
   model_id: '',
+  model_id_type: 'custom',
+  model_id_reference: [],
   system: '',
   prompt: defaultPrompt,
   negative_prompt: '',
@@ -254,6 +295,12 @@ const form = {
 const form_data = computed({
   get: () => {
     if (props.nodeModel.properties.node_data) {
+      if (!props.nodeModel.properties.node_data.model_id_type) {
+        set(props.nodeModel.properties.node_data, 'model_id_type', 'custom')
+      }
+      if (!props.nodeModel.properties.node_data.model_id_reference) {
+        set(props.nodeModel.properties.node_data, 'model_id_reference', [])
+      }
       return props.nodeModel.properties.node_data
     } else {
       set(props.nodeModel.properties, 'node_data', form)

@@ -13,6 +13,8 @@ export default {
     UploadInput: 'File upload',
     TextareaInput: 'Multiline Input',
     MultiRow: 'Multi Row',
+    Model: 'Model',
+    Knowledge: 'Knowledge',
   },
   default: {
     label: 'Default',
@@ -48,6 +50,10 @@ export default {
       label: 'Type',
       placeholder: 'Please select a type',
       requiredMessage: 'Type is a required property',
+    },
+    desc: {
+      label: 'description',
+      placeholder: 'Please enter a description',
     },
   },
   DatePicker: {
@@ -123,5 +129,15 @@ export default {
       popover_value: 'Value',
       popover_default: 'Is Default',
     },
+  },
+  ModelConstructor: {
+    optionalModel: 'Optional Model',
+    defaultModel: 'Default Model',
+    modelPlaceholder: 'Please enter a model',
+  },
+  KnowledgeConstructor: {
+    optionalModel: 'Optional Model',
+    defaultModel: 'Default Model',
+    modelPlaceholder: 'Please enter a model',
   },
 }

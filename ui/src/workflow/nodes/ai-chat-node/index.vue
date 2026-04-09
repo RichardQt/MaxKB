@@ -13,10 +13,13 @@
       >
         <el-form-item
           :label="$t('views.application.form.aiModel.label')"
-          prop="model_id"
+          :prop="chat_data.model_id_type === 'reference' ? 'model_id_reference' : 'model_id'"
           :rules="{
             required: true,
-            message: $t('views.application.form.aiModel.placeholder'),
+            message:
+              chat_data.model_id_type === 'reference'
+                ? $t('workflow.variable.placeholder')
+                : $t('views.application.form.aiModel.placeholder'),
             trigger: 'change',
           }"
         >
@@ -28,29 +31,50 @@
                   }}<span class="color-danger">*</span></span
                 >
               </div>
-
+              <el-select
+                v-model="chat_data.model_id_type"
+                :teleported="false"
+                size="small"
+                style="width: 85px"
+                @change="chat_data.model_id_reference = []"
+              >
+                <el-option :label="$t('workflow.variable.Referencing')" value="reference" />
+                <el-option :label="$t('common.custom')" value="custom" />
+              </el-select>
+            </div>
+          </template>
+          <div class="flex-between w-full" v-if="chat_data.model_id_type !== 'reference'">
+            <ModelSelect
+              @change="model_change"
+              @wheel="wheel"
+              :teleported="false"
+              v-model="chat_data.model_id"
+              :placeholder="$t('views.application.form.aiModel.placeholder')"
+              :options="modelOptions"
+              @submitModel="getSelectModel"
+              showFooter
+              :model-type="'LLM'"
+            ></ModelSelect>
+            <div class="ml-8">
               <el-button
                 :disabled="!chat_data.model_id"
-                type="primary"
-                link
                 @click="openAIParamSettingDialog(chat_data.model_id)"
                 @refreshForm="refreshParam"
               >
-                <AppIcon iconName="app-setting"></AppIcon>
+                <el-icon>
+                  <Operation />
+                </el-icon>
               </el-button>
             </div>
-          </template>
-          <ModelSelect
-            @change="model_change"
-            @wheel="wheel"
-            :teleported="false"
-            v-model="chat_data.model_id"
-            :placeholder="$t('views.application.form.aiModel.placeholder')"
-            :options="modelOptions"
-            @submitModel="getSelectModel"
-            showFooter
-            :model-type="'LLM'"
-          ></ModelSelect>
+          </div>
+          <NodeCascader
+            v-else
+            ref="nodeCascaderRef"
+            :nodeModel="nodeModel"
+            class="w-full"
+            :placeholder="$t('workflow.variable.placeholder')"
+            v-model="chat_data.model_id_reference"
+          />
         </el-form-item>
 
         <el-form-item>
@@ -71,7 +95,7 @@
                 type="primary"
                 link
                 @click="openGeneratePromptDialog(chat_data.model_id)"
-                :disabled="!chat_data.model_id"
+                :disabled="chat_data.model_id_type === 'reference' || !chat_data.model_id"
               >
                 <AppIcon iconName="app-generate-star"></AppIcon>
               </el-button>
@@ -118,7 +142,14 @@
           />
         </el-form-item>
         <el-form-item
-          v-if="[WorkflowMode.Application, WorkflowMode.ApplicationLoop].includes(workflowMode)"
+          v-if="
+            [
+              WorkflowMode.Application,
+              WorkflowMode.ApplicationLoop,
+              WorkflowMode.Tool,
+              WorkflowMode.ToolLoop,
+            ].includes(workflowMode)
+          "
         >
           <template #label>
             <div class="flex-between">
@@ -142,7 +173,7 @@
 
         <div class="mb-8 mt-12 flex-between">
           <span class="mr-4 lighter">
-            {{ $t('views.application.skill') }}
+            {{ $t('views.tool.skill.title') }}
           </span>
           <div class="flex">
             <el-checkbox
@@ -159,9 +190,9 @@
                 <el-icon class="mr-8 arrow-icon" :class="collapseData.MCP ? 'rotate-90' : ''">
                   <CaretRight /> </el-icon
                 >MCP
-                <span class="ml-4" v-if="chat_data.mcp_tool_ids?.length">
-                  ({{ chat_data.mcp_tool_ids?.length }})</span
-                >
+                <span class="ml-4" v-if="chat_data.mcp_tool_ids?.filter((id: any) => relatedObject(mcpToolSelectOptions, id, 'id'))?.length">
+                  ({{ chat_data.mcp_tool_ids?.filter((id: any) => relatedObject(mcpToolSelectOptions, id, 'id'))?.length }})
+                </span>
               </div>
               <div class="flex">
                 <el-button
@@ -237,9 +268,9 @@
                   <CaretRight />
                 </el-icon>
                 {{ $t('views.tool.title') }}
-                <span class="ml-4" v-if="chat_data.tool_ids?.length">
-                  ({{ chat_data.tool_ids?.length }})</span
-                >
+                <span class="ml-4" v-if="chat_data.tool_ids?.filter((id: any) => relatedObject(toolSelectOptions, id, 'id'))?.length">
+                  ({{ chat_data.tool_ids?.filter((id: any) => relatedObject(toolSelectOptions, id, 'id'))?.length }})
+                </span>
               </div>
               <div class="flex">
                 <el-button type="primary" link @click="openToolDialog" @refreshForm="refreshParam">
@@ -249,7 +280,11 @@
             </div>
             <div class="w-full mb-16" v-if="chat_data.tool_ids?.length > 0 && collapseData.tool">
               <template v-for="(item, index) in chat_data.tool_ids" :key="index">
-                <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
+                <div
+                  class="flex-between border border-r-6 white-bg mb-4"
+                  style="padding: 5px 8px"
+                  v-if="relatedObject(toolSelectOptions, item, 'id')"
+                >
                   <div class="flex align-center" style="line-height: 20px">
                     <el-avatar
                       v-if="relatedObject(toolSelectOptions, item, 'id')?.icon"
@@ -273,6 +308,65 @@
                     </div>
                   </div>
                   <el-button text @click="removeTool(item)">
+                    <el-icon><Close /></el-icon>
+                  </el-button>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 技能       -->
+          <div>
+            <div class="flex-between mb-8" @click="collapseData.skill = !collapseData.skill">
+              <div class="flex align-center lighter cursor">
+                <el-icon class="mr-8 arrow-icon" :class="collapseData.skill ? 'rotate-90' : ''">
+                  <CaretRight />
+                </el-icon>
+                Skills
+                <span class="ml-4" v-if="chat_data.skill_tool_ids?.filter((id: any) => relatedObject(skillToolSelectOptions, id, 'id'))?.length">
+                  ({{ chat_data.skill_tool_ids?.filter((id: any) => relatedObject(skillToolSelectOptions, id, 'id'))?.length }})
+                </span>
+              </div>
+              <div class="flex">
+                <el-button
+                  type="primary"
+                  link
+                  @click="openSkillToolDialog"
+                  @refreshForm="refreshParam"
+                >
+                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                </el-button>
+              </div>
+            </div>
+            <div
+              class="w-full mb-16"
+              v-if="chat_data.skill_tool_ids?.length > 0 && collapseData.skill"
+            >
+              <template v-for="(item, index) in chat_data.skill_tool_ids" :key="index">
+                <div class="flex-between border border-r-6 white-bg mb-4" style="padding: 5px 8px">
+                  <div class="flex align-center" style="line-height: 20px">
+                    <el-avatar
+                      v-if="relatedObject(skillToolSelectOptions, item, 'id')?.icon"
+                      shape="square"
+                      :size="20"
+                      style="background: none"
+                      class="mr-8"
+                    >
+                      <img
+                        :src="resetUrl(relatedObject(skillToolSelectOptions, item, 'id')?.icon)"
+                        alt=""
+                      />
+                    </el-avatar>
+                    <ToolIcon v-else class="mr-8" :size="20" type="SKILL" />
+
+                    <div
+                      class="ellipsis"
+                      :title="relatedObject(skillToolSelectOptions, item, 'id')?.name"
+                    >
+                      {{ relatedObject(skillToolSelectOptions, item, 'id')?.name }}
+                    </div>
+                  </div>
+                  <el-button text @click="removeSkillTool(item)">
                     <el-icon><Close /></el-icon>
                   </el-button>
                 </div>
@@ -364,7 +458,14 @@
         </el-form-item>
         <el-form-item
           @click.prevent
-          v-if="[WorkflowMode.Application, WorkflowMode.ApplicationLoop].includes(workflowMode)"
+          v-if="
+            [
+              WorkflowMode.Application,
+              WorkflowMode.ApplicationLoop,
+              WorkflowMode.Tool,
+              WorkflowMode.ToolLoop,
+            ].includes(workflowMode)
+          "
         >
           <template #label>
             <div class="flex align-center">
@@ -391,13 +492,15 @@
       @refresh="submitReasoningDialog"
     />
     <McpServersDialog ref="mcpServersDialogRef" @refresh="submitMcpServersDialog" />
-    <ToolDialog ref="toolDialogRef" @refresh="submitToolDialog" />
+    <ToolDialog ref="toolDialogRef" @refresh="submitToolDialog" tool_type="CUSTOM,WORKFLOW" />
+    <ToolDialog ref="skillToolDialogRef" @refresh="submitSkillToolDialog" tool_type="SKILL" />
     <ApplicationDialog ref="applicationDialogRef" @refresh="submitApplicationDialog" />
   </NodeContainer>
 </template>
 <script setup lang="ts">
 import { cloneDeep, set, groupBy } from 'lodash'
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
+import NodeCascader from '@/workflow/common/NodeCascader.vue'
 import type { FormInstance } from 'element-plus'
 import { ref, computed, onMounted, inject, reactive } from 'vue'
 import { isLastNode } from '@/workflow/common/data'
@@ -466,11 +569,14 @@ ${t('views.problem.title')}：
 const collapseData = reactive({
   MCP: true,
   tool: true,
+  skill: true,
   agent: true,
 })
 
 const form = {
   model_id: '',
+  model_id_type: 'custom',
+  model_id_reference: [],
   system: '',
   prompt: defaultPrompt,
   dialogue_number: 1,
@@ -495,6 +601,12 @@ const chat_data = computed({
           reasoning_content_enable: false,
         })
       }
+      if (!props.nodeModel.properties.node_data.model_id_type) {
+        set(props.nodeModel.properties.node_data, 'model_id_type', 'custom')
+      }
+      if (!props.nodeModel.properties.node_data.model_id_reference) {
+        set(props.nodeModel.properties.node_data, 'model_id_reference', [])
+      }
       return props.nodeModel.properties.node_data
     } else {
       set(props.nodeModel.properties, 'node_data', form)
@@ -512,6 +624,7 @@ const aiChatNodeFormRef = ref<FormInstance>()
 
 const modelOptions = ref<any>(null)
 const AIModeParamSettingDialogRef = ref<InstanceType<typeof AIModeParamSettingDialog>>()
+const nodeCascaderRef = ref()
 const ReasoningParamSettingDialogRef = ref<InstanceType<typeof ReasoningParamSettingDialog>>()
 const validate = () => {
   return aiChatNodeFormRef.value?.validate().catch((err) => {
@@ -604,6 +717,10 @@ function removeMcpTool(id: any) {
   const list = props.nodeModel.properties.node_data.mcp_tool_ids.filter((v: any) => v !== id)
   set(props.nodeModel.properties.node_data, 'mcp_tool_ids', list)
 }
+function removeSkillTool(id: any) {
+  const list = props.nodeModel.properties.node_data.skill_tool_ids.filter((v: any) => v !== id)
+  set(props.nodeModel.properties.node_data, 'skill_tool_ids', list)
+}
 
 const toolSelectOptions = ref<any[]>([])
 function getToolSelectOptions() {
@@ -611,12 +728,12 @@ function getToolSelectOptions() {
     apiType.value === 'systemManage'
       ? {
           scope: 'WORKSPACE',
-          tool_type: 'CUSTOM',
+          tool_type_list: ['CUSTOM', 'WORKFLOW'],
           workspace_id: resource.value?.workspace_id,
         }
       : {
           scope: 'WORKSPACE',
-          tool_type: 'CUSTOM',
+          tool_type_list: ['CUSTOM', 'WORKFLOW'],
         }
 
   loadSharedApi({ type: 'tool', systemType: apiType.value })
@@ -678,6 +795,39 @@ function removeApplication(id: any) {
   }
 }
 
+const skillToolDialogRef = ref()
+function openSkillToolDialog() {
+  skillToolDialogRef.value.open(chat_data.value.skill_tool_ids)
+}
+
+function submitSkillToolDialog(config: any) {
+  chat_data.value.skill_tool_ids = config.tool_ids
+  collapseData.skill = true
+}
+
+const skillToolSelectOptions = ref<any[]>([])
+function getSkillToolSelectOptions() {
+  const obj =
+    apiType.value === 'systemManage'
+      ? {
+          scope: 'WORKSPACE',
+          tool_type: 'SKILL',
+          workspace_id: chat_data.value?.workspace_id,
+        }
+      : {
+          scope: 'WORKSPACE',
+          tool_type: 'SKILL',
+        }
+
+  loadSharedApi({ type: 'tool', systemType: apiType.value })
+    .getAllToolList(obj)
+    .then((res: any) => {
+      skillToolSelectOptions.value = [...res.data.shared_tools, ...res.data.tools].filter(
+        (item: any) => item.is_active,
+      )
+    })
+}
+
 onMounted(() => {
   getSelectModel()
   if (typeof props.nodeModel.properties.node_data?.is_result === 'undefined') {
@@ -703,6 +853,7 @@ onMounted(() => {
   getToolSelectOptions()
   getMcpToolSelectOptions()
   getApplicationSelectOptions()
+  getSkillToolSelectOptions()
 })
 </script>
 <style lang="scss" scoped></style>

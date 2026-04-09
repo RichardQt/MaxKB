@@ -191,6 +191,8 @@ class Operate(Enum):
     TRIGGER_EDIT = "READ+TRIGGER_EDIT"
     TRIGGER_CREATE = "READ+TRIGGER_CREATE"
     TRIGGER_DELETE = "READ+TRIGGER_DELETE"
+    BATCH_DELETE = "READ+BATCH_DELETE"
+    BATCH_MOVE = "READ+BATCH_MOVE"
 
 
 class RoleGroup(Enum):
@@ -375,7 +377,9 @@ Permission_Label = {
     Operate.TRIGGER_CREATE.value: _('Create Trigger'),
     Operate.TRIGGER_EDIT.value: _('Edit Trigger'),
     Operate.TRIGGER_DELETE.value: _('Delete Trigger'),
-    Operate.RECORD.value: _('Execute record'),
+    Operate.RECORD.value: _('Read execute record'),
+    Operate.BATCH_DELETE.value: _('Batch delete'),
+    Operate.BATCH_MOVE.value: _('Batch move'),
 
     Group.APPLICATION_OVERVIEW.value: _('Overview'),
     Group.APPLICATION_ACCESS.value: _('Application Access'),
@@ -560,47 +564,6 @@ class PermissionConstants(Enum):
         group=Group.TRIGGER, operate=Operate.RECORD, role_list=[RoleConstants.ADMIN],
         parent_group=[WorkspaceGroup.TRIGGER],
     )
-    # source point trigger
-    TOOL_TRIGGER_READ = Permission(
-        group=Group.TOOL, operate=Operate.TRIGGER_READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
-        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
-    )
-    TOOL_TRIGGER_CREATE = Permission(
-        group=Group.TOOL, operate=Operate.TRIGGER_CREATE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
-        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
-    )
-    TOOL_TRIGGER_EDIT = Permission(
-        group=Group.TOOL, operate=Operate.TRIGGER_EDIT, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
-        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
-    )
-    TOOL_TRIGGER_DELETE = Permission(
-        group=Group.TOOL, operate=Operate.TRIGGER_DELETE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
-        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
-    )
-    APPLICATION_TRIGGER_READ = Permission(
-        group=Group.APPLICATION, operate=Operate.TRIGGER_READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
-        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_VIEW]
-    )
-    APPLICATION_TRIGGER_CREATE = Permission(
-        group=Group.APPLICATION, operate=Operate.TRIGGER_CREATE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
-        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
-    )
-    APPLICATION_TRIGGER_EDIT = Permission(
-        group=Group.APPLICATION, operate=Operate.TRIGGER_EDIT, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
-        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
-    )
-    APPLICATION_TRIGGER_DELETE = Permission(
-        group=Group.APPLICATION, operate=Operate.TRIGGER_DELETE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
-        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
-        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
-    )
     TOOL_READ = Permission(
         group=Group.TOOL, operate=Operate.READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
         parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
@@ -612,7 +575,16 @@ class PermissionConstants(Enum):
         parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
         resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
     )
-
+    TOOL_BATCH_MOVE = Permission(
+        group=Group.TOOL, operate=Operate.BATCH_MOVE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
+    )
+    TOOL_BATCH_DELETE = Permission(
+        group=Group.TOOL, operate=Operate.BATCH_DELETE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
+    )
     TOOL_EDIT = Permission(
         group=Group.TOOL, operate=Operate.EDIT, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
         parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
@@ -643,6 +615,32 @@ class PermissionConstants(Enum):
         group=Group.TOOL, operate=Operate.RELATE_VIEW, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
         parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
         resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
+    )
+    TOOL_EXECUTE_RECORD = Permission(
+        group=Group.TOOL, operate=Operate.RECORD, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
+    )
+    # source point trigger
+    TOOL_TRIGGER_READ = Permission(
+        group=Group.TOOL, operate=Operate.TRIGGER_READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_MANGE]
+    )
+    TOOL_TRIGGER_CREATE = Permission(
+        group=Group.TOOL, operate=Operate.TRIGGER_CREATE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
+    )
+    TOOL_TRIGGER_EDIT = Permission(
+        group=Group.TOOL, operate=Operate.TRIGGER_EDIT, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
+    )
+    TOOL_TRIGGER_DELETE = Permission(
+        group=Group.TOOL, operate=Operate.TRIGGER_DELETE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.TOOL, UserGroup.TOOL],
+        resource_permission_group_list=[ResourcePermissionConst.TOOL_VIEW]
     )
     TOOL_FOLDER_READ = Permission(
         group=Group.TOOL_FOLDER, operate=Operate.READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
@@ -709,6 +707,16 @@ class PermissionConstants(Enum):
         resource_permission_group_list=[ResourcePermissionConst.KNOWLEDGE_MANGE],
         parent_group=[WorkspaceGroup.KNOWLEDGE, UserGroup.KNOWLEDGE]
     )
+    KNOWLEDGE_BATCH_DELETE = Permission(group=Group.KNOWLEDGE, operate=Operate.BATCH_DELETE,
+                                    role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+                                    resource_permission_group_list=[ResourcePermissionConst.KNOWLEDGE_MANGE],
+                                    parent_group=[WorkspaceGroup.KNOWLEDGE, UserGroup.KNOWLEDGE],
+                                    )
+    KNOWLEDGE_BATCH_MOVE = Permission(group=Group.KNOWLEDGE, operate=Operate.BATCH_MOVE,
+                                    role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+                                    resource_permission_group_list=[ResourcePermissionConst.KNOWLEDGE_MANGE],
+                                    parent_group=[WorkspaceGroup.KNOWLEDGE, UserGroup.KNOWLEDGE],
+                                    )
     KNOWLEDGE_RESOURCE_AUTHORIZATION = Permission(
         group=Group.KNOWLEDGE, operate=Operate.AUTH, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
         resource_permission_group_list=[ResourcePermissionConst.KNOWLEDGE_MANGE],
@@ -1046,12 +1054,42 @@ class PermissionConstants(Enum):
                                     resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE],
                                     parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
                                     )
+    APPLICATION_BATCH_DELETE = Permission(group=Group.APPLICATION, operate=Operate.BATCH_DELETE,
+                                    role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+                                    resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE],
+                                    parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+                                    )
+    APPLICATION_BATCH_MOVE = Permission(group=Group.APPLICATION, operate=Operate.BATCH_MOVE,
+                                    role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+                                    resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE],
+                                    parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+                                    )
     APPLICATION_RESOURCE_AUTHORIZATION = Permission(group=Group.APPLICATION, operate=Operate.AUTH,
                                                     role_list=[RoleConstants.ADMIN, RoleConstants.USER],
                                                     parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
                                                     resource_permission_group_list=[
                                                         ResourcePermissionConst.APPLICATION_MANGE],
                                                     )
+    APPLICATION_TRIGGER_READ = Permission(
+        group=Group.APPLICATION, operate=Operate.TRIGGER_READ, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
+    )
+    APPLICATION_TRIGGER_CREATE = Permission(
+        group=Group.APPLICATION, operate=Operate.TRIGGER_CREATE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
+    )
+    APPLICATION_TRIGGER_EDIT = Permission(
+        group=Group.APPLICATION, operate=Operate.TRIGGER_EDIT, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
+    )
+    APPLICATION_TRIGGER_DELETE = Permission(
+        group=Group.APPLICATION, operate=Operate.TRIGGER_DELETE, role_list=[RoleConstants.ADMIN, RoleConstants.USER],
+        parent_group=[WorkspaceGroup.APPLICATION, UserGroup.APPLICATION],
+        resource_permission_group_list=[ResourcePermissionConst.APPLICATION_MANGE]
+    )
     APPLICATION_FOLDER_READ = Permission(group=Group.APPLICATION_FOLDER, operate=Operate.READ,
                                          role_list=[RoleConstants.ADMIN, RoleConstants.USER],
                                          parent_group=[UserGroup.APPLICATION],
@@ -1347,6 +1385,10 @@ class PermissionConstants(Enum):
     )
     SHARED_TOOL_RELATE_RESOURCE_VIEW = Permission(
         group=Group.SYSTEM_TOOL, operate=Operate.RELATE_VIEW, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.SHARED_TOOL], is_ee=settings.edition == "EE"
+    )
+    SHARED_TOOL_EXECUTE_RECORD = Permission(
+        group=Group.SYSTEM_TOOL, operate=Operate.RECORD, role_list=[RoleConstants.ADMIN],
         parent_group=[SystemGroup.SHARED_TOOL], is_ee=settings.edition == "EE"
     )
     SHARED_KNOWLEDGE_READ = Permission(
@@ -1779,6 +1821,10 @@ class PermissionConstants(Enum):
     )
     RESOURCE_TOOL_RELATE_RESOURCE_VIEW = Permission(
         group=Group.SYSTEM_RES_TOOL, operate=Operate.RELATE_VIEW, role_list=[RoleConstants.ADMIN],
+        parent_group=[SystemGroup.RESOURCE_TOOL], is_ee=settings.edition == "EE"
+    )
+    RESOURCE_TOOL_EXECUTE_RECORD = Permission(
+        group=Group.SYSTEM_RES_TOOL, operate=Operate.RECORD, role_list=[RoleConstants.ADMIN],
         parent_group=[SystemGroup.RESOURCE_TOOL], is_ee=settings.edition == "EE"
     )
     RESOURCE_TOOL_TRIGGER_READ = Permission(

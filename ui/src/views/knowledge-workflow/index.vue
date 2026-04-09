@@ -92,7 +92,7 @@
                 v-if="permissionPrecise.doc_create(id)"
               >
                 <AppIcon iconName="app-execution-record" class="color-secondary"></AppIcon>
-                {{ $t('workflow.ExecutionRecord') }}
+                {{ $t('common.ExecutionRecord.title') }}
               </el-dropdown-item>
               <el-dropdown-item @click="openHistory">
                 <AppIcon iconName="app-history-outlined" class="color-secondary"></AppIcon>
@@ -730,7 +730,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid #ffffff;
   background: var(--dialog-bg-gradient-color);
-  box-shadow: 0px 4px 8px 0px var(--app-text-color-light-1);
+  box-shadow: 0px 4px 8px 0px rgba(var(--el-text-color-primary-rgb), 0.1);
   position: fixed;
   bottom: 16px;
   right: 16px;

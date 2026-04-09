@@ -2,8 +2,10 @@ export default {
   title: '觸發器',
   tip: '觸發時系統將會根據入參設置自動調用任務執行',
   task: '任務',
+  nextTime: '下次執行時間',
   triggerTask: '觸發任務',
   taskExecution: '任務執行',
+  triggerSource: '觸發來源',
   delete: {
     confirmTitle: '是否刪除觸發器：',
     confirmTitle2: '個觸發器？',
@@ -24,6 +26,10 @@ export default {
     sunday: '星期日',
     hours: '小時',
     minutes: '分鐘',
+    cronExpression: 'Cron 表達式',
+    switchCycle: '切換到觸發循環',
+    switchCron: '切換到Cron運算式',
+    placeholder: '請輸入Cron表達式（如：0 0 1 * *）'
   },
   type: {
     scheduled: '定時觸發',
@@ -44,4 +50,6 @@ export default {
     },
   },
   requestParameter: '請求參數',
+  triggerParam: '觸發器入參',
+  errorMsg: '錯誤信息',
 }

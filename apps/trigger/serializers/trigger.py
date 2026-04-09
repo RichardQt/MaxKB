@@ -24,7 +24,7 @@ from common.field.common import ObjectField
 from common.utils.common import get_file_content
 from knowledge.serializers.common import BatchSerializer
 from maxkb.conf import PROJECT_DIR
-from tools.models import Tool
+from tools.models import Tool, ToolWorkflow
 from trigger.models import TriggerTypeChoices, Trigger, TriggerTaskTypeChoices, TriggerTask, TaskRecord
 
 
@@ -40,8 +40,7 @@ class BatchActiveSerializer(serializers.Serializer):
             if len(model_list) != len(id_list):
                 model_id_list = [str(m.id) for m in model_list]
                 error_id_list = list(filter(lambda row_id: not model_id_list.__contains__(row_id), id_list))
-                raise AppApiException(500, _('The following id does not exist: {error_id_list}').format(
-                    error_id_list=error_id_list))
+                raise AppApiException(500, _('The following id does not exist: %s') % ','.join(map(str, error_id_list)))
 
 
 class InputField(serializers.Serializer):
@@ -67,7 +66,7 @@ class ApplicationTaskParameterSerializer(serializers.Serializer):
         if not value:
             return value
         if not isinstance(value, dict):
-            raise serializers.ValidationError(f"{field_name} must be a dict")
+            raise serializers.ValidationError(_("%s must be a dict") % field_name)
 
         for key, val in value.items():
             serializer = InputField(data=val)
@@ -83,22 +82,23 @@ class ApplicationTaskParameterSerializer(serializers.Serializer):
 
 
 class ToolTaskParameterSerializer(serializers.Serializer):
-    input_field_list = serializers.JSONField(required=False)
+    user_input_field_list = serializers.JSONField(required=False)
 
-    def validate_input_field_list(self, value):
+    @staticmethod
+    def _validate_input_dict(value, field_name):
         if not value:
             return value
         if not isinstance(value, dict):
-            raise serializers.ValidationError("input_field_list must be a dict")
+            raise serializers.ValidationError(_("%s must be a dict") % field_name)
 
         for key, val in value.items():
             serializer = InputField(data=val)
             if not serializer.is_valid():
-                raise serializers.ValidationError({
-                    key: serializer.errors
-                })
-
+                raise serializers.ValidationError({f"{field_name}.{key}": serializer.errors})
         return value
+
+    def validate_user_input_field_list(self, value):
+        return self._validate_input_dict(value, 'user_input_field_list')
 
 
 class TriggerValidationMixin:
@@ -122,19 +122,17 @@ class TriggerValidationMixin:
     def _validate_required_field(setting, field_name, trigger_type):
         if field_name not in setting:
             raise serializers.ValidationError({
-                'trigger_setting': f'{trigger_type} type requires {field_name} field'
+                'trigger_setting': _('%s type requires %s field') % (trigger_type, field_name)
             })
 
     @staticmethod
     def _validate_non_empty_array(value, field_name):
         if not isinstance(value, list):
             raise serializers.ValidationError({
-                'trigger_setting': f'{field_name} must be an array'
-            })
+                'trigger_setting': _('%s must be an array') % field_name})
         if len(value) == 0:
             raise serializers.ValidationError({
-                'trigger_setting': f'{field_name} must not be empty'
-            })
+                'trigger_setting': _('%s must not be empty') % field_name})
 
     @staticmethod
     def _validate_number_range(values, field_name, min_val, max_val):
@@ -145,7 +143,7 @@ class TriggerValidationMixin:
                     raise ValueError
             except (ValueError, TypeError):
                 raise serializers.ValidationError({
-                    'trigger_setting': f'{field_name} values must be between "{min_val}" and "{max_val}"'
+                    'trigger_setting': _('%s values must be between %s and %s') % (field_name, min_val, max_val)
                 })
 
     def _validate_time_array(self, time_list):
@@ -161,15 +159,17 @@ class TriggerValidationMixin:
         pattern = r'^([01]\d|2[0-3]):([0-5]\d)$'
         if not re.match(pattern, str(time_str)):
             raise serializers.ValidationError({
-                'trigger_setting': f'Invalid time format: {time_str}, must be HH:MM (e.g., 09:00)'
+                'trigger_setting': _('Invalid time format: %s, must be HH:MM (e.g., 09:00)') % time_str
             })
 
     def _validate_scheduled_setting(self, setting):
         schedule_type = setting.get('schedule_type')
 
-        valid_types = ['daily', 'weekly', 'monthly', 'interval']
+        valid_types = ['daily', 'weekly', 'monthly', 'interval', 'cron']
         if schedule_type not in valid_types:
-            raise serializers.ValidationError({'trigger_setting': f'schedule_type must be one of {valid_types}'})
+            raise serializers.ValidationError(
+                {'trigger_setting': _('schedule_type must be one of %s') % ', '.join(valid_types)
+                 })
         if schedule_type == 'daily':
             self._validate_daily(setting)
         elif schedule_type == 'weekly':
@@ -178,6 +178,8 @@ class TriggerValidationMixin:
             self._validate_monthly(setting)
         elif schedule_type == 'interval':
             self._validate_interval(setting)
+        elif schedule_type == 'cron':
+            self._validate_cron(setting)
 
     def _validate_daily(self, setting):
         self._validate_required_field(setting, 'time', 'daily')
@@ -210,12 +212,28 @@ class TriggerValidationMixin:
                 raise ValueError
         except (ValueError, TypeError):
             raise serializers.ValidationError({
-                'trigger_setting': 'interval_value must be an integer greater than or equal to 1'
+                'trigger_setting': _('interval_value must be an integer greater than or equal to 1')
             })
         valid_units = ['minutes', 'hours']
         if interval_unit not in valid_units:
             raise serializers.ValidationError({
-                'trigger_setting': f'interval_unit must be one of {valid_units}'
+                'trigger_setting': _('interval_unit must be one of %s') % ', '.join(valid_units)
+            })
+
+    @staticmethod
+    def _validate_cron(setting):
+        from apscheduler.triggers.cron import CronTrigger
+
+        cron_expression: str = setting.get('cron_expression')
+        if not cron_expression:
+            raise serializers.ValidationError({
+                'trigger_setting': _('cron type requires cron_expression field')
+            })
+        try:
+            CronTrigger.from_crontab(cron_expression.strip())
+        except ValueError:
+            raise serializers.ValidationError({
+                'trigger_setting': _('Invalid cron expression: %s') % cron_expression
             })
 
     @staticmethod
@@ -223,7 +241,7 @@ class TriggerValidationMixin:
         body = setting.get('body')
         if body is not None and not isinstance(body, list):
             raise serializers.ValidationError({
-                'trigger_setting': 'body must be an array'
+                'trigger_setting': _('body must be an array')
             })
 
 
@@ -421,7 +439,7 @@ class TriggerSerializer(serializers.Serializer):
         source_model, field = config.get(TriggerTaskTypeChoices(source_type))
         source = QuerySet(source_model).filter(id=source_id).first()
         if not source:
-            raise AppApiException(500, _(f'{source_type} id does not exist'))
+            raise AppApiException(500, _('%s id does not exist') % source_type)
 
         return getattr(source, field)
 
@@ -541,7 +559,7 @@ class TriggerOperateSerializer(serializers.Serializer):
 
         # 重新部署触发器任务
         if need_redeploy:
-            if trigger.is_active:
+            if trigger.is_active and trigger.trigger_type == 'SCHEDULED':
                 deploy(TriggerModelSerializer(trigger).data, **{})
             else:
                 undeploy(TriggerModelSerializer(trigger).data, **{})
@@ -587,8 +605,24 @@ class TriggerOperateSerializer(serializers.Serializer):
         tool_task_list = []
         if tool_ids:
             tools = Tool.objects.filter(workspace_id=workspace_id, id__in=tool_ids)
-            tool_task_list = ToolTriggerTaskSerializer(tools, many=True).data
-
+            workflows = ToolWorkflow.objects.filter(
+                tool_id__in=tools.filter(tool_type='WORKFLOW').values_list('id', flat=True),
+                is_publish=True
+            )
+            workflow_dict = {wf.tool_id: wf.work_flow for wf in workflows}
+            tool_task_list = []
+            for tool in tools:
+                tool_data = {
+                    'id': str(tool.id),
+                    'name': tool.name,
+                    'input_field_list': tool.input_field_list,
+                    'icon': tool.icon,
+                    'tool_type': tool.tool_type
+                }
+                # 如果是工作流类型，添加 work_flow 字段
+                if tool.tool_type == 'WORKFLOW':
+                    tool_data['work_flow'] = workflow_dict.get(tool.id)
+                tool_task_list.append(tool_data)
         return {
             **TriggerModelSerializer(trigger).data,
             'trigger_task': trigger_task_list,
@@ -608,7 +642,7 @@ class TriggerQuerySerializer(serializers.Serializer):
     def get_query_set(self):
         trigger_query_set = QuerySet(
             model=get_dynamics_model({
-                'name': models.CharField(),
+                't.name': models.CharField(),
                 'trigger_type': models.CharField(),
                 't.workspace_id': models.CharField(),
                 't.is_active': models.BooleanField(),
@@ -619,7 +653,7 @@ class TriggerQuerySerializer(serializers.Serializer):
         }))
         trigger_query_set = trigger_query_set.filter(**{'t.workspace_id': self.data.get("workspace_id")})
         if self.data.get("name"):
-            trigger_query_set = trigger_query_set.filter(name__contains=self.data.get("name"))
+            trigger_query_set = trigger_query_set.filter(**{'t.name__icontains': self.data.get("name")})
         if self.data.get("type"):
             trigger_query_set = trigger_query_set.filter(trigger_type=self.data.get("type"))
         if self.data.get("is_active") is not None:

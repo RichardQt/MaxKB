@@ -31,7 +31,9 @@
           @delete-log="deleteLog"
           @clear-chat="clearChat"
           @refreshFieldTitle="refreshFieldTitle"
+          @clickShare="clickShareHandle"
           :isPcCollapse="isPcCollapse"
+          :chat-loading="AiChatRef?.loading"
         >
           <div class="user-info p-16 cursor">
             <el-avatar
@@ -124,12 +126,25 @@
               <span v-if="paginationConfig.total" class="lighter">
                 {{ paginationConfig.total }} {{ $t('chat.question_count') }}
               </span>
-              <el-dropdown class="ml-8">
-                <AppIcon
-                  iconName="app-export"
-                  class="cursor"
-                  :title="$t('chat.exportRecords')"
-                ></AppIcon>
+              <el-tooltip
+                effect="dark"
+                :content="$t('chat.share')"
+                placement="top"
+                v-if="!showSelection"
+              >
+                <el-button
+                  text
+                  class="ml-12"
+                  @click="clickShareHandle"
+                  :disabled="AiChatRef?.loading"
+                >
+                  <AppIcon iconName="app-share"></AppIcon>
+                </el-button>
+              </el-tooltip>
+              <el-dropdown class="ml-8" v-if="!showSelection">
+                <el-button text>
+                  <AppIcon iconName="app-export" :title="$t('chat.exportRecords')"></AppIcon>
+                </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item @click="exportMarkdown"
@@ -161,6 +176,7 @@
               @open-execution-detail="openExecutionDetail"
               @openParagraph="openKnowledgeSource"
               @openParagraphDocument="openParagraphDocument"
+              v-model:selection="showSelection"
             >
             </AiChat>
           </div>
@@ -256,16 +272,15 @@ const openPDFExport = () => {
   pdfExportRef.value?.open(document.getElementById('chatListId'))
 }
 const route = useRoute()
-const isCollapse = ref(false)
 const isPcCollapse = ref(false)
-watch(
-  () => common.device,
-  () => {
-    if (common.isMobile()) {
-      isPcCollapse.value = false
-    }
-  },
-)
+// watch(
+//   () => common.device,
+//   () => {
+//     if (common.isMobile()) {
+//       isPcCollapse.value = false
+//     }
+//   },
+// )
 
 const logout = () => {
   chatUser.logout().then(() => {
@@ -274,6 +289,10 @@ const logout = () => {
       query: route.query,
     })
   })
+}
+const showSelection = ref(false)
+const clickShareHandle = () => {
+  showSelection.value = true
 }
 
 const resetPasswordRef = ref<InstanceType<typeof ResetPassword>>()
@@ -289,9 +308,8 @@ const handleResetPassword = (param: ResetCurrentUserPasswordRequest) => {
 
 const classObj = computed(() => {
   return {
-    mobile: common.isMobile(),
-    hideLeft: !isCollapse.value,
-    openLeft: isCollapse.value,
+    hideLeft: isPcCollapse.value,
+    openLeft: !isPcCollapse.value,
   }
 })
 
@@ -374,6 +392,7 @@ function handleScroll(event: any) {
 }
 
 function newChat() {
+  showSelection.value = false
   if (!chatLogData.value.some((v) => v.id === 'new')) {
     paginationConfig.value.current_page = 1
     paginationConfig.value.total = 0
@@ -387,9 +406,6 @@ function newChat() {
   closeExecutionDetail()
   currentChatId.value = 'new'
   currentChatName.value = t('chat.createChat')
-  if (common.isMobile()) {
-    isCollapse.value = false
-  }
 }
 
 const chatLogPagination = ref({
@@ -448,6 +464,7 @@ function getChatRecord() {
 
 const clickListHandle = (item: any) => {
   if (item.id !== currentChatId.value) {
+    showSelection.value = false
     paginationConfig.value.current_page = 1
     paginationConfig.value.total = 0
     currentRecordList.value = []
@@ -465,9 +482,6 @@ const clickListHandle = (item: any) => {
         })
       }
     }
-  }
-  if (common.isMobile()) {
-    isCollapse.value = false
   }
 }
 
@@ -582,7 +596,7 @@ function closeExecutionDetail() {
       position: absolute;
       top: 20px;
       right: -13px;
-      box-shadow: 0px 5px 10px 0px var(--app-text-color-light-1);
+      box-shadow: 0px 5px 10px 0px rgba(var(--el-text-color-primary-rgb), 0.1);
       z-index: 1;
       width: 24px;
       height: 24px;
@@ -613,15 +627,11 @@ function closeExecutionDetail() {
 
         .execution-details {
           padding: 16px;
+          word-break: break-all;
         }
       }
     }
   }
-}
-
-.chat-width {
-  max-width: 80%;
-  margin: 0 auto;
 }
 
 .chat-pc__right {
@@ -630,13 +640,6 @@ function closeExecutionDetail() {
 
   .execution-detail-panel {
     width: var(--execution-detail-panel-width, 400px);
-  }
-}
-
-@media only screen and (max-width: 1000px) {
-  .chat-width {
-    max-width: 100% !important;
-    margin: 0 auto;
   }
 }
 </style>

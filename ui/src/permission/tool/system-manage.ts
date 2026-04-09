@@ -30,7 +30,41 @@ const systemManage = {
       ],
       'OR',
     ),
+  trigger_read: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_READ
+            ],
+            'OR'
+    ),
+  trigger_create: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_CREATE
+            ],
+            'OR'
+    ),
+  trigger_edit: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_EDIT
+            ],
+            'OR'
+    ),
+  trigger_delete: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_DELETE
+            ],
+            'OR'
+    ),
   create: () => false,
+  batchDelete: () => false,
+  batchMove: () => false,
   import: () => false,
   switch: () =>
     hasPermission(
@@ -82,7 +116,14 @@ const systemManage = {
       ],
       'OR'
     ),
-  
+  record: () =>
+    hasPermission(
+      [
+        RoleConst.ADMIN,
+        PermissionConst.RESOURCE_TOOL_EXECUTE_RECORD
+      ],
+      'OR'
+    ),
   folderRead: () => false,
   folderManage: () => false,
   folderCreate: () => false,

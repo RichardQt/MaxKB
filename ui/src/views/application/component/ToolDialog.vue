@@ -11,13 +11,13 @@
     <template #header="{ titleId, titleClass }">
       <div class="flex-between mb-8">
         <div class="flex">
-          <h4 :id="titleId" :class="titleClass" class="mr-8">
+          <h4 :id="titleId" :class="titleClass" class="mr-8 color-secondary">
             {{ $t('views.tool.settingTool') }}
           </h4>
         </div>
 
         <el-button link class="mr-24" @click="refresh">
-          <el-icon :size="18"><Refresh /></el-icon>
+          <el-icon :size="18" class="color-secondary"><Refresh /></el-icon>
         </el-button>
       </div>
     </template>
@@ -32,7 +32,7 @@
           :canOperation="false"
           showShared
           :shareTitle="$t('views.shared.shared_tool')"
-          :treeStyle="{ height: 'calc(100vh - 240px)' }"
+          :treeStyle="{ height: 'calc(100vh - 294px)' }"
         />
       </template>
       <div class="layout-bg">
@@ -48,29 +48,105 @@
         </div>
 
         <el-scrollbar>
-          <div class="p-16-24 pt-0" style="height: calc(100vh - 200px)">
+          <div class="p-16-24 pt-0" style="height: calc(100vh - 268px)">
             <el-row :gutter="12" v-loading="apiLoading" v-if="searchData.length">
               <el-col :span="12" v-for="(item, index) in searchData" :key="index" class="mb-16">
-                <CardCheckbox
-                  value-field="id"
-                  :data="item"
-                  v-model="checkList"
-                  @change="changeHandle"
+                <el-popover
+                  placement="bottom-start"
+                  :width="400"
+                  popper-style="--el-popover-border-radius:8px;--el-popover-padding:16px 16px 0"
+                  :show-after="500"
                 >
-                  <template #icon>
-                    <el-avatar
-                      v-if="item?.icon"
-                      shape="square"
-                      :size="32"
-                      style="background: none"
-                      class="mr-8"
+                  <template #reference>
+                    <CardCheckbox
+                      value-field="id"
+                      :data="item"
+                      v-model="checkList"
+                      @change="changeHandle"
                     >
-                      <img :src="resetUrl(item?.icon)" alt="" />
-                    </el-avatar>
-                    <ToolIcon v-else :size="32" :type="item?.tool_type" />
+                      <template #icon>
+                        <el-avatar
+                          v-if="item?.icon"
+                          shape="square"
+                          :size="32"
+                          style="background: none"
+                          class="mr-8"
+                        >
+                          <img :src="resetUrl(item?.icon)" alt="" />
+                        </el-avatar>
+                        <ToolIcon v-else :size="32" :type="item?.tool_type" />
+                      </template>
+                      <span class="ellipsis cursor ml-12" :title="item.name"> {{ item.name }}</span>
+                    </CardCheckbox>
                   </template>
-                  <span class="ellipsis cursor ml-12" :title="item.name"> {{ item.name }}</span>
-                </CardCheckbox>
+                  <template #default>
+                    <CardBox
+                      :title="item.name"
+                      :description="item.desc"
+                      class="cursor border-none popover-card-box"
+                      shadow="never"
+                      style="--el-card-padding: 0px; --card-min-height: 148px"
+                    >
+                      <template #icon>
+                        <el-avatar
+                          v-if="item?.icon"
+                          shape="square"
+                          :size="32"
+                          style="background: none"
+                        >
+                          <img :src="resetUrl(item?.icon)" alt="" />
+                        </el-avatar>
+                        <ToolIcon v-else :size="32" :type="item?.tool_type" />
+                      </template>
+                      <template #title>
+                        <div class="flex align-center" style="margin-top: 1px">
+                          <span class="ellipsis-1" :title="item.name">
+                            {{ item.name }}
+                          </span>
+                          <el-tag
+                            v-if="item.version"
+                            size="small"
+                            class="ml-4"
+                            type="info"
+                            effect="plain"
+                          >
+                            {{ item.version }}
+                          </el-tag>
+                        </div>
+                      </template>
+                      <template #subTitle>
+                        <el-text class="color-secondary lighter flex align-center" size="small">
+                          <span
+                            :title="i18n_name(item.nick_name)"
+                            class="ellipsis"
+                            style="max-width: 90px"
+                          >
+                            {{ i18n_name(item.nick_name) }}
+                          </span>
+                          <span class="ml-4 mr-4"> {{ $t('common.createdIn') }}</span>
+                          <span> {{ dateFormat(item.create_time) }}</span>
+                        </el-text>
+                      </template>
+
+                      <template #footer>
+                        <div v-if="item.is_active" class="flex align-center">
+                          <el-icon class="color-success mr-8" style="font-size: 16px">
+                            <SuccessFilled />
+                          </el-icon>
+                          <span class="color-secondary">
+                            {{ $t('common.status.enabled') }}
+                          </span>
+                        </div>
+                        <div v-else class="flex align-center">
+                          <AppIcon iconName="app-disabled" class="color-secondary mr-8"></AppIcon>
+                          <span class="color-secondary">
+                            {{ $t('common.status.disabled') }}
+                          </span>
+                        </div>
+                      </template>
+                    </CardBox>
+                  </template>
+                </el-popover>
               </el-col>
             </el-row>
             <el-empty :description="$t('common.noData')" v-else />
@@ -106,10 +182,16 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import useStore from '@/stores'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import { uniqueArray } from '@/utils/array'
-import { resetUrl } from '@/utils/common'
+import { resetUrl, i18n_name } from '@/utils/common'
+import { dateFormat } from '@/utils/time'
 const route = useRoute()
 
+const props = defineProps({
+  tool_type: {
+    type: String,
+    default: 'CUSTOM',
+  },
+})
 const emit = defineEmits(['refresh'])
 const { folder, user } = useStore()
 const apiType = computed(() => {
@@ -197,6 +279,12 @@ function getFolder() {
 
 function getList() {
   const folder_id = currentFolder.value?.id || user.getWorkspaceId()
+  const query: any = {}
+  if (props.tool_type.includes(',')) {
+    query['tool_type_list'] = props.tool_type.split(',')
+  } else {
+    query['tool_type'] = props.tool_type
+  }
   loadSharedApi({
     type: 'tool',
     isShared: folder_id === 'share',
@@ -204,7 +292,7 @@ function getList() {
   })
     .getToolList({
       folder_id: folder_id,
-      tool_type: 'CUSTOM',
+      ...query,
     })
     .then((res: any) => {
       toolList.value = res.data?.tools || res.data || []

@@ -32,7 +32,7 @@
               }}</el-text>
               <div class="flex-wrap" style="gap: 12px; padding: 12px">
                 <template v-for="(item, index) in node.list" :key="index">
-                  <el-popover placement="right" :width="280" :show-after="500">
+                  <el-popover placement="right" :width="280" :show-after="500" :persistent="false">
                     <template #reference>
                       <div
                         class="list-item flex align-center border border-r-6 p-8-12 cursor"
@@ -44,6 +44,7 @@
                           :is="iconComponent(`${item.type}-icon`)"
                           class="mr-8"
                           :size="20"
+                          style="--el-avatar-border-radius: 6px"
                         />
                         <div class="lighter">{{ item.label }}</div>
                       </div>
@@ -113,8 +114,14 @@
           <el-scrollbar height="450">
             <NodeContent
               :list="toolList"
-              @clickNodes="(val: any) => clickNodes(toolLibNode, val)"
-              @onmousedown="(val: any) => onmousedown(toolLibNode, val)"
+              @clickNodes="
+                (val: any) =>
+                  clickNodes(val.tool_type === 'WORKFLOW' ? toolWorkflowLibNode : toolLibNode, val)
+              "
+              @onmousedown="
+                (val: any) =>
+                  onmousedown(val.tool_type === 'WORKFLOW' ? toolWorkflowLibNode : toolLibNode, val)
+              "
             />
           </el-scrollbar>
         </LayoutContainer>
@@ -124,7 +131,7 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed, inject } from 'vue'
-import { getMenuNodes, toolLibNode, applicationNode } from '@/workflow/common/data'
+import { getMenuNodes, toolLibNode, toolWorkflowLibNode } from '@/workflow/common/data'
 import { iconComponent } from '@/workflow/icons/utils'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import useStore from '@/stores'
@@ -230,19 +237,29 @@ const toolTreeData = ref<any[]>([])
 const toolList = ref<any[]>([])
 
 async function getToolFolder() {
-  const res: any = await folder.asyncGetFolder(SourceTypeEnum.TOOL, {source_id: props.id}, apiType.value, loading)
+  const res: any = await folder.asyncGetFolder(
+    SourceTypeEnum.TOOL,
+    { source_id: props.id },
+    apiType.value,
+    loading,
+  )
   toolTreeData.value = res.data
   folder.setCurrentFolder(res.data?.[0] || {})
 }
 
 async function getToolList() {
+  const baseTypeParams =
+    activeName.value == 'DATA_SOURCE_TOOL'
+      ? { tool_type: 'DATA_SOURCE' }
+      : { tool_type_list: ['CUSTOM', 'WORKFLOW'] }
+
   const res = await loadSharedApi({
     type: 'tool',
     isShared: folder.currentFolder?.id === 'share',
     systemType: apiType.value,
   }).getToolList({
     folder_id: folder.currentFolder?.id || user.getWorkspaceId(),
-    tool_type: activeName.value == 'DATA_SOURCE_TOOL' ? 'DATA_SOURCE' : 'CUSTOM',
+    ...baseTypeParams,
   })
   toolList.value = res.data?.tools || res.data || []
   toolList.value = toolList.value?.filter((item: any) => item.is_active)

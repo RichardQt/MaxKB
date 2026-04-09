@@ -61,7 +61,6 @@ import {MsgSuccess} from '@/utils/message'
 import {t} from '@/locales'
 import {hasPermission} from "@/utils/permission";
 import {EditionConst, RoleConst} from "@/utils/permission/data.ts";
-import { max } from 'moment'
 
 const props = defineProps<{
   currentRole?: RoleItem
@@ -129,6 +128,9 @@ function handleCellChange(
   row: RoleTableDataItem,
 ) {
   item.enable = value
+  if (row.permission.some((p) => p.id.includes('OTHER'))) {
+    return
+  }
   const readItem = row.permission.find((p) => /:READ$/.test(p.id))
   // 如果勾选的不是 READ，则强制把 READ 也勾上
   if (value && item.id !== readItem?.id && readItem && !readItem.enable) {

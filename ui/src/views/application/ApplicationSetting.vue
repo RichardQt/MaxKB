@@ -318,7 +318,7 @@
                 <!-- 技能 -->
                 <div class="mb-8 mt-12 flex-between">
                   <span class="mr-4 lighter">
-                    {{ $t('views.application.skill') }}
+                    {{ $t('views.tool.skill.title') }}
                   </span>
                   <div class="flex" v-if="toolPermissionPrecise.read()">
                     <el-checkbox
@@ -327,7 +327,7 @@
                     />
                   </div>
                 </div>
-                <el-card shadow="never" class="card-never" style="--el-card-padding: 12px">
+                <el-card shadow="never" class="card-never mb-8" style="--el-card-padding: 12px">
                   <!-- MCP-->
                   <div v-if="toolPermissionPrecise.read()">
                     <div class="flex-between mb-8" @click="collapseData.MCP = !collapseData.MCP">
@@ -483,7 +483,13 @@
                                 alt=""
                               />
                             </el-avatar>
-                            <ToolIcon v-else class="mr-8" :size="20" />
+                            <ToolIcon
+                              v-else
+                              class="mr-8"
+                              :size="20"
+                              style="--el-avatar-border-radius: 6px"
+                              :type="relatedObject(toolSelectOptions, item, 'id')?.tool_type"
+                            />
 
                             <div
                               class="ellipsis-1"
@@ -493,6 +499,85 @@
                             </div>
                           </div>
                           <el-button text @click="removeTool(item)">
+                            <el-icon><Close /></el-icon>
+                          </el-button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- 技能   -->
+                  <div v-if="toolPermissionPrecise.read()">
+                    <div
+                      class="flex-between mb-8"
+                      @click="collapseData.skill = !collapseData.skill"
+                    >
+                      <div class="flex align-center lighter cursor">
+                        <el-icon
+                          class="mr-8 arrow-icon"
+                          :class="collapseData.skill ? 'rotate-90' : ''"
+                        >
+                          <CaretRight />
+                        </el-icon>
+                        Skills
+                        <span class="ml-4" v-if="applicationForm.skill_tool_ids?.length">
+                          ({{ applicationForm.skill_tool_ids?.length }})</span
+                        >
+                      </div>
+                      <div class="flex">
+                        <el-button
+                          type="primary"
+                          link
+                          @click="openSkillToolDialog"
+                          @refreshForm="refreshParam"
+                        >
+                          <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                        </el-button>
+                      </div>
+                    </div>
+                    <div
+                      class="w-full mb-16"
+                      v-if="
+                        applicationForm.skill_tool_ids &&
+                        applicationForm.skill_tool_ids.length > 0 &&
+                        toolPermissionPrecise.read() &&
+                        collapseData.skill
+                      "
+                    >
+                      <template
+                        v-for="(item, index) in applicationForm.skill_tool_ids"
+                        :key="index"
+                      >
+                        <div
+                          v-if="relatedObject(skillToolSelectOptions, item, 'id')"
+                          class="flex-between border border-r-6 white-bg mb-4"
+                          style="padding: 5px 8px"
+                        >
+                          <div class="flex align-center" style="line-height: 20px">
+                            <el-avatar
+                              v-if="relatedObject(skillToolSelectOptions, item, 'id')?.icon"
+                              shape="square"
+                              :size="20"
+                              style="background: none"
+                              class="mr-8"
+                            >
+                              <img
+                                :src="
+                                  resetUrl(relatedObject(skillToolSelectOptions, item, 'id')?.icon)
+                                "
+                                alt=""
+                              />
+                            </el-avatar>
+                            <ToolIcon v-else class="mr-8" :size="20" type="SKILL" />
+
+                            <div
+                              class="ellipsis-1"
+                              :title="relatedObject(skillToolSelectOptions, item, 'id')?.name"
+                            >
+                              {{ relatedObject(skillToolSelectOptions, item, 'id')?.name }}
+                            </div>
+                          </div>
+                          <el-button text @click="removeSkillTool(item)">
                             <el-icon><Close /></el-icon>
                           </el-button>
                         </div>
@@ -738,8 +823,6 @@
                     </el-button>
                   </div>
                 </el-form-item>
-
-
               </el-form>
             </el-scrollbar>
           </div>
@@ -775,7 +858,8 @@
       @refresh="submitReasoningDialog"
     />
     <McpServersDialog ref="mcpServersDialogRef" @refresh="submitMcpServersDialog" />
-    <ToolDialog ref="toolDialogRef" @refresh="submitToolDialog" />
+    <ToolDialog ref="toolDialogRef" @refresh="submitToolDialog" tool_type="CUSTOM,WORKFLOW" />
+    <ToolDialog ref="skillToolDialogRef" @refresh="submitSkillToolDialog" tool_type="SKILL" />
     <ApplicationDialog ref="applicationDialogRef" @refresh="submitApplicationDialog" />
   </div>
 </template>
@@ -842,6 +926,7 @@ const collapseData = reactive({
   knowledge_setting: true,
   MCP: true,
   tool: true,
+  skill: true,
   agent: true,
 })
 const AIModeParamSettingDialogRef = ref<InstanceType<typeof AIModeParamSettingDialog>>()
@@ -897,6 +982,7 @@ const applicationForm = ref<ApplicationFormType>({
   mcp_source: 'referencing',
   tool_enable: true,
   tool_ids: [],
+  skill_tool_ids: [],
   mcp_output_enable: false,
 })
 
@@ -913,7 +999,6 @@ const modelOptions = ref<any>(null)
 const knowledgeList = ref<Array<any>>([])
 const sttModelOptions = ref<any>(null)
 const ttsModelOptions = ref<any>(null)
-
 
 function submitPrologueDialog(val: string) {
   applicationForm.value.prologue = val
@@ -1032,6 +1117,14 @@ function removeMcpTool(id: any) {
   }
 }
 
+function removeSkillTool(id: any) {
+  if (applicationForm.value.skill_tool_ids) {
+    applicationForm.value.skill_tool_ids = applicationForm.value.skill_tool_ids.filter(
+      (v: any) => v !== id,
+    )
+  }
+}
+
 function removeApplication(id: any) {
   if (applicationForm.value.application_ids) {
     applicationForm.value.application_ids = applicationForm.value.application_ids.filter(
@@ -1092,12 +1185,12 @@ function getToolSelectOptions() {
     apiType.value === 'systemManage'
       ? {
           scope: 'WORKSPACE',
-          tool_type: 'CUSTOM',
+          tool_type_list: ['CUSTOM', 'WORKFLOW'],
           workspace_id: applicationForm.value?.workspace_id,
         }
       : {
           scope: 'WORKSPACE',
-          tool_type: 'CUSTOM',
+          tool_type_list: ['CUSTOM', 'WORKFLOW'],
         }
 
   loadSharedApi({ type: 'tool', systemType: apiType.value })
@@ -1127,6 +1220,39 @@ function getMcpToolSelectOptions() {
     .getAllToolList(obj)
     .then((res: any) => {
       mcpToolSelectOptions.value = [...res.data.shared_tools, ...res.data.tools].filter(
+        (item: any) => item.is_active,
+      )
+    })
+}
+
+const skillToolDialogRef = ref()
+function openSkillToolDialog() {
+  skillToolDialogRef.value.open(applicationForm.value.skill_tool_ids)
+}
+
+function submitSkillToolDialog(config: any) {
+  applicationForm.value.skill_tool_ids = config.tool_ids
+  collapseData.skill = true
+}
+
+const skillToolSelectOptions = ref<any[]>([])
+function getSkillToolSelectOptions() {
+  const obj =
+    apiType.value === 'systemManage'
+      ? {
+          scope: 'WORKSPACE',
+          tool_type: 'SKILL',
+          workspace_id: applicationForm.value?.workspace_id,
+        }
+      : {
+          scope: 'WORKSPACE',
+          tool_type: 'SKILL',
+        }
+
+  loadSharedApi({ type: 'tool', systemType: apiType.value })
+    .getAllToolList(obj)
+    .then((res: any) => {
+      skillToolSelectOptions.value = [...res.data.shared_tools, ...res.data.tools].filter(
         (item: any) => item.is_active,
       )
     })
@@ -1303,6 +1429,7 @@ onMounted(() => {
     getToolSelectOptions()
     getMcpToolSelectOptions()
     getApplicationSelectOptions()
+    getSkillToolSelectOptions()
   }
 })
 </script>

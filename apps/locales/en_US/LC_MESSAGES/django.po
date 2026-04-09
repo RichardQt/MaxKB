@@ -8509,9 +8509,6 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-msgid "USER"
-msgstr ""
-
 msgid "Delete personal system API_KEY"
 msgstr ""
 
@@ -8962,3 +8959,282 @@ msgstr "Slack App"
 
 msgid "Root Directory"
 msgstr ""
+
+msgid "Create trigger"
+msgstr ""
+
+msgid "Get the trigger list"
+msgstr ""
+
+msgid "Get trigger details"
+msgstr ""
+
+msgid "Modify the trigger"
+msgstr ""
+
+msgid "Delete the trigger"
+msgstr ""
+
+msgid "Delete trigger in batches"
+msgstr ""
+
+msgid "Activate trigger in batches"
+msgstr ""
+
+msgid "Get the trigger list by page"
+msgstr ""
+
+msgid "Create trigger in source"
+msgstr ""
+
+msgid "Get the trigger list of source"
+msgstr ""
+
+msgid "Modify the task source trigger"
+msgstr ""
+
+msgid "Get Task source trigger details"
+msgstr ""
+
+msgid "Delete the task source trigger"
+msgstr ""
+
+msgid "Get the task list of triggers"
+msgstr ""
+
+msgid "Retrieve detailed records of tasks executed by the trigger."
+msgstr ""
+
+msgid "Get a paginated list of execution records for trigger tasks."
+msgstr ""
+
+msgid "%s must be an array"
+msgstr ""
+
+msgid "%s must not be empty"
+msgstr ""
+
+msgid "%s values must be between %s and %s"
+msgstr ""
+
+msgid "Invalid time format: %s, must be HH:MM (e.g., 09:00)"
+msgstr ""
+
+msgid "schedule_type must be one of %s"
+msgstr ""
+
+msgid "interval_value must be an integer greater than or equal to 1"
+msgstr ""
+
+msgid "interval_unit must be one of %s"
+msgstr ""
+
+msgid "body must be an array"
+msgstr ""
+
+msgid "Error trigger type"
+msgstr ""
+
+msgid "The following id does not exist: %s"
+msgstr ""
+
+msgid "%s must be a dict"
+msgstr ""
+
+msgid "input_field_list must be a dict"
+msgstr ""
+
+msgid "%s type requires %s field"
+msgstr ""
+
+msgid "trigger name"
+msgstr ""
+
+msgid "trigger description"
+msgstr ""
+
+msgid "trigger setting"
+msgstr ""
+
+msgid "Trigger ID"
+msgstr ""
+
+msgid "Trigger task can not be empty"
+msgstr ""
+
+msgid "%s id does not exist"
+msgstr ""
+
+msgid "Trigger id does not exist"
+msgstr ""
+
+msgid "Trigger not found"
+msgstr ""
+
+msgid "Trigger must have at least one task"
+msgstr ""
+
+msgid "Trigger task number must be one"
+msgstr ""
+
+msgid "Incorrect trigger task"
+msgstr ""
+
+msgid "Trigger task ID"
+msgstr ""
+
+msgid "Trigger task record ID"
+msgstr ""
+
+msgid "Trigger task record id does not exist"
+msgstr ""
+
+msgid "Order field"
+msgstr ""
+
+msgid "System Trigger"
+msgstr ""
+
+msgid "Get the System trigger list of source"
+msgstr ""
+
+msgid "Get System Task source trigger details"
+msgstr ""
+
+msgid "Modify the System task source trigger"
+msgstr ""
+
+msgid "Delete the System task source trigger"
+msgstr ""
+
+msgid "Invalid source type"
+msgstr ""
+
+msgid "Shared tool is not supported"
+msgstr ""
+
+msgid "Read Trigger"
+msgstr ""
+
+msgid "Create Trigger"
+msgstr ""
+
+msgid "Edit Trigger"
+msgstr ""
+
+msgid "Delete Trigger"
+msgstr ""
+
+msgid "Read execute record"
+msgstr ""
+
+msgid "ADMIN"
+msgstr "System Administrator"
+
+msgid "WORKSPACE_MANAGE"
+msgstr "Workspace Manager"
+
+msgid "USER"
+msgstr "Regular User"
+
+msgid "Generate share link"
+msgstr "Generate share link"
+
+msgid "Chat record link"
+msgstr "Chat record link"
+
+msgid "Get chat record by share link"
+msgstr "Get chat record by share link"
+
+msgid "Invalid chat record ids"
+msgstr "Invalid chat record ids"
+
+msgid "Share link does not exist"
+msgstr "Share link does not exist"
+
+msgid "Chat has been deleted"
+msgstr "Chat has been deleted"
+
+msgid "cron type requires cron_expression field"
+msgstr "cron type requires cron_expression field"
+
+msgid "Invalid cron expression: %s"
+msgstr "Invalid cron expression: %s"
+
+msgid "Batch Remove Documents from Tag"
+msgstr "Batch Remove Documents from Tag"
+
+msgid "Document does not belong to current knowledge"
+msgstr "Document does not belong to current knowledge"
+
+msgid "Move an application"
+msgstr "Move an application"
+
+msgid "Batch delete applications"
+msgstr "Batch delete applications"
+
+msgid "Batch move applications"
+msgstr "Batch move applications"
+
+msgid "Batch delete knowledge"
+msgstr "Batch delete knowledge"
+
+msgid "Batch move knowledge"
+msgstr "Batch move knowledge"
+
+msgid "Batch delete tools"
+msgstr "Batch delete tools"
+
+msgid "Batch move tools"
+msgstr "Batch move tools"
+
+msgid "Model is not allowed to be empty"
+msgstr ""
+
+msgid "Not a valid zip file"
+msgstr "Not a valid zip file"
+
+msgid "Not a valid KB export file, missing knowledge.json"
+msgstr "Not a valid KB export file, missing knowledge.json"
+
+msgid "Not a valid KB export file, missing knowledge.xlsx"
+msgstr "Not a valid KB export file, missing knowledge.xlsx"
+
+msgid "Tags"
+msgstr "Tags"
+
+msgid "Hit handling method"
+msgstr "Hit handling method"
+
+msgid "Directly return similarity"
+msgstr "Directly return similarity"
+
+msgid "Paragraph is active"
+msgstr "Paragraph is active"
+
+msgid "Document type"
+msgstr "Document type"
+
+msgid "Document meta"
+msgstr "Document meta"
+
+msgid "Export knowledge bundle"
+msgstr "Export knowledge bundle"
+
+msgid "Import knowledge bundle"
+msgstr "Import knowledge bundle"
+
+msgid "Export system knowledge bundle"
+msgstr "Export system knowledge bundle"
+
+msgid "Export shared knowledge bundle"
+msgstr "Export shared knowledge bundle"
+
+msgid "Batch delete"
+msgstr "Batch delete"
+
+msgid "Batch move"
+msgstr "Batch move"
+
+msgid "There is a circular dependency in the tool workflow"
+msgstr "There is a circular dependency in the tool workflow"

@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from functools import reduce
 
 from django.db.models import QuerySet
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from application.flow.i_step_node import INode, NodeResult
 from application.flow.step_node.intent_node.i_intent_node import IIntentNode
@@ -53,16 +53,27 @@ class BaseIntentNode(IIntentNode):
         self.context['category'] = details.get('category')
 
     def execute(self, model_id, dialogue_number, history_chat_record, user_input, branch,
-                model_params_setting=None, **kwargs) -> NodeResult:
+                model_params_setting=None, model_id_type=None, model_id_reference=None, **kwargs) -> NodeResult:
+        # 处理引用类型
+        if model_id_type == 'reference' and model_id_reference:
+            reference_data = self.workflow_manage.get_reference_field(
+                model_id_reference[0],
+                model_id_reference[1:],
+            )
+            if reference_data and isinstance(reference_data, dict):
+                model_id = reference_data.get('model_id', model_id)
+                model_params_setting = reference_data.get('model_params_setting')
+        if not model_id:
+            raise Exception(_('Model is not allowed to be empty'))
 
         # 设置默认模型参数
-        if model_params_setting is None:
+        if model_params_setting is None and model_id:
             model_params_setting = get_default_model_params_setting(model_id)
 
         # 获取模型实例
         workspace_id = self.workflow_manage.get_body().get('workspace_id')
         chat_model = get_model_instance_by_model_workspace_id(
-            model_id, workspace_id, **model_params_setting
+            model_id, workspace_id, **(model_params_setting or {})
         )
 
         # 获取历史对话

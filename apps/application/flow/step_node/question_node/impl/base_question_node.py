@@ -12,8 +12,7 @@ from functools import reduce
 from typing import List, Dict
 
 from django.db.models import QuerySet
-from langchain.schema import HumanMessage, SystemMessage
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from application.flow.i_step_node import NodeResult, INode
 from application.flow.step_node.question_node.i_question_node import IQuestionNode
@@ -84,13 +83,25 @@ class BaseQuestionNode(IQuestionNode):
             self.answer_text = details.get('answer')
 
     def execute(self, model_id, system, prompt, dialogue_number, history_chat_record, stream, chat_id, chat_record_id,
-                model_params_setting=None,
+                model_params_setting=None, model_id_type=None, model_id_reference=None,
                 **kwargs) -> NodeResult:
-        if model_params_setting is None:
+        # 处理引用类型
+        if model_id_type == 'reference' and model_id_reference:
+            reference_data = self.workflow_manage.get_reference_field(
+                model_id_reference[0],
+                model_id_reference[1:],
+            )
+            if reference_data and isinstance(reference_data, dict):
+                model_id = reference_data.get('model_id', model_id)
+                model_params_setting = reference_data.get('model_params_setting')
+        if not model_id:
+            raise Exception(_('Model is not allowed to be empty'))
+
+        if model_params_setting is None and model_id:
             model_params_setting = get_default_model_params_setting(model_id)
         workspace_id = self.workflow_manage.get_body().get('workspace_id')
         chat_model = get_model_instance_by_model_workspace_id(model_id, workspace_id,
-                                                              **model_params_setting)
+                                                              **(model_params_setting or {}))
         history_message = self.get_history_message(history_chat_record, dialogue_number)
         self.context['history_message'] = history_message
         question = self.generate_prompt_question(prompt)
@@ -126,7 +137,7 @@ class BaseQuestionNode(IQuestionNode):
         return HumanMessage(self.workflow_manage.generate_prompt(prompt))
 
     def generate_message_list(self, system: str, prompt: str, history_message):
-        if system is None or len(system) == 0:
+        if system is not None and len(system) > 0:
             return [SystemMessage(self.workflow_manage.generate_prompt(system)), *history_message,
                     HumanMessage(self.workflow_manage.generate_prompt(prompt))]
         else:

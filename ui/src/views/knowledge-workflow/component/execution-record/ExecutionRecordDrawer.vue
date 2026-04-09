@@ -1,7 +1,7 @@
 <template>
   <el-drawer
     v-model="drawer"
-    :title="$t('workflow.ExecutionRecord')"
+    :title="$t('common.ExecutionRecord.title')"
     direction="rtl"
     size="800px"
     :before-close="close"
@@ -45,7 +45,7 @@
     <app-table
       ref="multipleTableRef"
       class="mt-16 document-table"
-      :data="data"
+      :data="tableData"
       :maxTableHeight="200"
       :pagination-config="paginationConfig"
       @sizeChange="changeSize"
@@ -164,14 +164,8 @@ const query = ref<any>({
 const loading = ref(false)
 const filter_type = ref<string>('user_name')
 const active_knowledge_id = ref<string>('')
-const data = ref<Array<any>>([])
-const tableIndexMap = computed<Dict<number>>(() => {
-  return data.value
-    .map((row, index) => ({
-      [row.id]: index,
-    }))
-    .reduce((pre, next) => ({ ...pre, ...next }), {})
-})
+const tableData = ref<Array<any>>([])
+
 const ExecutionDetailDrawerRef = ref<any>()
 const currentId = ref<string>('')
 const currentContent = ref<string>('')
@@ -211,50 +205,64 @@ const getList = (isLoading?: boolean) => {
     )
     .then((ok: any) => {
       paginationConfig.total = ok.data?.total
-      data.value = ok.data.records
+      tableData.value = ok.data.records
     })
 }
 
+
 const pre_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] - 1
-  return index < 0
+  const index = tableData.value.findIndex((item) => item.id === currentId.value)
+  return index === 0 && paginationConfig.current_page === 1
 })
 
 const next_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] + 1
-  return index >= data.value.length && index >= paginationConfig.total - 1
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
+  return (
+    index >= tableData.value.length &&
+    index + (paginationConfig.current_page - 1) * paginationConfig.page_size >=
+      paginationConfig.total - 1
+  )
 })
+
 
 const interval = ref<any>()
 /**
  * 下一页
  */
 const nextRecord = () => {
-  const index = tableIndexMap.value[currentId.value] + 1
-  if (index >= data.value.length) {
-    if (index >= paginationConfig.total - 1) {
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
+  if (index >= tableData.value.length) {
+    if (paginationConfig.current_page * paginationConfig.page_size >= paginationConfig.total) {
       return
     }
     paginationConfig.current_page = paginationConfig.current_page + 1
     getList(true).then(() => {
-      currentId.value = data.value[index].id
-      currentContent.value = data.value[index]
+      currentId.value = tableData.value[index].id
+      currentContent.value = tableData.value[index]
     })
+    return
   } else {
-    currentId.value = data.value[index].id
-    currentContent.value = data.value[index]
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
   }
 }
 /**
  * 上一页
  */
 const preRecord = () => {
-  const index = tableIndexMap.value[currentId.value] - 1
-  console.log('index', index)
-
-  if (index >= 0) {
-    currentId.value = data.value[index].id
-    currentContent.value = data.value[index]
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) - 1
+  if (index < 0 && 1) {
+    if (paginationConfig.current_page === 1) {
+      return
+    }
+    paginationConfig.current_page = paginationConfig.current_page - 1
+    getList(true).then(() => {
+      currentId.value = tableData.value[tableData.value.length - 1].id
+      currentContent.value = tableData.value[tableData.value.length - 1]
+    })
+  } else {
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
   }
 }
 
@@ -269,7 +277,7 @@ const open = (knowledge_id: string) => {
 const close = () => {
   paginationConfig.current_page = 1
   paginationConfig.total = 0
-  data.value = []
+  tableData.value = []
   drawer.value = false
   if (interval.value) {
     clearInterval(interval.value)

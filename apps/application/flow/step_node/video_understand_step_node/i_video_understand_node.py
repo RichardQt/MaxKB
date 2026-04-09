@@ -10,7 +10,10 @@ from application.flow.i_step_node import INode, NodeResult
 
 
 class VideoUnderstandNodeSerializer(serializers.Serializer):
-    model_id = serializers.CharField(required=True, label=_("Model id"))
+    model_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, label=_("Model id"))
+    model_id_type = serializers.CharField(required=False, default='custom', label=_("Model id type"))
+    model_id_reference = serializers.ListField(required=False, child=serializers.CharField(), allow_empty=True,
+                                               label=_("Reference Field"))
     system = serializers.CharField(required=False, allow_blank=True, allow_null=True,
                                    label=_("Role Setting"))
     prompt = serializers.CharField(required=True, label=_("Prompt word"))
@@ -26,12 +29,14 @@ class VideoUnderstandNodeSerializer(serializers.Serializer):
 
     model_params_setting = serializers.JSONField(required=False, default=dict,
                                                  label=_("Model parameter settings"))
+    model_setting = serializers.DictField(required=False,
+                                          label='Model settings')
 
 
 class IVideoUnderstandNode(INode):
     type = 'video-understand-node'
     support = [WorkflowMode.APPLICATION, WorkflowMode.APPLICATION_LOOP, WorkflowMode.KNOWLEDGE,
-               WorkflowMode.KNOWLEDGE_LOOP]
+               WorkflowMode.KNOWLEDGE_LOOP, WorkflowMode.TOOL, WorkflowMode.TOOL_LOOP]
 
     def get_node_params_serializer_class(self) -> Type[serializers.Serializer]:
         return VideoUnderstandNodeSerializer
@@ -40,10 +45,11 @@ class IVideoUnderstandNode(INode):
         res = self.workflow_manage.get_reference_field(self.node_params_serializer.data.get('video_list')[0],
                                                        self.node_params_serializer.data.get('video_list')[1:])
 
-        if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP].__contains__(
-                self.workflow_manage.flow.workflow_mode):
+        if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP, WorkflowMode.TOOL,
+            WorkflowMode.TOOL_LOOP].__contains__(
+            self.workflow_manage.flow.workflow_mode):
             return self.execute(video=res, **self.node_params_serializer.data, **self.flow_params_serializer.data,
-                            **{'history_chat_record': [], 'stream': True, 'chat_id': None, 'chat_record_id': None})
+                                **{'history_chat_record': [], 'stream': True, 'chat_id': None, 'chat_record_id': None})
         else:
             return self.execute(video=res, **self.node_params_serializer.data, **self.flow_params_serializer.data)
 
@@ -51,5 +57,7 @@ class IVideoUnderstandNode(INode):
                 model_params_setting,
                 chat_record_id,
                 video,
+                model_id_type=None, model_id_reference=None,
+                model_setting=None,
                 **kwargs) -> NodeResult:
         pass

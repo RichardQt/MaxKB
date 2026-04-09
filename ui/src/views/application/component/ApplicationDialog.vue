@@ -17,7 +17,7 @@
         </div>
 
         <el-button link class="mr-24" @click="refresh">
-          <el-icon :size="18"><Refresh /></el-icon>
+          <el-icon :size="18" class="color-secondary "><Refresh /></el-icon>
         </el-button>
       </div>
     </template>
@@ -45,29 +45,96 @@
         </div>
 
         <el-scrollbar>
-          <div class="p-16-24 pt-0" style="height: calc(100vh - 200px)">
+          <div class="p-16-24 pt-0" style="height: calc(100vh - 268px)">
             <el-row :gutter="12" v-loading="apiLoading" v-if="searchData.length">
               <el-col :span="12" v-for="(item, index) in searchData" :key="index" class="mb-16">
-                <CardCheckbox
-                  value-field="id"
-                  :data="item"
-                  v-model="checkList"
-                  @change="changeHandle"
+                <el-popover
+                  placement="bottom-start"
+                  :width="400"
+                  popper-style="--el-popover-border-radius:8px;--el-popover-padding:16px 16px 0"
+                  :persistent="false"
+                  :show-after="500"
                 >
-                  <template #icon>
-                    <el-avatar
-                      v-if="item?.icon"
-                      shape="square"
-                      :size="32"
-                      style="background: none"
-                      class="mr-8"
+                  <template #reference>
+                    <CardCheckbox
+                      value-field="id"
+                      :data="item"
+                      v-model="checkList"
+                      @change="changeHandle"
                     >
-                      <img :src="resetUrl(item?.icon)" alt="" />
-                    </el-avatar>
-                    <ToolIcon v-else :size="32" :type="item?.tool_type" />
+                      <template #icon>
+                        <el-avatar
+                          v-if="item?.icon"
+                          shape="square"
+                          :size="32"
+                          style="background: none"
+                          class="mr-8"
+                        >
+                          <img :src="resetUrl(item?.icon)" alt="" />
+                        </el-avatar>
+                        <ToolIcon v-else :size="32" :type="item?.tool_type" />
+                      </template>
+                      <span class="ellipsis cursor ml-12" :title="item.name"> {{ item.name }}</span>
+                    </CardCheckbox>
                   </template>
-                  <span class="ellipsis cursor ml-12" :title="item.name"> {{ item.name }}</span>
-                </CardCheckbox>
+                  <template #default>
+                    <CardBox
+                      :title="item.name"
+                      :description="item.desc"
+                      class="cursor border-none popover-card-box"
+                      shadow="never"
+                      style="--el-card-padding: 0px; --card-min-height: 148px"
+                    >
+                      <template #icon>
+                        <el-avatar shape="square" :size="32" style="background: none">
+                          <img :src="resetUrl(item?.icon, resetUrl('./favicon.ico'))" alt="" />
+                        </el-avatar>
+                      </template>
+                      <template #subTitle>
+                        <el-text class="color-secondary lighter flex align-center" size="small">
+                          <span
+                            :title="i18n_name(item.nick_name)"
+                            class="ellipsis"
+                            style="max-width: 90px"
+                          >
+                            {{ i18n_name(item.nick_name) }}
+                          </span>
+                          <span class="ml-4 mr-4"> {{ $t('common.createdIn') }}</span>
+                          <span> {{ dateFormat(item.create_time) }}</span>
+                        </el-text>
+                      </template>
+                      <template #tag>
+                        <el-tag v-if="isWorkFlow(item.type)" size="small" class="warning-tag">
+                          {{ $t('views.application.senior') }}
+                        </el-tag>
+                        <el-tag size="small" class="blue-tag" v-else>
+                          {{ $t('views.application.simple') }}
+                        </el-tag>
+                      </template>
+
+                      <template #footer>
+                        <div v-if="item.is_publish" class="flex align-center">
+                          <el-icon class="color-success mr-8" style="font-size: 16px">
+                            <SuccessFilled />
+                          </el-icon>
+                          <span class="color-secondary">
+                            {{ $t('common.status.published') }}
+                          </span>
+                          <el-divider direction="vertical" />
+                          <AppIcon iconName="app-clock" class="color-secondary mr-8"></AppIcon>
+
+                          <span class="color-secondary">{{ dateFormat(item.update_time) }}</span>
+                        </div>
+                        <div v-else class="flex align-center">
+                          <AppIcon iconName="app-disabled" class="color-secondary mr-8"></AppIcon>
+                          <span class="color-secondary">
+                            {{ $t('common.status.unpublished') }}
+                          </span>
+                        </div>
+                      </template>
+                    </CardBox>
+                  </template>
+                </el-popover>
               </el-col>
             </el-row>
             <el-empty :description="$t('common.noData')" v-else />
@@ -103,8 +170,9 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import useStore from '@/stores'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import { uniqueArray } from '@/utils/array'
-import { resetUrl } from '@/utils/common'
+import { i18n_name, resetUrl } from '@/utils/common'
+import { isWorkFlow } from '@/utils/application'
+import { dateFormat } from '@/utils/time'
 const route = useRoute()
 
 const emit = defineEmits(['refresh'])
@@ -200,9 +268,13 @@ function getList() {
     })
     .then((res: any) => {
       applicationList.value = res.data
-      applicationList.value = applicationList.value?.filter((item: any) => item.is_publish && item.id !== route.params.id)
+      applicationList.value = applicationList.value?.filter(
+        (item: any) => item.is_publish && item.id !== route.params.id,
+      )
       searchData.value = res.data
-      searchData.value = searchData.value?.filter((item: any) => item.is_publish && item.id !== route.params.id)
+      searchData.value = searchData.value?.filter(
+        (item: any) => item.is_publish && item.id !== route.params.id,
+      )
     })
 }
 

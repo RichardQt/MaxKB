@@ -132,7 +132,6 @@
                   style="width: 120px"
                   @change="search_type_change"
                 >
-                  <el-option :label="$t('dynamicsForm.tag.label')" value="tag" />
                   <el-option :label="$t('common.name')" value="name" />
                 </el-select>
                 <el-input
@@ -143,19 +142,11 @@
                   style="width: 220px"
                   clearable
                 />
-                <el-input
-                  v-if="search_type === 'tag'"
-                  v-model="search_form.tag"
-                  @change="refresh"
-                  :placeholder="$t('views.document.tag.requiredMessage3')"
-                  style="width: 220px"
-                  clearable
-                />
               </div>
 
               <el-tooltip
                 effect="dark"
-                :content="$t('workflow.ExecutionRecord')"
+                :content="$t('common.ExecutionRecord.title')"
                 placement="top"
                 v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
               >
@@ -187,6 +178,7 @@
             v-loading="loading"
             :row-key="(row: any) => row.id"
             :storeKey="storeKey"
+            @cell-click="cellClickHandle"
           >
             <el-table-column
               type="selection"
@@ -208,7 +200,7 @@
             <el-table-column
               prop="status"
               :label="$t('views.document.fileStatus.label')"
-              width="130"
+              width="120"
             >
               <template #header>
                 <div>
@@ -286,7 +278,7 @@
               prop="char_length"
               :label="$t('views.document.table.char_length')"
               align="right"
-              min-width="90"
+              min-width="120"
               sortable
             >
               <template #default="{ row }">
@@ -297,11 +289,11 @@
               prop="paragraph_count"
               :label="$t('views.document.table.paragraph')"
               align="right"
-              min-width="90"
+              min-width="120"
               sortable
             />
 
-            <el-table-column width="130">
+            <el-table-column width="110">
               <template #header>
                 <div>
                   <span>{{ $t('views.document.enableStatus.label') }}</span>
@@ -357,7 +349,78 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column width="170">
+            <el-table-column width="150" prop="tag">
+              <template #header>
+                <div>
+                  <span>{{ $t('dynamicsForm.tag.label') }}</span>
+
+                  <el-dropdown trigger="click" @visible-change="handleTagVisibleChange">
+                    <el-button
+                      style="margin-top: 1px"
+                      link
+                      :type="filterMethod['tags']?.length > 0 ? 'primary' : ''"
+                    >
+                      <el-icon>
+                        <Filter />
+                      </el-icon>
+                    </el-button>
+                    <template #dropdown>
+                      <div>
+                        <el-cascader-panel
+                          v-model="tagFilterValue"
+                          :options="tagFilterOptions"
+                          :props="{
+                            multiple: true,
+                            checkStrictly: true,
+                            emitPath: false,
+                            showPrefix: false,
+                          }"
+                          @change="(val: any) => dropdownHandle({ attr: 'tags', command: val })"
+                        />
+                      </div>
+                    </template>
+                  </el-dropdown>
+                </div>
+              </template>
+              <template #default="{ row }">
+                <el-popover
+                  trigger="hover"
+                  placement="bottom-start"
+                  :disabled="!row.tag_count"
+                  :popper-style="{ width: 'auto', maxWidth: '300px' }"
+                >
+                  <div
+                    v-for="tag in row.tags"
+                    :key="tag.id"
+                    class="flex align-center lighter color-text-primary mt-4 mb-4"
+                  >
+                    <span class="color-secondary ellipsis-1" style="width: 40%" :title="tag.key">{{
+                      tag.key
+                    }}</span>
+                    <span class="ml-4 ellipsis-1" :title="tag.value"> {{ tag.value }}</span>
+                  </div>
+
+                  <template #reference>
+                    <el-tag v-if="row.tag_count" type="info" effect="plain" class="never mr-4">
+                      <div class="flex align-center color-text-primary">
+                        <AppIcon iconName="app-tag"></AppIcon>
+                        <span class="ml-4">{{ row.tag_count }}</span>
+                      </div>
+                    </el-tag>
+                  </template>
+                </el-popover>
+                <el-button
+                  class="button-new-tag"
+                  size="small"
+                  :disabled="!permissionPrecise.doc_tag(id)"
+                  @click.stop="openAddTagDialog(row.id)"
+                >
+                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                  {{ $t('views.document.tag.key') }}
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column width="165">
               <template #header>
                 <div>
                   <span>{{ $t('views.document.form.hit_handling_method.label') }}</span>
@@ -734,15 +797,23 @@
       :workspaceId="knowledgeDetail?.workspace_id"
     />
     <GenerateRelatedDialog ref="GenerateRelatedDialogRef" @refresh="getList" :apiType="apiType" />
-    <TagDrawer ref="tagDrawerRef" />
-    <TagSettingDrawer ref="tagSettingDrawerRef" />
+    <TagDrawer ref="tagDrawerRef" @tag-changed="onTagChanged" />
+    <TagSettingDrawer
+      ref="tagSettingDrawerRef"
+      @refresh="
+        () => {
+          onTagChanged()
+          getList()
+        }
+      "
+    />
     <AddTagDialog ref="addTagDialogRef" @addTags="addTags" :apiType="apiType" />
     <!-- 执行详情 -->
     <ExecutionRecord ref="ListActionRef"></ExecutionRecord>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, reactive } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import type { ElTable } from 'element-plus'
 import ImportDocumentDialog from './component/ImportDocumentDialog.vue'
@@ -750,7 +821,7 @@ import SelectKnowledgeDialog from './component/SelectKnowledgeDialog.vue'
 import { numberFormat } from '@/utils/common'
 import { datetimeFormat } from '@/utils/time'
 import { hitHandlingMethod } from '@/enums/document'
-import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
+import { MsgSuccess, MsgConfirm, MsgError, MsgAlert } from '@/utils/message'
 import useStore from '@/stores'
 import StatusValue from '@/views/document/component/Status.vue'
 import GenerateRelatedDialog from '@/components/generate-related-dialog/index.vue'
@@ -1074,10 +1145,10 @@ function refreshDocument(row: any) {
 }
 
 function rowClickHandle(row: any, column: any) {
-  if (column && column.type === 'selection') {
+  console.log(column)
+  if (column && (column.type === 'selection' || column.property === 'tag')) {
     return
   }
-
   router.push({
     path: `/paragraph/${id}/${row.id}`,
     query: { from: apiType.value, isShared: isShared.value ? 'true' : 'false' },
@@ -1285,8 +1356,10 @@ function editName(val: string, id: string) {
   }
 }
 
-function cellMouseEnter(row: any) {
-  currentMouseId.value = row.id
+function cellMouseEnter(row: any, column: any) {
+  if (column && column.property === 'name') {
+    currentMouseId.value = row.id
+  }
 }
 
 function cellMouseLeave() {
@@ -1359,6 +1432,67 @@ function openGenerateDialog(row?: any) {
   GenerateRelatedDialogRef.value.open(arr, 'document')
 }
 
+function cellClickHandle(row: any, column: any, cell: any, event: any) {
+  if (column.property === 'tag' && permissionPrecise.value.doc_tag(id)) {
+    event.stopPropagation()
+    openTagSettingDrawer(row)
+  }
+}
+const tagFilterValue = ref<string[]>([])
+const tagFilterDirty = ref(false)
+const tagFilterOptions = ref<any[]>([])
+const tagFilterLoaded = ref(false)
+const tagFilterLoading = ref(false)
+
+function buildTagCascaderOptions(tags: any[]) {
+  const options = tags.map((group: any) => ({
+    label: group.key,
+    value: group.key,
+    children: (group.values || []).map((item: any) => ({
+      label: item.value,
+      value: item.id, // 叶子节点 tag.id
+    })),
+  }))
+
+  options.push({
+    label: t('views.document.tag.noTag'),
+    value: 'NO_TAG',
+    children: [],
+  })
+
+  return options
+}
+
+async function ensureTagFilterOptions(needRefresh = false) {
+  // 非刷新 && 已加载 && 非脏数据
+  if (!needRefresh && tagFilterLoaded.value && !tagFilterDirty.value) return
+
+  try {
+    tagFilterLoading.value = true
+    const params = {}
+    const res: any = await loadSharedApi({
+      type: 'knowledge',
+      systemType: apiType.value,
+      isShared: isShared.value,
+    }).getTags(id, params, tagFilterLoading)
+
+    tagFilterOptions.value = buildTagCascaderOptions(res?.data || [])
+    tagFilterLoaded.value = true
+    tagFilterDirty.value = false
+  } finally {
+    tagFilterLoading.value = false
+  }
+}
+
+async function handleTagVisibleChange(visible: boolean) {
+  if (!visible) return
+  await ensureTagFilterOptions()
+}
+
+function onTagChanged() {
+  tagFilterDirty.value = true
+}
+
 const tagDrawerRef = ref()
 function openTagDrawer() {
   tagDrawerRef.value.open()
@@ -1371,13 +1505,14 @@ function openTagSettingDrawer(doc: any) {
 
 const addTagDialogRef = ref()
 
-function openAddTagDialog() {
-  addTagDialogRef.value?.open()
+function openAddTagDialog(rowId?: string) {
+  addTagDialogRef.value?.open(rowId)
 }
 
-function addTags(tags: any) {
-  const arr: string[] = multipleSelection.value.map((v) => v.id)
-
+function addTags(tags: any, rowId?: string) {
+  const arr: string[] = multipleSelection.value.length
+    ? multipleSelection.value.map((v) => v.id)
+    : [rowId]
   loadSharedApi({ type: 'document', systemType: apiType.value })
     .postMulDocumentTags(id, { tag_ids: tags, document_ids: arr }, loading)
     .then(() => {
@@ -1400,6 +1535,12 @@ onMounted(() => {
   getList()
   // 初始化定时任务
   initInterval()
+
+  if (route.query.imported === 'true') {
+    MsgAlert(t('common.tip'), t('common.knowledgeImportTip')).then(() => {
+      router.replace({ query: {} })
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -1410,16 +1551,8 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .document {
   .mul-operation {
-    position: fixed;
-    margin-left: var(--sidebar-width);
-    bottom: 0;
     right: 24px;
     width: calc(100% - var(--sidebar-width) - 48px);
-    padding: 16px 24px;
-    box-sizing: border-box;
-    background: #ffffff;
-    z-index: 22;
-    box-shadow: 0px -2px 4px 0px rgba(31, 35, 41, 0.08);
   }
   .document-table {
     :deep(.el-table__row) {

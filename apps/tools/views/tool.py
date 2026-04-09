@@ -6,14 +6,15 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from common.auth import TokenAuth
-from common.auth.authentication import has_permissions
+from common.auth.authentication import has_permissions, check_batch_permissions
 from common.constants.permission_constants import PermissionConstants, RoleConstants, ViewPermission, CompareConstants
 from common.log.log import log
-from common.result import result
+from common import result
 from tools.api.tool import ToolCreateAPI, ToolEditAPI, ToolReadAPI, ToolDeleteAPI, ToolTreeReadAPI, ToolDebugApi, \
-    ToolExportAPI, ToolImportAPI, ToolPageAPI, PylintAPI, EditIconAPI, GetInternalToolAPI, AddInternalToolAPI
+    ToolExportAPI, ToolImportAPI, ToolPageAPI, PylintAPI, EditIconAPI, GetInternalToolAPI, AddInternalToolAPI, \
+    ToolBatchOperateAPI
 from tools.models import ToolScope, Tool
-from tools.serializers.tool import ToolSerializer, ToolTreeSerializer
+from tools.serializers.tool import ToolSerializer, ToolTreeSerializer, ToolBatchOperateSerializer
 
 
 def get_tool_operation_object(tool_id):
@@ -21,6 +22,15 @@ def get_tool_operation_object(tool_id):
     if tool_model is not None:
         return {
             "name": tool_model.name
+        }
+    return {}
+
+def get_tool_operation_object_batch(tool_id_list):
+    tool_model_list = QuerySet(model=Tool).filter(id__in=tool_id_list)
+    if tool_model_list is not None:
+        return {
+            "name": f'[{",".join([t.name for t in tool_model_list])}]',
+            'tool_list': [{'name': t.name} for t in tool_model_list]
         }
     return {}
 
@@ -74,6 +84,7 @@ class ToolView(APIView):
                 'name': request.query_params.get('name'),
                 'scope': request.query_params.get('scope', ToolScope.WORKSPACE),
                 'tool_type': request.query_params.get('tool_type'),
+                'tool_type_list': request.query_params.getlist('tool_type_list[]'),
                 'user_id': request.user.id,
                 'create_user': request.query_params.get('create_user'),
             }
@@ -184,6 +195,83 @@ class ToolView(APIView):
             return result.success(ToolSerializer.Operate(
                 data={'id': tool_id, 'workspace_id': workspace_id}
             ).delete())
+
+    class BatchDelete(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['PUT'],
+            description=_("Batch delete tools"),
+            summary=_("Batch delete tools"),
+            operation_id=_("Batch delete tools"),
+            parameters=ToolBatchOperateAPI.get_parameters(),
+            request=ToolBatchOperateAPI.get_request(),
+            responses=result.DefaultResultSerializer,
+            tags=[_('Tool')]
+        )
+        @has_permissions(PermissionConstants.TOOL_BATCH_DELETE.get_workspace_permission(),
+                         RoleConstants.USER.get_workspace_role(),
+                         RoleConstants.WORKSPACE_MANAGE.get_workspace_role()
+                         )
+        def put(self, request: Request, workspace_id: str):
+            id_list = request.data.get('id_list', [])
+            permitted_ids = check_batch_permissions(
+                request, id_list, 'tool_id',
+                (PermissionConstants.TOOL_DELETE.get_workspace_tool_permission(),
+                 PermissionConstants.TOOL_DELETE.get_workspace_permission_workspace_manage_role(),
+                 ViewPermission([RoleConstants.USER.get_workspace_role()],
+                                [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                                CompareConstants.AND),
+                 RoleConstants.WORKSPACE_MANAGE.get_workspace_role()), workspace_id=workspace_id
+            )
+
+            @log(menu='Tool', operate='Batch delete tools',
+                 get_operation_object=lambda r, k: get_tool_operation_object_batch(permitted_ids))
+            def inner(view, r, **kwargs):
+                return ToolBatchOperateSerializer(
+                    data={'workspace_id': workspace_id}
+                ).batch_delete({'id_list': permitted_ids})
+
+            return result.success(inner(self, request, workspace_id=workspace_id))
+
+    class BatchMove(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['PUT'],
+            description=_("Batch move tools"),
+            summary=_("Batch move tools"),
+            operation_id=_("Batch move tools"),
+            parameters=ToolBatchOperateAPI.get_parameters(),
+            request=ToolBatchOperateAPI.get_move_request(),
+            responses=result.DefaultResultSerializer,
+            tags=[_('Tool')]
+        )
+        @has_permissions(PermissionConstants.TOOL_BATCH_MOVE.get_workspace_permission(),
+                         RoleConstants.USER.get_workspace_role(),
+                         RoleConstants.WORKSPACE_MANAGE.get_workspace_role()
+                         )
+        def put(self, request: Request, workspace_id: str):
+            id_list = request.data.get('id_list', [])
+            permitted_ids = check_batch_permissions(
+                request, id_list, 'tool_id',
+                (PermissionConstants.TOOL_EDIT.get_workspace_tool_permission(),
+                 PermissionConstants.TOOL_EDIT.get_workspace_permission_workspace_manage_role(),
+                 ViewPermission([RoleConstants.USER.get_workspace_role()],
+                                [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                                CompareConstants.AND),
+                 RoleConstants.WORKSPACE_MANAGE.get_workspace_role()),
+                workspace_id=workspace_id
+            )
+
+            @log(menu='Tool', operate='Batch move tools',
+                 get_operation_object=lambda r, k: get_tool_operation_object_batch(permitted_ids))
+            def inner(view, r, **kwargs):
+                return ToolBatchOperateSerializer(
+                    data={'workspace_id': workspace_id}
+                ).batch_move({'id_list': permitted_ids, 'folder_id': request.data.get('folder_id')})
+
+            return result.success(inner(self, request, workspace_id=workspace_id))
 
     class Page(APIView):
         authentication_classes = [TokenAuth]
@@ -513,3 +601,102 @@ class ToolView(APIView):
                 'icon': request.data.get('icon'),
                 'versions': request.data.get('versions'),
             }).update_tool(request.data))
+
+    class PageToolRecord(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_("Get tool records"),
+            summary=_("Get tool records"),
+            operation_id=_("Get tool records"),  # type: ignore
+            parameters=AddInternalToolAPI.get_parameters(),
+            responses=AddInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        @has_permissions(
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_tool_permission(),
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                           CompareConstants.AND),
+        )
+        def get(self, request: Request, tool_id: str, workspace_id: str, current_page: int, page_size: int):
+            return result.success(ToolSerializer.ToolRecord(data={
+                'tool_id': tool_id,
+                'workspace_id': workspace_id,
+                'source_name': request.query_params.get('source_name'),
+                'source_type': request.query_params.get('source_type'),
+                'state': request.query_params.get('state'),
+            }).get_tool_records(current_page, page_size))
+
+    class ToolRecord(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_("Get tool record"),
+            summary=_("Get tool record"),
+            operation_id=_("Get tool record"),  # type: ignore
+            parameters=AddInternalToolAPI.get_parameters(),
+            responses=AddInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        @has_permissions(
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_tool_permission(),
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                           CompareConstants.AND),
+        )
+        def get(self, request: Request, tool_id: str, workspace_id: str, record_id: str):
+            return result.success(ToolSerializer.ToolRecord.Operate(data={
+                'tool_id': tool_id,
+                'workspace_id': workspace_id,
+                'id': record_id,
+            }).one())
+
+    class UploadSkillFile(APIView):
+        authentication_classes = [TokenAuth]
+        parser_classes = [MultiPartParser]
+
+        @extend_schema(
+            methods=['PUT'],
+            description=_("Upload skill file"),
+            summary=_("Upload skill file"),
+            operation_id=_("Upload skill file"),  # type: ignore
+            parameters=AddInternalToolAPI.get_parameters(),
+            request=AddInternalToolAPI.get_request(),
+            responses=AddInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        @has_permissions(
+            PermissionConstants.TOOL_CREATE.get_workspace_permission(),
+            PermissionConstants.TOOL_CREATE.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(), RoleConstants.USER.get_workspace_role()
+        )
+        def put(self, request: Request, workspace_id: str):
+            return result.success(ToolSerializer.UploadSkillFile(data={
+                'workspace_id': workspace_id,
+                'user_id': request.user.id,
+                'file': request.FILES.get('file'),
+            }).upload())
+
+    class GenerateCode(APIView):
+        authentication_classes = [TokenAuth]
+
+        @has_permissions(
+            PermissionConstants.TOOL_CREATE.get_workspace_permission(),
+            PermissionConstants.TOOL_CREATE.get_workspace_permission_workspace_manage_role(),
+            PermissionConstants.TOOL_EDIT.get_workspace_permission(),
+            PermissionConstants.TOOL_EDIT.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            RoleConstants.USER.get_workspace_role()
+        )
+        def post(self, request: Request, workspace_id: str):
+            return ToolSerializer.GenerateCodeSerializer(data={
+                'workspace_id': workspace_id,
+                **request.data
+            }).generate_code()

@@ -138,7 +138,7 @@
                                     null,
                                     {
                                       paragraph_id: item.id,
-                                      new_position: val === 'up' ? index - 1 : index + 1,
+                                      new_position: setPosition(val, index),
                                     },
                                     index,
                                   )
@@ -158,32 +158,43 @@
             </el-scrollbar>
           </div>
         </div>
+        <div class="mul-operation border-t w-full" v-if="isBatch === true">
+          <div class="flex align-center" style="max-width: 1000px; margin: auto; flex-grow: 1">
+            <el-checkbox
+              v-model="checkAll"
+              :indeterminate="isIndeterminate"
+              @change="handleCheckAllChange"
+            >
+              {{ $t('common.allCheck') }}
+            </el-checkbox>
+            <el-button
+              class="ml-16"
+              :disabled="multipleSelection.length === 0"
+              @click="openGenerateDialog()"
+            >
+              {{ $t('views.document.generateQuestion.title') }}
+            </el-button>
+            <el-button
+              :disabled="multipleSelection.length === 0"
+              @click="openSelectDocumentDialog()"
+            >
+              {{ $t('views.document.setting.migration') }}
+            </el-button>
+
+            <el-button :disabled="multipleSelection.length === 0" @click="deleteMulParagraph">
+              {{ $t('common.delete') }}
+            </el-button>
+            <span class="color-secondary ml-24 mr-16">
+              {{ $t('common.selected') }} {{ multipleSelection.length }}/{{ paginationConfig.total }}
+              {{ $t('views.document.items') }}
+            </span>
+
+            <el-button link type="primary" @click="batchSelectedHandle(false)">
+              {{ $t('views.paragraph.setting.cancelSelected') }}
+            </el-button>
+          </div>
+        </div>
       </LayoutContainer>
-
-      <div class="mul-operation border-t w-full flex align-center" v-if="isBatch === true">
-        <el-button :disabled="multipleSelection.length === 0" @click="openGenerateDialog()">
-          {{ $t('views.document.generateQuestion.title') }}
-        </el-button>
-        <el-button :disabled="multipleSelection.length === 0" @click="openSelectDocumentDialog()">
-          {{ $t('views.document.setting.migration') }}
-        </el-button>
-
-        <el-button :disabled="multipleSelection.length === 0" @click="deleteMulParagraph">
-          {{ $t('common.delete') }}
-        </el-button>
-        <span class="color-secondary ml-24 mr-16">
-          {{ $t('common.selected') }} {{ multipleSelection.length }}
-          {{ $t('views.document.items') }}
-        </span>
-        <el-button
-          link
-          type="primary"
-          v-if="multipleSelection.length > 0"
-          @click="multipleSelection = []"
-        >
-          {{ $t('common.clear') }}
-        </el-button>
-      </div>
     </el-card>
     <ParagraphDialog
       ref="ParagraphDialogRef"
@@ -203,6 +214,7 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import type { CheckboxValueType } from 'element-plus'
 import ParagraphDialog from './component/ParagraphDialog.vue'
 import ParagraphCard from './component/ParagraphCard.vue'
 import SelectDocumentDialog from './component/SelectDocumentDialog.vue'
@@ -251,6 +263,18 @@ watch(
     dialogVisible.value = val
   },
 )
+
+function setPosition(val: string, index: number) {
+  if (val === 'top') {
+    return 0
+  } else if (val === 'bottom') {
+    return paginationConfig.total - 1
+  } else if (val === 'up') {
+    return index - 1
+  } else if (val === 'down') {
+    return index + 1
+  }
+}
 function dialogVisibleChange(val: boolean) {
   dialogVisible.value = val
 }
@@ -263,6 +287,23 @@ const handleClick = (e: MouseEvent, ele: any) => {
 // 批量操作
 const isBatch = ref(false)
 const multipleSelection = ref<any[]>([])
+const checkAll = ref(false)
+const isIndeterminate = computed(() => {
+  return (
+    multipleSelection.value.length > 0 &&
+    multipleSelection.value.length < paragraphDetail.value.length
+  )
+})
+const handleCheckAllChange = (val: CheckboxValueType) => {
+  let bool
+  if(isIndeterminate.value) {
+    bool = true
+  } else {
+    bool = val as boolean
+  }
+  multipleSelection.value = bool ? paragraphDetail.value.map((v) => v.id) : []
+  checkAll.value = bool as boolean
+}
 
 function toggleSelect(id: number) {
   const index = multipleSelection.value.indexOf(id)
@@ -331,6 +372,7 @@ function deleteMulParagraph() {
 
 function batchSelectedHandle(bool: boolean) {
   isBatch.value = bool
+  checkAll.value = false
   multipleSelection.value = []
 }
 
@@ -409,7 +451,8 @@ function onEnd(event?: any, params?: any, index?: number) {
   }
   const obj = p ?? {
     paragraph_id: paragraphDetail.value[event.newIndex].id, // 当前拖动的段落ID
-    new_position: paragraphDetail.value[event.newIndex + 1]?.position || paragraphDetail.value.length, // 新位置的段落位置
+    new_position:
+      paragraphDetail.value[event.newIndex + 1]?.position || paragraphDetail.value.length, // 新位置的段落位置
   }
   // console.log(paragraphDetail.value[event.newIndex], obj)
   loadSharedApi({ type: 'paragraph', systemType: apiType.value }).putAdjustPosition(
@@ -459,11 +502,6 @@ onMounted(() => {
     box-sizing: border-box;
     .mul-operation {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      padding: 16px 24px;
-      box-sizing: border-box;
-      background: #ffffff;
     }
   }
   .paragraph-card {

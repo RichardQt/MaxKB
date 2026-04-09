@@ -349,18 +349,19 @@ class File(AppModelMixin):
             raise ValueError("bytea参数不能为空")
 
         sha256_hash = get_sha256_hash(bytea)
-
+        self.sha256_hash = sha256_hash
         existing_file = QuerySet(File).filter(sha256_hash=sha256_hash).first()
         if existing_file:
             self.loid = existing_file.loid
+            self.file_size = existing_file.file_size
             return super().save()
 
         compressed_data = self._compress_data(bytea)
+        self.file_size = len(compressed_data)
 
         self.loid = self._create_large_object()
 
         self._write_compressed_data(compressed_data)
-
         # 调用父类保存
         return super().save()
 
@@ -400,7 +401,9 @@ class File(AppModelMixin):
         try:
             # 解压数据
             with zipfile.ZipFile(buffer) as zip_file:
-                return zip_file.read(self.file_name)
+                # 用 zip 内实际存储的条目名，避免文件名不匹配
+                name = zip_file.namelist()[0]
+                return zip_file.read(name)
         except Exception as e:
             # 如果数据不是zip格式，直接返回原始数据
             return buffer.getvalue()

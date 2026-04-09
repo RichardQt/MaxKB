@@ -99,6 +99,10 @@ class WorkflowMode(Enum):
 
     KNOWLEDGE_LOOP = "knowledge-loop"
 
+    TOOL = "tool"
+
+    TOOL_LOOP = "tool-loop"
+
 
 class Workflow:
     """
@@ -170,7 +174,7 @@ class Workflow:
         @param node_id: 节点id
         @return: 节点列表
         """
-        return [en.node for en in self.up_node_map.get(node_id)]
+        return [en.node for en in (self.up_node_map.get(node_id) or [])]
 
     def get_next_nodes(self, node_id) -> List[Node]:
         """
@@ -242,8 +246,11 @@ class Workflow:
             raise AppApiException(500, _('There can only be one starting node'))
 
     def is_valid_model_params(self):
-        node_list = [node for node in self.nodes if (node.type == 'ai-chat-node' or node.type == 'question-node')]
+        node_list = [node for node in self.nodes if (
+                node.type == 'ai-chat-node' or node.type == 'question-node' or node.type == 'parameter-extraction-node')]
         for node in node_list:
+            if (node.properties.get('node_data', {}).get('model_id_type') or 'custom') == 'reference':
+                continue
             model = QuerySet(Model).filter(id=node.properties.get('node_data', {}).get('model_id')).first()
             if model is None:
                 raise ValidationError(ErrorDetail(

@@ -1,7 +1,6 @@
 <template>
   <div
     class="chat-mobile layout-bg chat-background"
-    :class="classObj"
     :style="{
       '--el-color-primary': applicationDetail?.custom_theme?.theme_color,
       '--el-color-primary-light-9': hexToRgba(
@@ -44,14 +43,27 @@
             {{ applicationDetail?.name }}
           </h4>
         </div>
-        <el-button
-          text
-          @click="newChat"
-          class="mr-16"
-          :style="{ color: applicationDetail?.custom_theme?.header_font_color }"
-        >
-          <AppIcon iconName="app-create-chat" style="font-size: 20px"></AppIcon>
-        </el-button>
+        <div>
+          <el-button
+            text
+            @click="newChat"
+            :class="currentChatId === 'new' ? 'mr-16' : ''"
+            v-if="!showSelection"
+            :style="{ color: applicationDetail?.custom_theme?.header_font_color }"
+          >
+            <AppIcon iconName="app-create-chat" style="font-size: 20px"></AppIcon>
+          </el-button>
+          <el-tooltip
+            effect="dark"
+            :content="$t('chat.share')"
+            placement="top"
+            v-if="!showSelection && currentChatId !== 'new'"
+          >
+            <el-button class="mr-16" text @click="clickShareHandle" :disabled="AiChatRef?.loading">
+              <AppIcon iconName="app-share"></AppIcon>
+            </el-button>
+          </el-tooltip>
+        </div>
       </div>
     </div>
     <div>
@@ -66,7 +78,7 @@
           type="ai-chat"
           @refresh="refresh"
           @scroll="handleScroll"
-          class="AiChat-embed"
+          v-model:selection="showSelection"
         >
         </AiChat>
       </div>
@@ -82,6 +94,7 @@
       @delete-log="deleteLog"
       @refreshFieldTitle="refreshFieldTitle"
       @clear-chat="clearChat"
+      @clickShare="clickShareHandle"
     />
   </div>
 </template>
@@ -130,11 +143,11 @@ const customStyle = computed(() => {
   }
 })
 
-const classObj = computed(() => {
-  return {
-    mobile: common.isMobile(),
-  }
-})
+const showSelection = ref(false)
+const clickShareHandle = () => {
+  showSelection.value = true
+  show.value = false
+}
 
 function clearChat() {
   chatAPI.clearChat(left_loading).then(() => {
@@ -239,6 +252,7 @@ function getChatRecord() {
 
 const clickListHandle = (item: any) => {
   if (item.id !== currentChatId.value) {
+    showSelection.value = false
     paginationConfig.current_page = 1
     currentRecordList.value = []
     currentChatId.value = item.id

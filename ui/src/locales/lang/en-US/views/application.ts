@@ -12,13 +12,13 @@ export default {
   advancedPlaceholder:
     'Using low-code drag-and-drop methods, flexibly orchestrate complex logic and feature-rich agents',
   appTest: 'Debug Preview',
-  skill: 'Skill',
   operation: {
     addModel: 'Add Model',
     toChat: 'Chat',
   },
   delete: {
     confirmTitle: 'Are you sure you want to delete this agent: ',
+    confirmTitle2: 'agents?',
     confirmMessage:
       'Deleting this agent will no longer provide its services. Please proceed with caution.',
     resourceCountMessage:

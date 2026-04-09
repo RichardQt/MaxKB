@@ -11,6 +11,8 @@ export default {
     cancelVectorization: '取消向量化',
     cancelGenerate: '取消生成',
     export: '导出',
+    exportDocument: '导出文档',
+    exportKnowledge: '导出知识库',
     download: '下载原文档',
     replace: '替换原文档',
   },
@@ -39,6 +41,7 @@ export default {
     // errorMessage4: '每次最多上传50个文件',
     template: '模板',
     download: '下载',
+    fileLimitSizeTip: '大小不超过',
   },
 
   fileType: {
@@ -98,6 +101,11 @@ export default {
     key: '标签',
     value: '标签值',
     addTag: '添加标签',
+    noTag: '无标签',
+    relate: '关联',
+    unrelate: '取消关联',
+    relatedDoc: '已关联文档',
+    unrelatedDoc: '未关联文档',
     addValue: '添加标签值',
     setting: '标签设置',
     create: '创建标签',
@@ -164,9 +172,8 @@ export default {
       placeholder: '直接返回分段内容',
       requiredMessage: '请输入相似度',
     },
-    allow_download: {
-      label: '允许在知识库来源中下载',
-    },
+    allow_download: '允许在知识来源中下载',
+    allow_preview: '允许在知识来源中预览',
   },
   hitHandlingMethod: {
     optimization: '模型优化',
@@ -176,6 +183,8 @@ export default {
     title: '移动位置',
     moveUp: '上移',
     moveDown: '下移',
+    moveTop: '头部',
+    moveBottom: '末尾',
   },
   generateQuestion: {
     title: '生成问题',

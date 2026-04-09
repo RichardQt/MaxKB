@@ -2,8 +2,10 @@ export default {
   title: 'Trigger',
   tip: 'When triggered, the system will automatically call task execution based on the input parameters settings',
   task: 'Task',
+  nextTime: 'Next Execution Time',
   triggerTask: 'Trigger Task',
   taskExecution: 'Task Execution',
+  triggerSource: 'Trigger Source',
   delete: {
     confirmTitle: 'Confirm deleting trigger:',
     confirmTitle2: 'triggers?',
@@ -24,6 +26,11 @@ export default {
     sunday: 'Sunday',
     hours: 'Hours',
     minutes: 'Minutes',
+    cronExpression: 'Cron expression',
+    switchCycle: 'Switch to Trigger Cycle',
+    switchCron: 'Switch to Cron expression',
+    placeholder: 'Please enter a Cron expression (e.g. 0 0 1 * *)'
+
   },
   type: {
     scheduled: 'Scheduled Trigger',
@@ -44,4 +51,6 @@ export default {
     },
   },
   requestParameter: 'Request Parameters',
+  triggerParam: 'Trigger Input Parameters',
+  errorMsg: 'Error Message',
 }

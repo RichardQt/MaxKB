@@ -16,6 +16,7 @@ from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from rest_framework import serializers
+
 from application.chat_pipeline.pipeline_manage import PipelineManage
 from application.chat_pipeline.step.chat_step.i_chat_step import PostResponseHandler
 from application.chat_pipeline.step.chat_step.impl.base_chat_step import BaseChatStep
@@ -217,6 +218,8 @@ class OpenAIChatSerializer(serializers.Serializer):
     application_id = serializers.UUIDField(required=True, label=_("Application ID"))
     chat_user_id = serializers.CharField(required=True, label=_("Client id"))
     chat_user_type = serializers.CharField(required=True, label=_("Client Type"))
+    ip_address = serializers.CharField(required=False, label=_("IP Address"))
+    source = serializers.JSONField(required=False, label=_("Source"))
 
     @staticmethod
     def get_message(instance):
@@ -286,7 +289,7 @@ class ChatSerializers(serializers.Serializer):
     application_id = serializers.UUIDField(required=True, allow_null=True,
                                            label=_("Application ID"))
     debug = serializers.BooleanField(required=False, label=_("Debug"))
-    ip_address = serializers.CharField(required=False, label=_("IP Address"))
+    ip_address = serializers.CharField(required=False, label=_("IP Address"), allow_null=True, allow_blank=True)
     source = serializers.JSONField(required=False, label=_("Source"))
 
     def is_valid_application_workflow(self, *, raise_exception=False):
@@ -443,6 +446,8 @@ class ChatSerializers(serializers.Serializer):
         application_access_token = QuerySet(ApplicationAccessToken).filter(application_id=application_id).first()
         if application_access_token and application_access_token.authentication and application_access_token.authentication_value.get(
                 'type') == 'login':
+            if chat_user_type == ChatUserType.ANONYMOUS_USER.value:
+                raise ChatException(500, _("The chat user is not authorized."))
             if chat_user_type == ChatUserType.CHAT_USER.value and is_auth_chat_user:
                 is_auth = is_auth_chat_user(chat_user_id, application_id)
                 if not is_auth:
@@ -455,7 +460,8 @@ class ChatSerializers(serializers.Serializer):
         chat_info.get_application()
         chat_info.get_chat_user(asker=(instance.get('form_data') or {}).get('asker'))
         self.is_valid_chat_id(chat_info)
-        self.is_valid_chat_user()
+        if not self.data.get('debug'):
+            self.is_valid_chat_user()
         if chat_info.application.type == ApplicationTypeChoices.SIMPLE:
             self.is_valid_application_simple(raise_exception=True, chat_info=chat_info)
             return self.chat_simple(chat_info, instance, base_to_response)

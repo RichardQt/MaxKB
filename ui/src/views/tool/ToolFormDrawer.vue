@@ -64,7 +64,7 @@
           <el-input
             v-model="form.desc"
             type="textarea"
-            :placeholder="$t('views.tool.form.toolDescription.placeholder')"
+            :placeholder="$t('common.descPlaceholder')"
             maxlength="128"
             show-word-limit
             :autosize="{ minRows: 3 }"
@@ -89,33 +89,9 @@
         </el-table-column>
         <el-table-column :label="$t('dynamicsForm.paramForm.input_type.label')">
           <template #default="{ row }">
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'TextInput'"
-              >{{ $t('dynamicsForm.input_type_list.TextInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'PasswordInput'"
-              >{{ $t('dynamicsForm.input_type_list.PasswordInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'Slider'"
-              >{{ $t('dynamicsForm.input_type_list.Slider') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'SwitchInput'"
-              >{{ $t('dynamicsForm.input_type_list.SwitchInput') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'SingleSelect'"
-              >{{ $t('dynamicsForm.input_type_list.SingleSelect') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'MultiSelect'"
-              >{{ $t('dynamicsForm.input_type_list.MultiSelect') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'RadioCard'"
-              >{{ $t('dynamicsForm.input_type_list.RadioCard') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'DatePicker'"
-              >{{ $t('dynamicsForm.input_type_list.DatePicker') }}
-            </el-tag>
-            <el-tag type="info" class="info-tag" v-if="row.input_type === 'JsonInput'"
-              >{{ $t('dynamicsForm.input_type_list.JsonInput') }}
-            </el-tag>
+            <el-tag size="small" type="info" class="info-tag">{{
+              input_type_list.find((item) => item.value === row.input_type)?.label
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="$t('common.required')">
@@ -145,7 +121,7 @@
       <div class="flex-between">
         <h4 class="title-decoration-1 mb-16">
           {{ $t('common.param.inputParam') }}
-          <el-text type="info" class="color-secondary">
+          <el-text type="info" class="color-secondary lighter">
             {{ $t('views.tool.form.param.paramInfo1') }}
           </el-text>
         </h4>
@@ -159,7 +135,7 @@
         <el-table-column prop="name" :label="$t('views.tool.form.paramName.label')" />
         <el-table-column :label="$t('views.tool.form.dataType.label')">
           <template #default="{ row }">
-            <el-tag type="info" class="info-tag">{{ row.type }}</el-tag>
+            <el-tag size="small" type="info" class="info-tag">{{ row.type }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="$t('common.required')">
@@ -194,24 +170,38 @@
         </el-table-column>
       </el-table>
 
-      <h4 class="title-decoration-1 mb-16">
-        {{ $t('views.tool.form.param.code') }}
-        <span class="color-danger" style="margin-left: -10px">*</span>
-        <el-text type="info" class="color-secondary">
-          {{ $t('views.tool.form.param.paramInfo2') }}
-        </el-text>
-      </h4>
+      <div class="flex-between mb-16">
+        <h4 class="title-decoration-1">
+          {{ $t('views.tool.form.param.code') }}
+          <span class="color-danger" style="margin-left: -10px">*</span>
+          <el-text type="info" class="color-secondary">
+            {{ $t('views.tool.form.param.paramInfo2') }}
+          </el-text>
+        </h4>
+        <el-button type="primary" @click="openGenerateCodeDialog" link>
+          <AppIcon iconName="app-generate-star" class="mr-4"></AppIcon>
+          {{ $t('views.application.generateDialog.label') }}
+        </el-button>
+      </div>
 
       <div class="mb-8" v-if="showEditor">
         <CodemirrorEditor
           :title="$t('views.tool.form.param.code')"
           v-model="form.code"
           @submitDialog="submitCodemirrorEditor"
-        />
+          :replaceCode="replaceCode"
+        >
+          <template #header-extra>
+            <el-button type="primary" link @click="openGenerateCodeDialog">
+              <AppIcon iconName="app-generate-star" class="mr-4"></AppIcon>
+              {{ $t('views.application.generateDialog.label') }}
+            </el-button>
+          </template>
+        </CodemirrorEditor>
       </div>
       <h4 class="title-decoration-1 mb-16 mt-16">
         {{ $t('common.param.outputParam') }}
-        <el-text type="info" class="color-secondary">
+        <el-text type="info" class="color-secondary lighter">
           {{ $t('views.tool.form.param.paramInfo1') }}
         </el-text>
       </h4>
@@ -241,6 +231,7 @@
     <FieldFormDialog ref="FieldFormDialogRef" @refresh="refreshFieldList" />
     <UserFieldFormDialog ref="UserFieldFormDialogRef" @refresh="refreshInitFieldList" />
     <EditAvatarDialog ref="EditAvatarDialogRef" @refresh="refreshTool" />
+    <GenerateCodeDialog ref="GenerateCodeDialogRef" :toolData="form" @replace="replaceCode" />
   </el-drawer>
 </template>
 
@@ -250,6 +241,7 @@ import FieldFormDialog from '@/views/tool/component/FieldFormDialog.vue'
 import ToolDebugDrawer from './ToolDebugDrawer.vue'
 import UserFieldFormDialog from '@/views/tool/component/UserFieldFormDialog.vue'
 import EditAvatarDialog from '@/views/tool/component/EditAvatarDialog.vue'
+import { input_type_list } from '@/components/dynamics-form/constructor/data'
 import type { toolData } from '@/api/type/tool'
 import type { FormInstance } from 'element-plus'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
@@ -260,6 +252,7 @@ import { useRoute } from 'vue-router'
 import useStore from '@/stores'
 import permissionMap from '@/permission'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import GenerateCodeDialog from '@/views/tool/component/GenerateCodeDialog.vue'
 const route = useRoute()
 
 const props = defineProps({
@@ -288,6 +281,7 @@ const UserFieldFormDialogRef = ref()
 const EditAvatarDialogRef = ref()
 const initFieldTableRef = ref()
 const inputFieldTableRef = ref()
+const GenerateCodeDialogRef = ref()
 
 const FormRef = ref()
 
@@ -333,7 +327,6 @@ const rules = reactive({
     },
   ],
 })
-
 
 function submitCodemirrorEditor(val: string) {
   form.value.code = val
@@ -416,6 +409,16 @@ function openEditAvatar() {
   EditAvatarDialogRef.value.open(form.value)
 }
 
+function openGenerateCodeDialog() {
+  GenerateCodeDialogRef.value?.open(form.value.init_field_list, form.value.input_field_list)
+}
+
+function replaceCode(code: string) {
+  const match = code.replace('```python', '').replace('```', '')
+  form.value.code = match
+  MsgSuccess(t('views.document.tip.replaceSuccess'))
+}
+
 const submit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid: any) => {
@@ -427,11 +430,11 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.editSuccess'))
             emit('refresh', res.data)
-            return user.profile()
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
-          .then(() => {
-            visible.value = false
-          })
+
           .finally(() => {
             loading.value = false
           })
@@ -445,10 +448,9 @@ const submit = async (formEl: FormInstance | undefined) => {
           .then((res: any) => {
             MsgSuccess(t('common.createSuccess'))
             emit('refresh')
-            return user.profile()
-          })
-          .then(() => {
-            visible.value = false
+            return user.profile().then(() => {
+              visible.value = false
+            })
           })
           .finally(() => {
             loading.value = false

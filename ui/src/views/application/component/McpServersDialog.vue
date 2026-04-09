@@ -59,7 +59,7 @@
                 <img src="@/assets/tool/icon_mcp.svg" style="width: 75%" alt="" />
               </el-avatar>
               <span>{{ mcpTool.name }}</span>
-              <el-tag v-if="mcpTool.scope === 'SHARED'" type="info" class="info-tag ml-8 mt-4">
+              <el-tag v-if="mcpTool.scope === 'SHARED'" size="small" type="info" class="info-tag ml-8 mt-4">
                 {{ $t('views.shared.title') }}
               </el-tag>
             </div>
@@ -72,15 +72,15 @@
         :rules="[
           {
             required: true,
-            message: $t('common.inputPlaceholder') + ' ' + $t('views.tool.form.mcp.label'),
+            message: $t('common.inputPlaceholder') + ' ' + $t('views.tool.mcp.label'),
           },
         ]"
       >
         <template #label>
-          {{ $t('views.tool.form.mcp.label') }}
+          {{ $t('views.tool.mcp.label') }}
           <span class="color-danger">*</span>
           <el-text type="info" class="color-secondary">
-            （{{ $t('views.tool.form.mcp.tip') }}）
+            （{{ $t('views.tool.mcp.tip') }}）
           </el-text>
         </template>
         <el-input

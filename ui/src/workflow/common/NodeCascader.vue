@@ -94,11 +94,17 @@ const get_up_node_field_list = (contain_self: boolean, use_cache: boolean) => {
   return result.filter((v: any) => v.children && v.children.length > 0)
 }
 const getOptionsValue = () => {
-  if ([WorkflowMode.ApplicationLoop, WorkflowMode.KnowledgeLoop].includes(workflowMode)) {
+  if (
+    [WorkflowMode.ApplicationLoop, WorkflowMode.KnowledgeLoop, WorkflowMode.ToolLoop].includes(
+      workflowMode,
+    )
+  ) {
     return props.global
       ? get_up_node_field_list(false, true).filter(
           (v: any) =>
-            ['global', 'chat', 'loop'].includes(v.value) && v.children && v.children.length > 0,
+            ['global', 'chat', 'output', 'loop'].includes(v.value) &&
+            v.children &&
+            v.children.length > 0,
         )
       : get_up_node_field_list(false, true).filter((v: any) => v.children && v.children.length > 0)
   } else {
@@ -106,7 +112,8 @@ const getOptionsValue = () => {
       ? props.nodeModel
           .get_up_node_field_list(false, true)
           .filter(
-            (v: any) => ['global', 'chat'].includes(v.value) && v.children && v.children.length > 0,
+            (v: any) =>
+              ['global', 'chat', 'output'].includes(v.value) && v.children && v.children.length > 0,
           )
       : props.nodeModel
           .get_up_node_field_list(false, true)

@@ -3,14 +3,22 @@ export default {
   all: 'All',
   createTool: 'Create Tool',
   editTool: 'Edit Tool',
-  createMcpTool: 'Create MCP',
-  editMcpTool: 'Edit MCP',
   copyTool: 'Copy Tool',
-  copyMcpTool: 'Copy MCP',
   importTool: 'Import Tool',
   settingTool: 'Set Tool',
-  mcpConfig: 'MCP Service Config',
   updatedVersion: 'Updated Version',
+  generateCodeDialog: {
+    generatePrompt: 'Generate Python Code',
+    placeholder: 'Please enter the topic',
+    title: 'Python code will be displayed here',
+  },
+  toolWorkflow: {
+    title: 'Workflow',
+    copyToolWorkflow: 'Copy Workflow',
+    creatToolWorkflow: 'Create Workflow',
+    toActiveTip: 'Unable to enable. Please publish the workflow first.',
+    debugResult: 'Debug results',
+  },
   dataSource: {
     title: 'Data Source',
     createDataSource: 'Create Data Source',
@@ -33,37 +41,57 @@ export default {
     confirmTip: 'Are you sure to update tool: ',
     updateStoreToolMessage: 'Updating tools may affect resources in use, so proceed with caution.',
   },
+  mcp: {
+    title: 'MCP Service',
+    label: 'MCP Server Config',
+    placeholder: 'Please enter MCP Server config',
+    tip: 'Only supports SSE and Streamable HTTP calling methods',
+    requiredMessage: 'Please enter MCP Server Config',
+    createMcpTool: 'Create MCP',
+    editMcpTool: 'Edit MCP',
+    copyMcpTool: 'Copy MCP',
+    mcpConfig: 'MCP Service Config',
+  },
+  skill: {
+    title: 'Capabilities',
+    copySkillTool: 'Copy Skills',
+    createSkillTool: 'Create Skills',
+    editSkillTool: 'Edit Skills',
+    initParamPlaceholder: 'Parameters required to configure when enabling the skill',
+    skillFile: 'Skills File',
+    reUpload: 'Re-upload',
+  },
   tip: {
     saveMessage: 'Unsaved changes will be lost. Are you sure you want to exit?',
   },
   delete: {
     confirmTitle: 'Confirm deletion of tool:',
+    confirmTitle2: 'tools?',
     confirmMessage:
       'Deleting this tool will cause errors in agent that reference it when they are queried. Please proceed with caution.',
-    resourceCountMessage: 'This tool is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
+    resourceCountMessage:
+      'This tool is associated with {count} resources, and will be unavailable after deletion. Please proceed with caution.',
   },
   disabled: {
     confirmTitle: 'Confirm disable tool:',
     confirmMessage:
-      'Disabling this tool will cause errors in agent that reference it when they are queried. Please proceed with caution.',
+      'Disabling this tool will cause errors in resources that reference it when they are executed. Please proceed with caution.',
   },
 
   form: {
     toolName: {
-      name: 'Tool Name',
+      label: 'Tool Name',
       placeholder: 'Please enter the tool name',
       requiredMessage: 'Please enter the tool name',
     },
     mcpName: {
-      name: 'MCP Name',
       placeholder: 'Please enter the MCP name',
       requiredMessage: 'Please enter the MCP name',
     },
-    toolDescription: {
-      placeholder: 'Please enter a description of the tool',
-    },
-    mcpDescription: {
-      placeholder: 'Please enter a description of the MCP',
+    workflowName: {
+      label: 'Workflow Name',
+      placeholder: 'Please enter the Workflow name',
+      requiredMessage: 'Please enter the Workflow name',
     },
     paramName: {
       label: 'Parameter Name',
@@ -77,22 +105,12 @@ export default {
       label: 'Source',
       reference: 'Reference Parameter',
     },
-    required: {
-      label: 'Required',
-    },
     param: {
       paramInfo1: 'Displayed when using the tool',
       paramInfo2: 'Not displayed when using the tool',
       code: 'Content (Python)',
       selectPlaceholder: 'Please select parameter',
       inputPlaceholder: 'Please enter parameter values',
-    },
-    mcp: {
-      title: 'MCP Service',
-      label: 'MCP Server Config',
-      placeholder: 'Please enter MCP Server config',
-      tip: 'Only supports SSE and Streamable HTTP calling methods',
-      requiredMessage: 'Please enter MCP Server Config',
     },
     debug: {
       run: 'Run',

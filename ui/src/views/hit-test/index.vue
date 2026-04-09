@@ -95,7 +95,13 @@
     />
 
     <div class="hit-test__operate">
-      <el-popover :visible="popoverVisible" placement="right-end" :width="500" trigger="click">
+      <el-popover
+        :visible="popoverVisible"
+        placement="right-end"
+        :width="500"
+        trigger="click"
+        :persistent="false"
+      >
         <template #reference>
           <el-button
             class="mb-8"
@@ -216,10 +222,10 @@
             :disabled="isDisabledChart || loading"
             @click="sendChatHandle"
           >
-            <img v-show="isDisabledChart || loading" src="@/assets/icon_send.svg" alt="" />
+            <img v-show="isDisabledChart || loading" src="@/assets/chat/icon_send.svg" alt="" />
             <img
               v-show="!isDisabledChart && !loading"
-              src="@/assets/icon_send_colorful.svg"
+              src="@/assets/chat/icon_send_colorful.svg"
               alt=""
             />
           </el-button>
@@ -370,7 +376,7 @@ onMounted(() => {})
 
   &__operate {
     .operate-textarea {
-      box-shadow: 0px 6px 24px 0px rgba(31, 35, 41, 0.08);
+      box-shadow: 0px 6px 24px 0px rgba(var(--el-text-color-primary-rgb), 0.08);
       background-color: #ffffff;
       border-radius: 8px;
       border: 1px solid #ffffff;

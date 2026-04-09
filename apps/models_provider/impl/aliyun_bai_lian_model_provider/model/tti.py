@@ -2,10 +2,15 @@
 from http import HTTPStatus
 from typing import Dict
 
+<<<<<<< HEAD
 from django.utils.translation import gettext
 from langchain_community.chat_models import ChatTongyi
 from langchain_core.messages import HumanMessage
 import logging
+=======
+from dashscope import ImageSynthesis, MultiModalConversation
+from dashscope.aigc.image_generation import ImageGeneration
+>>>>>>> v2
 
 from common.utils.logger import maxkb_logger
 from models_provider.base_model_provider import MaxKBBaseModel
@@ -35,10 +40,14 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
         for key, value in model_kwargs.items():
             if key not in ['model_id', 'use_local', 'streaming']:
                 optional_params['params'][key] = value
+        api_base = model_credential.get('api_base')
+        if api_base is None:
+            api_base = 'https://dashscope.aliyuncs.com/api/v1'
+
         chat_tong_yi = QwenTextToImageModel(
             model_name=model_name,
             api_key=model_credential.get('api_key'),
-            api_base=model_credential.get('api_base'),
+            api_base=api_base,
             **optional_params,
         )
         return chat_tong_yi
@@ -63,6 +72,8 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
         return True
 
     def generate_image(self, prompt: str, negative_prompt: str = None):
+        import dashscope
+        dashscope.base_http_api_url = self.api_base
         if self.model_name.startswith("wan2.6") or self.model_name.startswith("z"):
             try:
                 from dashscope.aigc.image_generation import ImageGeneration
@@ -83,7 +94,6 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
             rsp = ImageGeneration.call(
                 model=self.model_name,
                 api_key=self.api_key,
-                base_url=self.api_base,
                 messages=[message],
                 negative_prompt=negative_prompt,
                 **self.params
@@ -107,7 +117,6 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
                 ) from exc
             rsp = ImageSynthesis.call(api_key=self.api_key,
                                       model=self.model_name,
-                                      base_url=self.api_base,
                                       prompt=prompt,
                                       negative_prompt=negative_prompt,
                                       **self.params)
@@ -144,7 +153,6 @@ class QwenTextToImageModel(MaxKBBaseModel, BaseTextToImage):
                 model=self.model_name,
                 messages=messages,
                 result_format='message',
-                base_url=self.api_base,
                 stream=False,
                 negative_prompt=negative_prompt,
                 **self.params

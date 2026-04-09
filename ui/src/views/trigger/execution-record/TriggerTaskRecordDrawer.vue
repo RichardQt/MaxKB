@@ -1,7 +1,7 @@
 <template>
   <el-drawer
     v-model="drawer"
-    :title="$t('workflow.ExecutionRecord')"
+    :title="$t('common.ExecutionRecord.title')"
     direction="rtl"
     size="800px"
     :before-close="close"
@@ -16,6 +16,7 @@
         >
           <el-option :label="$t('common.name')" value="name" />
           <el-option :label="$t('common.status.label')" value="state" />
+          <el-option :label="$t('common.sourceType')" value="source_type" />
         </el-select>
         <el-input
           v-if="searchType === 'name'"
@@ -25,6 +26,21 @@
           clearable
           @change="getList(true)"
         />
+        <el-select
+          v-else-if="searchType === 'source_type'"
+          v-model="query.source_type"
+          @change="getList(true)"
+          filterable
+          clearable
+          :reserve-keyword="false"
+          collapse-tags
+          collapse-tags-tooltip
+          style="width: 220px"
+          :placeholder="$t('common.search')"
+        >
+          <el-option :label="$t('views.application.title')" value="APPLICATION" />
+          <el-option :label="$t('views.tool.title')" value="TOOL" />
+        </el-select>
         <el-select
           v-else-if="searchType === 'state'"
           v-model="query.state"
@@ -56,9 +72,6 @@
       :maxTableHeight="200"
       :row-key="(row: any) => row.id"
       v-loading="loading"
-      :tooltip-options="{
-        popperClass: 'max-w-350',
-      }"
     >
       <el-table-column
         prop="name"
@@ -67,28 +80,19 @@
         show-overflow-tooltip
       >
         <template #default="{ row }">
-          <div class="flex align-center">
-            <el-avatar shape="square" :size="22" style="background: none" class="mr-8">
-              <img
-                v-if="row.source_type === 'TOOL'"
-                :src="resetUrl(row?.source_icon, resetUrl('./favicon.ico'))"
-                alt=""
-              />
-              <img
-                v-if="row.source_type === 'APPLICATION'"
-                :src="resetUrl(row?.source_icon, resetUrl('./favicon.ico'))"
-                alt=""
-              />
+          <el-space :size="8">
+            <ToolIcon v-if="row.source_type === 'TOOL' && !row.source_icon" :size="22" />
+            <el-avatar v-else shape="square" :size="22" style="background: none">
+              <img :src="resetUrl(row?.source_icon, resetUrl('./favicon.ico'))" alt="" />
             </el-avatar>
-
-            <span>{{ row.source_name }}</span>
-          </div>
+            <span class="ellipsis">{{ row.source_name }}</span>
+          </el-space>
         </template>
       </el-table-column>
 
       <el-table-column
         prop="source_type"
-        min-width="120"
+        width="100"
         show-overflow-tooltip
         :label="$t('common.type')"
       >
@@ -101,7 +105,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="state" :label="$t('common.status.label')" width="180">
+      <el-table-column prop="state" :label="$t('common.status.label')" width="100">
         <template #default="{ row }">
           <el-text class="color-text-primary" v-if="row.state === 'SUCCESS'">
             <el-icon class="color-success"><SuccessFilled /></el-icon>
@@ -184,6 +188,7 @@ const tableData = ref<Array<any>>([])
 const query = ref<any>({
   state: '',
   name: '',
+  source_type: '',
   order: '',
 })
 const loading = ref<boolean>(false)
@@ -235,22 +240,26 @@ const getList = (isLoading?: boolean) => {
 }
 
 const pre_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] - 1
-  return index < 0
+  const index = tableData.value.findIndex((item) => item.id === currentId.value)
+  return index === 0 && paginationConfig.current_page === 1
 })
 
 const next_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] + 1
-  return index >= tableData.value.length && index >= paginationConfig.total - 1
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
+  return (
+    index >= tableData.value.length &&
+    index + (paginationConfig.current_page - 1) * paginationConfig.page_size >=
+      paginationConfig.total - 1
+  )
 })
 
 /**
  * 下一页
  */
 const nextRecord = () => {
-  const index = tableIndexMap.value[currentId.value] + 1
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
   if (index >= tableData.value.length) {
-    if (index >= paginationConfig.total - 1) {
+    if (paginationConfig.current_page * paginationConfig.page_size >= paginationConfig.total) {
       return
     }
     paginationConfig.current_page = paginationConfig.current_page + 1
@@ -258,6 +267,7 @@ const nextRecord = () => {
       currentId.value = tableData.value[index].id
       currentContent.value = tableData.value[index]
     })
+    return
   } else {
     currentId.value = tableData.value[index].id
     currentContent.value = tableData.value[index]
@@ -267,9 +277,17 @@ const nextRecord = () => {
  * 上一页
  */
 const preRecord = () => {
-  const index = tableIndexMap.value[currentId.value] - 1
-
-  if (index >= 0) {
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) - 1
+  if (index < 0 && 1) {
+    if (paginationConfig.current_page === 1) {
+      return
+    }
+    paginationConfig.current_page = paginationConfig.current_page - 1
+    getList(true).then(() => {
+      currentId.value = tableData.value[tableData.value.length - 1].id
+      currentContent.value = tableData.value[tableData.value.length - 1]
+    })
+  } else {
     currentId.value = tableData.value[index].id
     currentContent.value = tableData.value[index]
   }

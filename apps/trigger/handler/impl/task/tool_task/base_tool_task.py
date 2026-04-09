@@ -12,14 +12,17 @@ import traceback
 
 import uuid_utils.compat as uuid
 from django.db.models import QuerySet
+from django.utils.translation import gettext as _
 
 from common.utils.logger import maxkb_logger
 from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models.knowledge_action import State
-from tools.models import Tool
-from trigger.handler.base_task import BaseTriggerTask
+from tools.models import ToolRecord, ToolTaskTypeChoices, ToolType
+from trigger.handler.impl.task.tool_task.common import BaseToolTriggerTask
 from trigger.models import TaskRecord
+
+executor = ToolExecutor()
 
 
 def get_reference(fields, obj):
@@ -40,41 +43,28 @@ def get_field_value(value, kwargs):
         return get_reference(value.get('value'), kwargs)
 
 
-def _coerce_by_type(field_type, raw):
-    if raw is None:
+def _convert_value(_type, value):
+    if value is None:
         return None
-    t = (field_type or "").lower()
 
-    if t in ("string", "str", "text"):
-        return str(raw)
-    if t in ("int", "integer"):
-        return int(raw)
-    if t in ("float", "number", "double"):
-        return float(raw)
-    if t in ("bool", "boolean"):
-        if isinstance(raw, bool):
-            return raw
-        if isinstance(raw, (int, float)):
-            return bool(raw)
-        if isinstance(raw, str):
-            v = raw.strip().lower()
-            if v in ("true", "1", "yes", "y", "on"):
-                return True
-            if v in ("false", "0", "no", "n", "off"):
-                return False
-        raise ValueError(f"Cannot coerce {raw!r} to bool")
-    if t in ("list", "array"):
-        if isinstance(raw, list):
-            return raw
-        if isinstance(raw, tuple):
-            return list(raw)
-        raise ValueError(f"Cannot coerce {raw!r} to list")
-    if t in ("dict", "object", "json"):
-        if isinstance(raw, dict):
-            return raw
-        raise ValueError(f"Cannot coerce {raw!r} to dict")
-
-    return raw
+    if _type == 'int':
+        return int(value)
+    if _type == 'boolean':
+        value = 0 if ['0', '[]'].__contains__(value) else value
+        return bool(value)
+    if _type == 'float':
+        return float(value)
+    if _type == 'dict':
+        v = json.loads(value)
+        if isinstance(v, dict):
+            return v
+        raise Exception(_('type error'))
+    if _type == 'array':
+        v = json.loads(value)
+        if isinstance(v, list):
+            return v
+        raise Exception(_('type error'))
+    return value
 
 
 def get_tool_execute_parameters(input_field_list, parameter_setting, kwargs):
@@ -83,7 +73,7 @@ def get_tool_execute_parameters(input_field_list, parameter_setting, kwargs):
     parameters = {}
     for key, value in parameter_setting.items():
         raw = get_field_value(value, kwargs)
-        parameters[key] = _coerce_by_type(type_map.get(key), raw)
+        parameters[key] = _convert_value(type_map.get(key), raw)
     return parameters
 
 
@@ -105,6 +95,7 @@ def get_workflow_state(details):
         return State.FAILURE
     return State.SUCCESS
 
+
 def _get_result_detail(result):
     if isinstance(result, dict):
         result_dict = {k: (str(v)[:500] if len(str(v)) > 500 else v) for k, v in result.items()}
@@ -116,29 +107,38 @@ def _get_result_detail(result):
         result_dict = result
     return result_dict
 
-class ToolTask(BaseTriggerTask):
-    def support(self, trigger_task, **kwargs):
-        return trigger_task.get('source_type') == 'TOOL'
 
-    def execute(self, trigger_task, **kwargs):
+class ToolTask(BaseToolTriggerTask):
+    def support(self, tool, trigger_task, **kwargs):
+        return tool.tool_type == ToolType.CUSTOM
+
+    def execute(self, tool, trigger_task, **kwargs):
         parameter_setting = trigger_task.get('parameter')
         tool_id = trigger_task.get('source_id')
         task_record_id = uuid.uuid7()
-
-        TaskRecord(
-            id=task_record_id,
-            trigger_id=trigger_task.get('trigger'),
-            trigger_task_id=trigger_task.get('id'),
-            source_type="TOOL",
-            source_id=tool_id,
-            task_record_id=task_record_id,
-            meta={'input': parameter_setting, 'output': {}},
-            state=State.STARTED
-        ).save()
-
         start_time = time.time()
         try:
-            tool = QuerySet(Tool).filter(id=tool_id).first()
+
+            TaskRecord(
+                id=task_record_id,
+                trigger_id=trigger_task.get('trigger'),
+                trigger_task_id=trigger_task.get('id'),
+                source_type="TOOL",
+                source_id=tool_id,
+                task_record_id=task_record_id,
+                meta={'input': parameter_setting, 'output': {}},
+                state=State.STARTED
+            ).save()
+            ToolRecord(
+                id=task_record_id,
+                workspace_id=tool.workspace_id,
+                tool_id=tool.id,
+                source_type=ToolTaskTypeChoices.TRIGGER,
+                source_id=trigger_task.get('trigger'),
+                meta={'input': parameter_setting, 'output': {}},
+                state=State.STARTED
+            ).save()
+
             parameters = get_tool_execute_parameters(tool.input_field_list, parameter_setting, kwargs)
             init_params_default_value = {i["field"]: i.get('default_value') for i in tool.init_field_list}
 
@@ -146,7 +146,7 @@ class ToolTask(BaseTriggerTask):
                 all_params = init_params_default_value | json.loads(rsa_long_decrypt(tool.init_params)) | parameters
             else:
                 all_params = init_params_default_value | parameters
-            executor = ToolExecutor()
+
             result = executor.exec_code(tool.code, all_params)
 
             result_dict = _get_result_detail(result)
@@ -158,10 +158,20 @@ class ToolTask(BaseTriggerTask):
                 run_time=time.time() - start_time,
                 meta={'input': parameter_setting, 'output': result_dict}
             )
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.SUCCESS,
+                run_time=time.time() - start_time,
+                meta={'input': parameters, 'output': result_dict}
+            )
         except Exception as e:
             maxkb_logger.error(f"Tool execution error: {traceback.format_exc()}")
             QuerySet(TaskRecord).filter(id=task_record_id).update(
                 state=State.FAILURE,
-                run_time=time.time() - start_time
+                run_time=time.time() - start_time,
+                meta={'input': parameter_setting, 'output': 'Error: ' + str(e), 'err_message': 'Error: ' + str(e)}
             )
-
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.FAILURE,
+                run_time=time.time() - start_time,
+                meta={'input': parameter_setting, 'output': 'Error: ' + str(e), 'err_message': 'Error: ' + str(e)}
+            )

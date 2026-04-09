@@ -7,27 +7,31 @@
     @desc:
 """
 
-import ast
 import base64
 import io
 import json
 import mimetypes
 import time
+import traceback
 from typing import Dict
 
+import uuid_utils.compat as uuid
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 
+from application.flow.common import WorkflowMode
 from application.flow.i_step_node import NodeResult
 from application.flow.step_node.tool_lib_node.i_tool_lib_node import IToolLibNode
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.exception.app_exception import AppApiException
+from common.utils.logger import maxkb_logger
 from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models import FileSourceType
+from knowledge.models.knowledge_action import State
 from oss.serializers.file import FileSerializer
-from tools.models import Tool
+from tools.models import Tool, ToolRecord, ToolTaskTypeChoices
 
 function_executor = ToolExecutor()
 
@@ -171,6 +175,18 @@ def bytes_to_uploaded_file(file_bytes, file_name="unknown"):
     return uploaded_file
 
 
+def _get_result_detail(result):
+    if isinstance(result, dict):
+        result_dict = {k: (str(v)[:500] if len(str(v)) > 500 else v) for k, v in result.items()}
+    elif isinstance(result, list):
+        result_dict = [str(item)[:500] if len(str(item)) > 500 else item for item in result]
+    elif isinstance(result, str):
+        result_dict = result[:500] if len(result) > 500 else result
+    else:
+        result_dict = result
+    return result_dict
+
+
 class BaseToolLibNodeNode(IToolLibNode):
     def save_context(self, details, workflow_manage):
         self.context['result'] = details.get('result')
@@ -227,10 +243,61 @@ class BaseToolLibNodeNode(IToolLibNode):
             else:
                 result = function_executor.exec_code(tool_lib.code, all_params)
         else:
-            result = function_executor.exec_code(tool_lib.code, all_params)
+            result = self.tool_exec_record(tool_lib, all_params)
         return NodeResult({'result': result},
                           (self.workflow_manage.params.get('knowledge_base') or {}) if self.node.properties.get(
                               'kind') == 'data-source' else {}, _write_context=write_context)
+
+    def tool_exec_record(self, tool_lib, all_params):
+        task_record_id = uuid.uuid7()
+        start_time = time.time()
+        try:
+            # 过滤掉 tool_init_params 中的参数
+            tool_init_params = json.loads(rsa_long_decrypt(tool_lib.init_params)) if tool_lib.init_params else {}
+            if tool_init_params:
+                filtered_args = {
+                    k: v for k, v in all_params.items()
+                    if k not in tool_init_params
+                }
+            else:
+                filtered_args = all_params
+            if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP].__contains__(
+                    self.workflow_manage.flow.workflow_mode):
+                source_id = self.workflow_manage.params.get('knowledge_id')
+                source_type = ToolTaskTypeChoices.KNOWLEDGE.value
+            elif [WorkflowMode.TOOL, WorkflowMode.TOOL_LOOP].__contains__(self.workflow_manage.flow.workflow_mode):
+                source_id = self.workflow_manage.params.get('tool_id')
+                source_type = ToolTaskTypeChoices.TOOL.value
+            else:
+                source_id = self.workflow_manage.params.get('application_id')
+                source_type = ToolTaskTypeChoices.APPLICATION.value
+
+            ToolRecord(
+                id=task_record_id,
+                workspace_id=tool_lib.workspace_id,
+                tool_id=tool_lib.id,
+                source_type=source_type,
+                source_id=source_id,
+                meta={'input': filtered_args, 'output': {}},
+                state=State.STARTED
+            ).save()
+
+            result = function_executor.exec_code(tool_lib.code, all_params)
+            result_dict = _get_result_detail(result)
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.SUCCESS,
+                run_time=time.time() - start_time,
+                meta={'input': filtered_args, 'output': result_dict}
+            )
+
+            return result
+        except Exception as e:
+            maxkb_logger.error(f"Tool execution error: {traceback.format_exc()}")
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.FAILURE,
+                run_time=time.time() - start_time,
+                meta={'input': filtered_args, 'output': 'Error: ' + str(e)}
+            )
 
     def upload_knowledge_file(self, file):
         knowledge_id = self.workflow_params.get('knowledge_id')

@@ -45,8 +45,22 @@ class BaseTextToSpeechNode(ITextToSpeechNode):
             self.answer_text = details.get('answer')
 
     def execute(self, tts_model_id,
-                content, model_params_setting=None,
+                content, model_params_setting=None, tts_model_id_type=None, tts_model_id_reference=None,
                 max_length=1024, **kwargs) -> NodeResult:
+        # 处理引用类型
+        if tts_model_id_type == 'reference' and tts_model_id_reference:
+            reference_data = self.workflow_manage.get_reference_field(
+                tts_model_id_reference[0],
+                tts_model_id_reference[1:],
+            )
+            if reference_data and isinstance(reference_data, dict):
+                tts_model_id = reference_data.get('tts_model_id', reference_data.get('model_id', tts_model_id))
+                model_params_setting = reference_data.get('model_params_setting')
+
+        from django.utils.translation import gettext_lazy as _
+
+        if tts_model_id is None or tts_model_id == '':
+            raise Exception(_('Model is not allowed to be empty'))
         # 分割文本为合理片段
         content = _remove_empty_lines(content)
         content_chunks = [content[i:i + max_length]
@@ -60,7 +74,7 @@ class BaseTextToSpeechNode(ITextToSpeechNode):
             self.context['content'] = chunk
             workspace_id = self.workflow_manage.get_body().get('workspace_id')
             model = get_model_instance_by_model_workspace_id(
-                tts_model_id, workspace_id, **model_params_setting)
+                tts_model_id, workspace_id, **(model_params_setting or {}))
 
             audio_byte = model.text_to_speech(chunk)
 
@@ -102,6 +116,8 @@ class BaseTextToSpeechNode(ITextToSpeechNode):
         if [WorkflowMode.KNOWLEDGE, WorkflowMode.KNOWLEDGE_LOOP].__contains__(
                 self.workflow_manage.flow.workflow_mode):
             return self.upload_knowledge_file(file)
+        if [WorkflowMode.TOOL, WorkflowMode.TOOL_LOOP].__contains__(self.workflow_manage.flow.workflow_mode):
+            return self.upload_tool_file(file)
         return self.upload_application_file(file)
 
     def upload_knowledge_file(self, file):
@@ -115,6 +131,20 @@ class BaseTextToSpeechNode(ITextToSpeechNode):
             'meta': meta,
             'source_id': knowledge_id,
             'source_type': FileSourceType.KNOWLEDGE.value
+        }).upload()
+        return file_url
+
+    def upload_tool_file(self, file):
+        tool_id = self.workflow_params.get('tool_id')
+        meta = {
+            'debug': False,
+            'tool_id': tool_id,
+        }
+        file_url = FileSerializer(data={
+            'file': file,
+            'meta': meta,
+            'source_id': tool_id,
+            'source_type': FileSourceType.TOOL.value
         }).upload()
         return file_url
 

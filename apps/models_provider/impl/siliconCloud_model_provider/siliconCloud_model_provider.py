@@ -13,6 +13,7 @@ from models_provider.base_model_provider import IModelProvider, ModelProvideInfo
     ModelTypeConst, ModelInfoManage
 from models_provider.impl.siliconCloud_model_provider.credential.embedding import \
     SiliconCloudEmbeddingCredential
+from models_provider.impl.siliconCloud_model_provider.credential.image import SiliconCloudImageModelCredential
 from models_provider.impl.siliconCloud_model_provider.credential.llm import SiliconCloudLLMModelCredential
 from models_provider.impl.siliconCloud_model_provider.credential.reranker import SiliconCloudRerankerCredential
 from models_provider.impl.siliconCloud_model_provider.credential.stt import SiliconCloudSTTModelCredential
@@ -21,6 +22,7 @@ from models_provider.impl.siliconCloud_model_provider.credential.tti import \
 from models_provider.impl.siliconCloud_model_provider.credential.tts import SiliconCloudTTSModelCredential
 from models_provider.impl.siliconCloud_model_provider.credential.ocr import SiliconCloudOCRModelCredential
 from models_provider.impl.siliconCloud_model_provider.model.embedding import SiliconCloudEmbeddingModel
+from models_provider.impl.siliconCloud_model_provider.model.image import SiliconCloudImage
 from models_provider.impl.siliconCloud_model_provider.model.llm import SiliconCloudChatModel
 from models_provider.impl.siliconCloud_model_provider.model.reranker import SiliconCloudReranker
 from models_provider.impl.siliconCloud_model_provider.model.stt import SiliconCloudSpeechToText
@@ -34,6 +36,7 @@ openai_llm_model_credential = SiliconCloudLLMModelCredential()
 openai_stt_model_credential = SiliconCloudSTTModelCredential()
 openai_reranker_model_credential = SiliconCloudRerankerCredential()
 openai_tti_model_credential = SiliconCloudTextToImageModelCredential()
+openai_image_model_credential = SiliconCloudImageModelCredential()
 openai_tts_model_credential = SiliconCloudTTSModelCredential()
 openai_ocr_model_credential = SiliconCloudOCRModelCredential()
 model_info_list = [
@@ -115,6 +118,7 @@ model_tts_list = [
               ModelTypeConst.TTS, openai_tts_model_credential,
               SiliconCloudTextToSpeech),
 ]
+<<<<<<< HEAD
 # OCR模型列表 - 使用支持视觉的模型进行OCR
 model_ocr_list = [
     ModelInfo('deepseek-ai/deepseek-vl2', 'DeepSeek VL2 OCR模型',
@@ -126,6 +130,12 @@ model_ocr_list = [
     ModelInfo('Pro/Qwen/Qwen2-VL-7B-Instruct', 'Qwen2 VL 7B OCR模型',
               ModelTypeConst.OCR, openai_ocr_model_credential,
               SiliconCloudOCR),
+=======
+model_image_info_list = [
+    ModelInfo('Qwen/Qwen3-VL-32B-Instruct', '',
+              ModelTypeConst.IMAGE, openai_image_model_credential,
+              SiliconCloudImage),
+>>>>>>> v2
 ]
 model_info_manage = (
     ModelInfoManage.builder()
@@ -145,8 +155,13 @@ model_info_manage = (
     .append_default_model_info(model_rerank_list[0])
     .append_model_info_list(model_tts_list)
     .append_default_model_info(model_tts_list[0])
+<<<<<<< HEAD
     .append_model_info_list(model_ocr_list)
     .append_default_model_info(model_ocr_list[0])
+=======
+    .append_model_info_list(model_image_info_list)
+    .append_default_model_info(model_image_info_list[0])
+>>>>>>> v2
 
     .build()
 )

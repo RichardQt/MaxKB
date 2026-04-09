@@ -1,5 +1,5 @@
 <template>
-  <el-dropdown trigger="click" type="primary">
+  <el-dropdown trigger="click" placement="bottom-end">
     <div class="flex-center cursor">
       <el-avatar :size="30">
         <img src="@/assets/user-icon.svg" style="width: 54%" alt="" />
@@ -247,7 +247,7 @@ onMounted(() => {
     padding: 12px 11px;
 
     &:hover {
-      background: var(--app-text-color-light-1);
+      background: rgba(var(--el-text-color-primary-rgb), 0.1);
     }
   }
 }

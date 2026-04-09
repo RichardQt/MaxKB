@@ -9,7 +9,20 @@
       <AppIcon iconName="app-pricing" class="mr-8"></AppIcon>
       {{ $t('common.upgrade') }}
     </el-button>
-    <el-tooltip effect="dark" :content="$t('views.trigger.title')" placement="top">
+    <el-tooltip
+      v-if="
+        hasPermission(
+          [
+            RoleConst.WORKSPACE_MANAGE.getWorkspaceRole,
+            PermissionConst.TRIGGER_READ.getWorkspacePermissionWorkspaceManageRole,
+          ],
+          'OR',
+        ) && type === 'workspace'
+      "
+      effect="dark"
+      :content="$t('views.trigger.title')"
+      placement="top"
+    >
       <el-button
         text
         @click="router.push({ name: 'trigger' })"
@@ -68,12 +81,16 @@
 </template>
 <script setup lang="ts">
 import useStore from '@/stores'
-import { EditionConst, RoleConst } from '@/utils/permission/data'
+import { hasPermission } from '@/utils/permission'
+import { EditionConst, PermissionConst, RoleConst } from '@/utils/permission/data'
 import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 const { theme, user } = useStore()
 
+withDefaults(defineProps<{ type?: 'workspace' | 'system' }>(), {
+  type: 'workspace',
+})
 function toUrl(url: string) {
   window.open(url, '_blank')
 }
@@ -88,7 +105,8 @@ function toUrl(url: string) {
     margin-left: 4px !important;
   }
   .active {
-    background: #ffffff;
+    background-color: #ffffff;
+    box-shadow: 0px 2px 4px 0px rgba(var(--el-text-color-primary-rgb), 0.12);
     &:hover {
       background: #ffffff;
     }
