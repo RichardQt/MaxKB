@@ -1,0 +1,44 @@
+/*!
+ * el-table-infinite-scroll v3.0.8
+ * (c) 2019-2025 yujinpan
+ */
+
+'use strict';
+
+var elTableInfiniteScroll_js = require('./el-table-infinite-scroll.js');
+var InfiniteScrollUp = require('./infinite-scroll-up.js');
+
+var ElTableInfiniteScrollUp = {
+  mounted: function mounted(el) {
+    var _useScrollElem = elTableInfiniteScroll_js.useScrollElem(el),
+      scrollElem = _useScrollElem.scrollElem;
+
+    // @ts-ignore
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+    InfiniteScrollUp.mounted.apply(InfiniteScrollUp, [scrollElem].concat(args));
+  },
+  updated: function updated(el) {
+    var _useScrollElem2 = elTableInfiniteScroll_js.useScrollElem(el),
+      scrollElem = _useScrollElem2.scrollElem;
+
+    // @ts-ignore
+    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
+    InfiniteScrollUp.updated.apply(InfiniteScrollUp, [scrollElem].concat(args));
+  },
+  unmounted: function unmounted(el) {
+    var _useScrollElem3 = elTableInfiniteScroll_js.useScrollElem(el),
+      scrollElem = _useScrollElem3.scrollElem;
+
+    // @ts-ignore
+    InfiniteScrollUp.unmounted(scrollElem);
+  },
+  install: function install(vue) {
+    vue.directive('el-table-infinite-scroll-up', ElTableInfiniteScrollUp);
+  }
+};
+
+module.exports = ElTableInfiniteScrollUp;

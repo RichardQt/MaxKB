@@ -1,0 +1,9 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author kleberMRocha
+ * @github https://github.com/kleberMRocha
+ *
+ * Português Brasileiro (Brazilian Portuguese)
+ */
+declare const PT_BR: StaticTextDefaultValue;
+export default PT_BR;

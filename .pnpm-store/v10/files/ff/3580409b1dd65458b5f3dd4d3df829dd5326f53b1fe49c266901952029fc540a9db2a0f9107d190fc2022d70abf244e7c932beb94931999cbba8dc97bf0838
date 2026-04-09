@@ -1,0 +1,7 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author ssrankedghoul
+ * @github https://github.com/gorgulenkozxc
+ */
+declare const RU: StaticTextDefaultValue;
+export default RU;

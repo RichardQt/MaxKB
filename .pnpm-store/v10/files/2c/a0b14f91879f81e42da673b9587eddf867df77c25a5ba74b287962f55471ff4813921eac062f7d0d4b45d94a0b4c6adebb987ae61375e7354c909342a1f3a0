@@ -1,0 +1,10 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author nima parandavar
+ * @email  nimaparsa299@outlook.com
+ * @github https://github.com/nima-parandavar
+ *
+ * PERSIAN
+ */
+declare const FA_IR: StaticTextDefaultValue;
+export default FA_IR;

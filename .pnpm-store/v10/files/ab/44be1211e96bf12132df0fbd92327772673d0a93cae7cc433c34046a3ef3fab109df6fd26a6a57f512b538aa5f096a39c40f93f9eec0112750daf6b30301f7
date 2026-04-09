@@ -1,0 +1,6 @@
+import type { ObjectDirective } from 'vue';
+declare const ElTableInfiniteScroll: ObjectDirective;
+export default ElTableInfiniteScroll;
+export declare function useScrollElem(el: HTMLElement): {
+    scrollElem: HTMLElement;
+};

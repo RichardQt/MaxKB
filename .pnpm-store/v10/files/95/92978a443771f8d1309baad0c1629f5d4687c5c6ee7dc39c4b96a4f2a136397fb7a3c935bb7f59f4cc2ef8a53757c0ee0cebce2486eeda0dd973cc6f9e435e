@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Michael Reyes Seiffert
+ * @github https://github.com/mreysei
+ * Translations supported by GitHub CoPilot
+ */
+declare const ES_ES: StaticTextDefaultValue;
+export default ES_ES;

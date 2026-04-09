@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author mzner
+ * @github https://github.com/mzner
+ *
+ */
+declare const AR: StaticTextDefaultValue;
+export default AR;

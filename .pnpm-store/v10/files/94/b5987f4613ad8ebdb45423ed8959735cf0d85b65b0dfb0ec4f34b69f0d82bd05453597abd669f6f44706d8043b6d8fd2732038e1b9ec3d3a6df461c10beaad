@@ -1,0 +1,448 @@
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('vue')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'vue'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Vue3Menus = {}, global.Vue));
+})(this, (function (exports, vue) { 'use strict';
+
+  function styleInject(css, ref) {
+    if ( ref === void 0 ) ref = {};
+    var insertAt = ref.insertAt;
+
+    if (!css || typeof document === 'undefined') { return; }
+
+    var head = document.head || document.getElementsByTagName('head')[0];
+    var style = document.createElement('style');
+    style.type = 'text/css';
+
+    if (insertAt === 'top') {
+      if (head.firstChild) {
+        head.insertBefore(style, head.firstChild);
+      } else {
+        head.appendChild(style);
+      }
+    } else {
+      head.appendChild(style);
+    }
+
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+  }
+
+  var css_248z = ".menus-fade-enter-active,\n.menus-fade-leave-active {\n  transition: opacity 0.2s ease-in-out;\n}\n.menus-fade-enter-from,\n.menus-fade-leave-to {\n  opacity: 0;\n}\n\n.v3-menus {\n  position: fixed;\n  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);\n  background: #fff;\n  border-radius: 4px;\n  padding: 8px 0;\n  user-select: none;\n  box-sizing: border-box;\n}\n\n.v3-menus-body {\n  display: block;\n}\n\n.v3-menus-item {\n  display: flex;\n  line-height: 2rem;\n  padding: 0 1rem;\n  margin: 0;\n  font-size: 0.8rem;\n  outline: 0;\n  align-items: center;\n  transition: 0.2s;\n  box-sizing: border-box;\n  list-style: none;\n  border-bottom: 1px solid #00000000;\n}\n\n.v3-menus-divided {\n  border-bottom-color: #ebeef5;\n}\n\n.v3-menus-icon {\n  display: flex;\n  margin-right: 0.6rem;\n  width: 1rem;\n}\n\n.v3-menus-label {\n  flex: 1;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.v3-menus-suffix {\n  margin-left: 1.5rem;\n  font-size: 0.39rem;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.v3-menus-available {\n  color: #606266;\n  cursor: pointer;\n}\n\n.v3-menus-available:hover {\n  background: #ecf5ff;\n  color: #409eff;\n}\n\n.v3-menus-disabled {\n  color: #c0c4cc;\n  cursor: not-allowed;\n}\n\n.v3-menus-active {\n  background: #ecf5ff;\n  color: #409eff;\n}\n\n.v3-menus-tip {\n  font-size: 9px;\n  color: #999;\n}\n";
+  styleInject(css_248z);
+
+  const props = {
+    menus: {
+      type: Array,
+      required: true
+    },
+    menusClass: {
+      type: String,
+      default: null
+    },
+    itemClass: {
+      type: String,
+      default: null
+    },
+    event: {
+      type: Object,
+      required: true
+    },
+    minWidth: {
+      type: [Number, String],
+      default: 'none'
+    },
+    maxWidth: {
+      type: [Number, String],
+      default: 'none'
+    },
+    zIndex: {
+      type: Number,
+      default: 3
+    },
+    direction: {
+      type: String,
+      default: 'right'
+    },
+    open: {
+      type: Boolean,
+      default: false
+    },
+    args: {
+      type: [Object, Function, Array, Boolean, String],
+      default: {}
+    }
+  };
+  const vue3MenusComponent = vue.defineComponent({
+    name: 'vue3-menus',
+    inheritAttrs: false,
+    props,
+
+    setup(props, {
+      slots,
+      attrs
+    }) {
+      const windowWidth = globalThis.document.documentElement.clientWidth;
+      const windowHeight = globalThis.document.documentElement.clientHeight;
+      const {
+        proxy
+      } = vue.getCurrentInstance();
+      const show = vue.ref(props.open);
+      const self = {};
+      const menusRef = vue.ref(null);
+      const activeIndex = vue.ref(-1);
+      const left = vue.ref(0);
+      const top = vue.ref(0);
+      let direction = props.direction;
+      const hasIcon = vue.computed(() => {
+        for (let index = 0; index < props.menus.length; index++) {
+          const menu = props.menus[index];
+
+          if (menu.icon !== undefined) {
+            return true;
+          }
+        }
+      });
+      const position = vue.computed(() => {
+        return {
+          x: props.event.clientX,
+          y: props.event.clientY,
+          width: props.event.width || 0,
+          height: props.event.height || 0
+        };
+      });
+      const style = vue.computed(() => {
+        return {
+          left: `${left.value}px`,
+          top: `${top.value}px`,
+          minWidth: `${props.minWidth}px`,
+          maxWidth: props.maxWidth == 'none' ? props.maxWidth : `${props.maxWidth}px`,
+          zIndex: props.zIndex
+        };
+      });
+
+      function leftOpen(menusWidth) {
+        left.value = position.value.x - menusWidth;
+        direction = 'left';
+
+        if (left.value < 0) {
+          direction = 'right';
+
+          if (position.value.width === 0 || position.value.width === undefined) {
+            left.value = 0;
+          } else {
+            left.value = position.value.x + position.value.width;
+          }
+        }
+      }
+
+      function rightOpen(windowWidth, menusWidth) {
+        left.value = position.value.x + position.value.width;
+        direction = 'right';
+
+        if (left.value + menusWidth > windowWidth) {
+          direction = 'left';
+
+          if (position.value.width === 0 || position.value.width === undefined) {
+            left.value = windowWidth - menusWidth;
+          } else {
+            left.value = position.value.x - menusWidth;
+          }
+        }
+      }
+
+      function closeEvent() {
+        activeIndex.value = -1;
+        show.value = false;
+
+        if (self && self.instance) {
+          self.instance.close.bind(self.instance)();
+          self.instance = null;
+          self.index = null; // @ts-ignore
+
+          if (proxy.closeAll) {
+            // @ts-ignore
+            proxy.closeAll();
+          }
+        }
+      }
+
+      vue.watch(() => props.open, newVal => show.value = newVal);
+      vue.watch(show, newVal => {
+        if (newVal) {
+          vue.nextTick(() => {
+            const menusWidth = menusRef.value.offsetWidth;
+            const menusHeight = menusRef.value.offsetHeight;
+
+            if (direction === 'left') {
+              leftOpen(menusWidth);
+            } else {
+              rightOpen(windowWidth, menusWidth);
+            }
+
+            top.value = position.value.y;
+
+            if (position.value.y + menusHeight > windowHeight) {
+              if (position.value.height === 0 || position.value.height === undefined) {
+                top.value = position.value.y - menusHeight;
+              } else {
+                top.value = windowHeight - menusHeight;
+              }
+            }
+
+            setTimeout(() => {
+              globalThis.document.addEventListener('click', closeEvent);
+              globalThis.document.addEventListener('contextmenu', closeEvent);
+              globalThis.document.addEventListener('wheel', closeEvent);
+            }, 0);
+          });
+        } else {
+          activeIndex.value = -1;
+          globalThis.document.removeEventListener('click', closeEvent);
+          globalThis.document.removeEventListener('contextmenu', closeEvent);
+          globalThis.document.removeEventListener('wheel', closeEvent);
+        }
+      }, {
+        immediate: true
+      });
+
+      function mouseEnter(event, menu, index) {
+        event.preventDefault();
+        activeIndex.value = index;
+
+        if (!menu || menu.disabled || menu.hidden) {
+          return;
+        }
+
+        if (self.instance) {
+          if (self.index === index) {
+            return;
+          }
+
+          self.instance.close.bind(self.instance)();
+          self.instance = null;
+          self.index = null;
+        }
+
+        if (!menu.children) {
+          return;
+        }
+
+        const enter = menu.enter && typeof menu.enter === 'function' ? menu.enter : null;
+
+        if (enter) {
+          const val = enter(menu, props.args);
+
+          if (val === false || val === null) {
+            return;
+          }
+        }
+
+        const menuItemClientRect = event.target.getBoundingClientRect();
+        const vm = vue.createVNode(vue3MenusComponent, { ...props,
+          menus: menu.children,
+          direction: direction,
+          event: {
+            clientX: menuItemClientRect.x + 3,
+            clientY: menuItemClientRect.y - 8,
+            width: menuItemClientRect.width - 2 * 3,
+            height: menuItemClientRect.width
+          },
+          open: false
+        }, slots);
+        const container = globalThis.document.createElement('div');
+        vue.render(vm, container);
+        vm.component.props.open = true; // @ts-ignore
+
+        vm.component.proxy.close = close;
+        self.instance = vm.component.proxy;
+        self.instance.container = container;
+        self.instance.props = vm.component.props;
+        self.index = index;
+      }
+
+      function mouseClick(event, menu) {
+        event.preventDefault();
+
+        if (!menu || menu.disabled) {
+          event.stopPropagation();
+          return;
+        }
+
+        const click = menu.click && typeof menu.click === 'function' ? menu.click : null;
+
+        if (click) {
+          const val = click(menu, props.args);
+
+          if (val === false || val === null) {
+            event.stopPropagation();
+          }
+        }
+
+        if (menu.children) {
+          event.stopPropagation();
+        }
+      }
+
+      function close() {
+        this.show = false;
+
+        if (this.self && this.self.instance) {
+          this.self.instance.close();
+        }
+
+        vue.nextTick(() => {
+          vue.render(null, this.container);
+        });
+      }
+
+      const {
+        default: $default,
+        label,
+        icon,
+        suffix
+      } = slots;
+      const $class = ['v3-menus', attrs.class, props.menusClass];
+      return () => vue.createVNode(vue.Teleport, {
+        "to": 'body'
+      }, {
+        default: () => [vue.createVNode(vue.Transition, {
+          "name": 'menus-fade'
+        }, {
+          default: () => [!show.value ? null : vue.createVNode("div", {
+            "ref": menusRef,
+            "class": $class,
+            "style": style.value,
+            "onWheel": e => e.preventDefault(),
+            "onContextmenu": e => e.preventDefault()
+          }, [vue.createVNode("div", {
+            "class": 'v3-menus-body'
+          }, [props.menus.map((menu, index) => {
+            if (menu.hidden) {
+              return null;
+            }
+
+            if ($default) {
+              return vue.createVNode("div", {
+                "onContextmenu": $event => mouseClick($event, menu),
+                "onClick": $event => mouseClick($event, menu),
+                "onMouseenter": $event => mouseEnter($event, menu, index)
+              }, [$default({
+                menu,
+                activeIndex: activeIndex.value,
+                index
+              })]);
+            } else {
+              let $class = [props.itemClass, 'v3-menus-item', menu.disabled ? 'v3-menus-disabled' : 'v3-menus-available'];
+              $class = $class.concat([menu.divided ? 'v3-menus-divided' : null, !menu.disabled && activeIndex.value === index ? 'v3-menus-active' : null]);
+              return vue.createVNode("div", {
+                "style": menu.style,
+                "class": $class.join(' '),
+                "onClick": $event => mouseClick($event, menu),
+                "onMouseenter": $event => mouseEnter($event, menu, index),
+                "onContextmenu": $event => mouseClick($event, menu)
+              }, [hasIcon.value ? vue.createVNode("div", {
+                "class": 'v3-menus-icon '
+              }, [icon ? icon({
+                menu,
+                activeIndex: activeIndex.value,
+                index
+              }) : vue.createVNode("span", {
+                "innerHTML": menu.icon
+              }, null)]) : null, label ? vue.createVNode("span", {
+                "class": 'v3-menus-label'
+              }, [label({
+                menu,
+                activeIndex: activeIndex.value,
+                index
+              })]) : vue.createVNode("span", {
+                "class": 'v3-menus-label'
+              }, [menu.label]), menu.children || menu.tip ? vue.createVNode("div", {
+                "class": 'v3-menus-suffix'
+              }, [suffix ? suffix({
+                menu,
+                activeIndex: activeIndex.value,
+                index
+              }) : menu.children ? '▶' : menu.tip ? vue.createVNode("span", {
+                "class": 'v3-menus-tip'
+              }, [menu.tip]) : null]) : null]);
+            }
+          })])])]
+        })]
+      });
+    }
+
+  });
+
+  function mouseEvent(menus, args, event) {
+    let props = {};
+    if (Array.isArray(menus)) {
+      props = {
+        menus,
+        event,
+        args,
+        open: false,
+      };
+    } else {
+      props = {
+        ...menus,
+        args,
+        event,
+        open: false
+      };
+    }
+    const vNode = vue.createVNode(vue3MenusComponent, props);
+    const container = globalThis.document.createElement('div');
+    vue.render(vNode, container);
+    vNode.component.props.open = true;
+    vNode.component.proxy.closeAll = () => {
+      vue.nextTick(() => {
+        vue.render(null, container);
+      });
+    };
+    if (props.prevent == undefined || props.prevent) {
+      event.preventDefault();
+    }
+  }
+
+  const directive = {
+    mounted(el, { value, arg }) {
+      const vnode = el.__vnode || {};
+      if (arg === undefined || arg === 'right') {
+        el.addEventListener("contextmenu", mouseEvent.bind(el, value, vnode.props || {}));
+      } else if (arg === 'left') {
+        el.addEventListener("click", mouseEvent.bind(el, value, vnode.props || {}));
+      } else if (arg === 'all') {
+        el.addEventListener("contextmenu", mouseEvent.bind(el, value, vnode.props || {}));
+        el.addEventListener("click", mouseEvent.bind(el, value, vnode.props || {}));
+      }
+    },
+    unmounted(el) {
+      el.removeEventListener("contextmenu", mouseEvent);
+      el.removeEventListener("click", mouseEvent);
+    }
+  };
+
+  const install = function (app, options = {}) {
+    app.component(options.name || vue3MenusComponent.name, vue3MenusComponent);
+    app.directive('menus', directive);
+    app.config.globalProperties.$menusEvent = (event, menus, args) => mouseEvent(menus, args || {}, event);
+  };
+
+  const menusEvent = (event, menus, args) => mouseEvent(menus, args || {}, event);
+
+  function index (app) {
+    app.use(install);
+  }
+
+  exports.Vue3Menus = vue3MenusComponent;
+  exports["default"] = index;
+  exports.directive = directive;
+  exports.menusEvent = menusEvent;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+}));

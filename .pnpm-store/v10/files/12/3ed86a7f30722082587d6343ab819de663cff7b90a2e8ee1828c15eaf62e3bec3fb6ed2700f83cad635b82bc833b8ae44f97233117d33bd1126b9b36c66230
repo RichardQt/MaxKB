@@ -1,0 +1,10 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author vallerydelexy
+ * @email  unknown
+ * @github https://github.com/vallerydelexy
+ *
+ * Bahasa Indonesia
+ */
+declare const ID_ID: StaticTextDefaultValue;
+export default ID_ID;

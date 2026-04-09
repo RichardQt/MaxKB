@@ -1,0 +1,7 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author JiHun Oh
+ * @github https://github.com/Baw-Appie
+ */
+declare const KO_KR: StaticTextDefaultValue;
+export default KO_KR;

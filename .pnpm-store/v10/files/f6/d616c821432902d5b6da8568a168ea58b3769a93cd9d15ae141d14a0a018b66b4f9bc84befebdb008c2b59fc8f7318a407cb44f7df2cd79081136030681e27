@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Adrien Foulon
+ * @github https://github.com/tofandel
+ * Author is native French
+ */
+declare const FR_FR: StaticTextDefaultValue;
+export default FR_FR;

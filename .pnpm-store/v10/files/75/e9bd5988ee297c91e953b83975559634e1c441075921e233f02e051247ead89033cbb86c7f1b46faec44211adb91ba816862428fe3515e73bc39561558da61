@@ -1,0 +1,10 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author vallerydelexy
+ * @email  unknown
+ * @github https://github.com/vallerydelexy
+ *
+ * Basa Jawa
+ */
+declare const JV_ID: StaticTextDefaultValue;
+export default JV_ID;

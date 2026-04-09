@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Lars Marondel
+ * @github https://github.com/JehtJanich
+ * Author is native German speaker
+ */
+declare const DE_DE: StaticTextDefaultValue;
+export default DE_DE;

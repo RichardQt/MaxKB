@@ -1,0 +1,76 @@
+/*!
+ * el-table-infinite-scroll v3.0.8
+ * (c) 2019-2025 yujinpan
+ */
+
+import _regeneratorRuntime from '@babel/runtime/helpers/esm/regeneratorRuntime';
+import _asyncToGenerator from '@babel/runtime/helpers/esm/asyncToGenerator';
+import 'core-js/modules/es.object.to-string.js';
+
+var InfiniteScrollUp = {
+  mounted: function mounted(el, binding) {
+    var loading = false;
+    var store = el._InfiniteScrollStore = {
+      handleScroll: throttle( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+        var oldScrollHeight;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              if (!loading && !store.options.disabled && el.scrollTop < (store.options.distance || 10)) {
+                loading = true;
+                oldScrollHeight = el.scrollHeight;
+                Promise.resolve(store.options.load()).finally(function () {
+                  setTimeout(function () {
+                    el.scrollTop = el.scrollTop + el.scrollHeight - oldScrollHeight;
+                    loading = false;
+                  });
+                });
+              }
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee);
+      })), binding.value.delay || 50),
+      options: binding.value
+    };
+    el.addEventListener('scroll', store.handleScroll);
+    if (binding.value.immediate !== false) {
+      store.handleScroll();
+    }
+  },
+  updated: function updated(el, binding) {
+    Object.assign(el._InfiniteScrollStore.options, binding.value);
+  },
+  unmounted: function unmounted(el) {
+    var _ref2 = el._InfiniteScrollStore || {},
+      handleScroll = _ref2.handleScroll;
+    if (handleScroll) {
+      el.removeEventListener('scroll', handleScroll);
+    }
+  },
+  install: function install(vue) {
+    vue.directive('infinite-scroll-up', InfiniteScrollUp);
+  }
+};
+function throttle(func, wait) {
+  var waiting = false; // 标记是否处于等待间隔中
+
+  return function () {
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    var context = this;
+    // eslint-disable-next-line prefer-rest-params
+    var args = arguments;
+    if (!waiting) {
+      waiting = true;
+      setTimeout(function () {
+        // @ts-ignore
+        func.apply(context, args);
+        waiting = false;
+      }, wait);
+    }
+  };
+}
+
+export { InfiniteScrollUp as default, throttle };

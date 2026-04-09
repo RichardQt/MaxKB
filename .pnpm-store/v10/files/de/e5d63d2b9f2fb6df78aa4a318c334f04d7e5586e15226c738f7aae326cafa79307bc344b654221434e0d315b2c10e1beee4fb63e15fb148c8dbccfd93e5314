@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Lars Marondel
+ * @github https://github.com/JehtJanich
+ * Translations supported by GitHub CoPilot
+ */
+declare const IT_IT: StaticTextDefaultValue;
+export default IT_IT;

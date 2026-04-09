@@ -1,0 +1,13 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author halillusion
+ * @email  halillusion@gmail.com
+ * @github https://github.com/halillusion
+ *
+ * Türkçe Çeviri
+ *
+ * Yazar çevirinin doğruluğundan emin değildir.
+ * Eğer bir hata bulursanız, lütfen düzeltin.
+ */
+declare const TR_TR: StaticTextDefaultValue;
+export default TR_TR;

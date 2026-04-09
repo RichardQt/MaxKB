@@ -1,0 +1,8 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Lars Marondel
+ * @github https://github.com/JehtJanich
+ * Autor jest niemieckojęzyczny
+ */
+declare const PL_PL: StaticTextDefaultValue;
+export default PL_PL;

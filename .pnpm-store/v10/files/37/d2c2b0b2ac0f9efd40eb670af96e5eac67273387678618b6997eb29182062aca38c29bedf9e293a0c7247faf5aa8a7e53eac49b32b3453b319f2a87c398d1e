@@ -1,0 +1,9 @@
+import type { StaticTextDefaultValue } from '../../index';
+/**
+ * @author Jie Xie
+ * @github https://github.com/xj89959853
+ *
+ * 日语翻译
+ */
+declare const JP_JP: StaticTextDefaultValue;
+export default JP_JP;
